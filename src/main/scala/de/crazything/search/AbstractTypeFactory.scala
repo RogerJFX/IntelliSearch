@@ -3,7 +3,7 @@ package de.crazything.search
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
 
-abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] {
+abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig {
 
   def createInstanceFromDocument(doc: Document): PkDataSet[I]
 
@@ -11,5 +11,5 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] {
 
   def populateDocument(document: Document, dataSet: T): Unit
 
-  def createQuery(t: T): Query
+  def createQuery(t: T, queryEnable: Int): Query
 }

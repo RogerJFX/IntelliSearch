@@ -3,7 +3,7 @@ package de.crazything.app.helpers
 import java.net.URL
 import java.nio.file.{Files, Path, Paths}
 
-import de.crazything.app.{Person, SimpleTest}
+import de.crazything.app.Person
 
 import scala.collection.mutable.ListBuffer
 
@@ -11,7 +11,7 @@ object DataProvider {
 
   def readPersons(): Seq[Person] = {
     import scala.collection.JavaConverters._
-    val url: URL = classOf[SimpleTest].getResource("/data.txt")
+    val url: URL = DataProvider.getClass.getResource("/data.txt")
     val path: Path = Paths.get(url.toURI)
     val lines: Seq[String] = Files.readAllLines(path).asScala
     val buffer: ListBuffer[Person] =  new ListBuffer

@@ -23,9 +23,11 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify{
   override def setDataPool(data: Seq[Person]): Unit = {
     DataContainer.setData(data)
   }
-
+  // TODO: do we really need new extra fields for phonetic search? Maybe later?
   override def populateDocument(document: Document, dataSet: Person): Unit = {
+
     document.add(new StoredField("id", dataSet.id))
+
     document.add(new Field(SALUTATION, prepareField(dataSet.salutation), StringField.TYPE_NOT_STORED))
     document.add(new Field(FIRST_NAME, prepareField(dataSet.firstName), StringField.TYPE_NOT_STORED))
     document.add(new Field(LAST_NAME, prepareField(dataSet.lastName), StringField.TYPE_NOT_STORED))
@@ -48,18 +50,13 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify{
   val createRegexTMP: (String) => String = (input) =>  {
     val occurs = Seq("ei", "ai", "ey", "ay")
     val replacement = "(a|e)(i|j|y)e?"
-    var output: String = input
-    occurs.foreach(occur => {
-      output = output.replace(occur, replacement)
-    })
-    output
+    occurs.foldLeft(input)((r, c) => r.replace(c, replacement))
   }
 
   override def createQuery(t: Person): Query = {
 
     val parser: QueryParser = new QueryParser(s"$LAST_NAME$PHONETIC", GermanIndexer.phoneticAnalyzer)
     val phoneticQuery = parser.parse(prepareField(t.lastName))
-
 
     new BooleanQuery.Builder() // ???
       // Boost perfect matches by 10

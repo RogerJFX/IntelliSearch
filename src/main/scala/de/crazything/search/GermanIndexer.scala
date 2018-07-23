@@ -25,7 +25,7 @@ object GermanIndexer extends AbstractIndexer {
     GermanSearcher.setDirectory(directory)
   }
 
-  def index[T <: PkDataSet](data: Seq[T], factory: AbstractTypeFactory[T]): Unit = {
+  def index[I, T <: PkDataSet[I]](data: Seq[T], factory: AbstractTypeFactory[I, T]): Unit = {
     createIndex(phoneticAnalyzer, data, factory)
   }
 

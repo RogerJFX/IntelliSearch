@@ -17,6 +17,12 @@ class SimpleTest extends FlatSpec {
     assert(searchResult.length == 1)
   }
 
+  it should "find Rayßer" in {
+    val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Rayßer", "street", "city"), PersonFactory, 10)
+    logger.debug(s"Rayßer: $searchResult")
+    assert(searchResult.length == 1)
+  }
+
   it should "find Raisr" in {
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Raisr", "street", "city"), PersonFactory, 10)
     logger.debug(s"Raisr: $searchResult")

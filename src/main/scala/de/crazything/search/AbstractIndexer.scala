@@ -14,7 +14,7 @@ abstract class AbstractIndexer {
 //  private[this] val target = new URL(url, "pindex")
 //  private[this] val path: Path = Paths.get(target.toURI)
 
-  protected def createIndex[T <: PkDataSet](analyzer: Analyzer, data: Seq[T], factory: AbstractTypeFactory[T]): Unit = {
+  protected def createIndex[I, T <: PkDataSet[I]](analyzer: Analyzer, data: Seq[T], factory: AbstractTypeFactory[I, T]): Unit = {
     val config = new IndexWriterConfig(analyzer)
     val directory = /*new SimpleFSDirectory(path)*/new RAMDirectory
     val writer = new IndexWriter(directory, config)
@@ -26,7 +26,7 @@ abstract class AbstractIndexer {
 
 
 
-  private def doIndex[T <: PkDataSet](writer: IndexWriter, data: Seq[T], factory: AbstractTypeFactory[T]): Unit = {
+  private def doIndex[I, T <: PkDataSet[I]](writer: IndexWriter, data: Seq[T], factory: AbstractTypeFactory[I, T]): Unit = {
     data.foreach(dataSet => {
       val document: Document = new Document
       factory.populateDocument(document, dataSet)

@@ -15,13 +15,13 @@ object GermanSearcher {
     searcherRef.set(new IndexSearcher(reader))
   }
 
-  def search[T <: PkDataSet](input: T, factory: AbstractTypeFactory[T], numHits: Int = 100): Seq[T] = {
+  def search[I, T <: PkDataSet[I]](input: T, factory: AbstractTypeFactory[I, T], maxHits: Int = 100): Seq[SearchResult[I, T]] = {
     val searcher = searcherRef.get()
     val query: Query = factory.createQuery(input)
-    val hits: Array[ScoreDoc] = searcher.search(query, numHits).scoreDocs
+    val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
     hits.map(hit => {
       val hitDoc = searcher.doc(hit.doc)
-      factory.createInstanceFromDocument(hitDoc.get("id").toInt, hitDoc)
+      SearchResult[I, T](factory.createInstanceFromDocument(hitDoc).asInstanceOf[T], hit.score)
     })
   }
 

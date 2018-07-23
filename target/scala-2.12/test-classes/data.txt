@@ -1,5 +1,0 @@
-1;Herr;Franz;Mayer;Hartmannweg 23;60389 Frankfurt a.M.
-2;Herr;Roger;Hösl;Hartmannweg 25;60389 Frankfurt a.M.
-3;Herr;Franz;Reißer;Hartmannweg 27;60389 Frankfurt a.M.
-4;Herr;Vico;Müller-Lüdenscheidt;Hartmannweg 27;60389 Frankfurt a.M.
-5;Herr;Theodor Wiesengrund;Philosoph;Am Weingarten 10;60487 Frankfurt a.M.

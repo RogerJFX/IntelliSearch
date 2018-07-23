@@ -14,6 +14,6 @@ trait FieldModify {
     replacements.foreach(r => s = s.replaceAll(r._1, r._2))
     s
   }
-
+  // tmp switched off
   val prepareField: (String) => String = (str) => str // replaceChars(str.trim.toUpperCase)
 }

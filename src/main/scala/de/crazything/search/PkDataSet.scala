@@ -1,3 +1,3 @@
 package de.crazything.search
 
-class PkDataSet(id: Int)
+class PkDataSet[T](id: T)

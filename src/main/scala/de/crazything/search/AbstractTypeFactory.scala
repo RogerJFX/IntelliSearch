@@ -3,9 +3,9 @@ package de.crazything.search
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
 
-abstract class AbstractTypeFactory[T <: PkDataSet] {
+abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] {
 
-  def createInstanceFromDocument(id: Int, doc: Document): T
+  def createInstanceFromDocument(doc: Document): PkDataSet[I]
 
   def setDataPool(data: Seq[T]): Unit
 

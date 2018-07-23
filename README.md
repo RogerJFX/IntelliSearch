@@ -15,7 +15,8 @@ Final goal is to deduce reliable data out of fuzzy data.
 
 This approach only focuses on the German language so far. 
 
-###What's next:
+What's next:
+-
 
 - Getting rid of all those tmp shortcuts, that should lead to Exceptions in 
     any production. NullPointers, of course.

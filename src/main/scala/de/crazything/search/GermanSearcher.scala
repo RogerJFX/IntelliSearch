@@ -17,10 +17,15 @@ object GermanSearcher extends QueryConfig{
 
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
-                                   queriesEnabled: Int = QueryEnabled.ALL,
+                                   queriesEnabled: Option[Int] = None,
                                    maxHits: Int = 100): Seq[SearchResult[I, T]] = {
     val searcher = searcherRef.get()
-    val query: Query = factory.createQuery(input, queriesEnabled)
+    val query: Query =
+      queriesEnabled match {
+        case None => factory.createQuery(input)
+        case qeOpt => factory.createQuery(input, qeOpt)
+      }
+
     val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
     hits.map(hit => {
       val hitDoc = searcher.doc(hit.doc)

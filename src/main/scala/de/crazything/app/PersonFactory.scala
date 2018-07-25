@@ -41,14 +41,27 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
 
   }
 
-  override def createQuery(person: Person, queryEnable: Int = QueryEnabled.ALL): Query = {
+  override def createQuery(person: Person): Query = {
+    import CustomQuery.{data2Query, seq2Query}
+    Seq(
+      (LAST_NAME, person.lastName).exact,
+      (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
+      (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
+      (LAST_NAME, person.lastName, Boost.FUZZY, FUZZY_MAX_EDITS).fuzzy
+    )
+  }
 
-    import CustomQuery._
+  override def createQuery(person: Person, queryEnableOpt: Option[Int] = Some(QueryEnabled.ALL)): Query = {
+
+    val queryEnable = queryEnableOpt.get // cannot be empty
+
+    import CustomQuery.data2Query
 
     val queryBuilder = new BooleanQuery.Builder()
 
-    if (checkEnabled(queryEnable, QueryEnabled.TERM)) {
-      queryBuilder.add((LAST_NAME, person.lastName, Boost.TERM).exact, BooleanClause.Occur.SHOULD)
+    if (checkEnabled(queryEnable, QueryEnabled.EXACT)) {
+      // OR customized: queryBuilder.add((LAST_NAME, person.lastName, 10000).exact, BooleanClause.Occur.SHOULD) -> Boost 10000
+      queryBuilder.add((LAST_NAME, person.lastName).exact, BooleanClause.Occur.SHOULD)
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.REGEX)) {
@@ -60,7 +73,9 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.FUZZY)) {
-      queryBuilder.add((LAST_NAME, person.lastName, Boost.FUZZY).fuzzy, BooleanClause.Occur.SHOULD)
+      // OR without maxEdits: queryBuilder.add((LAST_NAME, person.lastName, Boost.FUZZY).fuzzy, BooleanClause.Occur.SHOULD)
+      // In this case FUZZY_MAX_EDITS would be fetched as default from QueryConfig
+      queryBuilder.add((LAST_NAME, person.lastName, Boost.FUZZY, FUZZY_MAX_EDITS).fuzzy, BooleanClause.Occur.SHOULD)
     }
 
     queryBuilder.build()

@@ -48,7 +48,7 @@ class SimpleTest extends FlatSpec with QueryConfig{
 
   it should "find one result for Rayßer" in {
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Rayßer", "street", "city"), PersonFactory,
-      QueryEnabled.TERM | QueryEnabled.PHONETIC)
+      Some(QueryEnabled.EXACT | QueryEnabled.PHONETIC))
     logger.debug(s"Rayßer (without fuzzy): $searchResult")
     assert(searchResult.length == 1)
     checkScore("Rayßer-Phon", searchResult.head.score)
@@ -95,7 +95,7 @@ class SimpleTest extends FlatSpec with QueryConfig{
 
   it should "fail fuzzy Filosof" in {
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Filosof", "street", "city"), PersonFactory,
-      QueryEnabled.FUZZY)
+      Some(QueryEnabled.FUZZY))
     logger.debug(s"Filosof (only fuzzy): $searchResult")
     assert(searchResult.isEmpty) // Nothing found => fail.
   }

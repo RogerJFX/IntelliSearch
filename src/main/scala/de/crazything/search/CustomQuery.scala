@@ -49,12 +49,12 @@ case object CustomQuery extends QueryConfig {
   /**
     * Creates a BooleanQuery of a Sequence of partial Queries. Just pass something like:
     *
-    * <code>
+    * {{{
     *   Seq(
     *     (LAST_NAME, person.lastName).exact,
     *     (LAST_NAME, person.lastName).phonetic
     *   )
-    * </code
+    * }}}
     *
     * and you should get what you need.
     *

@@ -23,13 +23,7 @@ is possible, even if it meanwhile would be a real pain in my holy *beep*.
 What's next:
 -
 
-- Getting rid of all those tmp shortcuts, that should lead to Exceptions in 
-    any production. NullPointers, of course.
-- Working out the API (not to be mentioned)
-- Creating a service using Netty/Akka or even Play (no Solr, please)
-- Creating an interface for final remote plausibility tests, if needed. 
-    Maybe Kafka or Akka streams, or whatever.
-- Extending the engine to other languages.
-- Making it configurable. 
+- Make it cool. Bake some cakes.
+- Wait for the cakes and then see what's next. 
 
 

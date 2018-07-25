@@ -4,7 +4,8 @@ import de.crazything.search._
 import org.apache.lucene.document._
 import org.apache.lucene.search._
 
-object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexReplace with QueryConfig {
+// TODO: get rid of nasty lucene imports. We don't need em here. So f...[beep] create some implicits in the API
+object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexReplace {
 
   private[this] val PK = "id"
 
@@ -22,13 +23,6 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
     DataContainer.setData(data)
   }
 
-  /**
-    * Ok, got it! Here's the hook: the phonetic analyzer does not feel responsible for StringFields but only for TextFields.
-    * So we have to add the Class' fields twice. This is done in AbstractTypeFactory.addField.
-    *
-    * @param document The Lucene document to populate
-    * @param person Object to be added to document.
-    */
   override def populateDocument(document: Document, person: Person): Unit = {
 
     addPkField(document, PK, person.id)
@@ -41,6 +35,17 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
 
   }
 
+  /**
+    * The normal method.
+    *
+    * We have the chance to pass a custom boost factor and a custom fuzzyMaxEdit (aka Levenstein range).
+    *
+    * The only thing we can't do here in comparison is disabling queries be passing a filter. Normally we
+    * don't need to do this since this is a factory class.
+    *
+    * @param person Our search object
+    * @return The desired BooleanQuery
+    */
   override def createQuery(person: Person): Query = {
     import CustomQuery.{data2Query, seq2Query}
     Seq(
@@ -51,6 +56,16 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
     )
   }
 
+  /**
+    * Custom method. We have a param queryEnableOpt here. So if we pass Some(QueryEnabled.REGEX), only the RegexQuery
+    * will perform.
+    *
+    * Maybe deprecated in some later version.
+    *
+    * @param person Our search object
+    * @param queryEnableOpt Selection of enabled types of Query.
+    * @return Normally a BooleanQuery
+    */
   override def createQuery(person: Person, queryEnableOpt: Option[Int] = Some(QueryEnabled.ALL)): Query = {
 
     val queryEnable = queryEnableOpt.get // cannot be empty

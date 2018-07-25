@@ -1,4 +1,4 @@
-package de.crazything.app
+package de.crazything.app.test
 
 import org.apache.commons.codec.language.ColognePhonetic
 import org.scalatest.FlatSpec

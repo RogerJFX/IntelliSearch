@@ -1,4 +1,4 @@
-package de.crazything.app.helpers
+package de.crazything.app.test.helpers
 
 import java.net.URL
 import java.nio.file.{Files, Path, Paths}

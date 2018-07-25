@@ -1,5 +1,6 @@
 package de.crazything.search
 
+import de.crazything.search.entity.PkDataSet
 import org.apache.commons.codec.language.ColognePhonetic
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.phonetic.PhoneticFilter

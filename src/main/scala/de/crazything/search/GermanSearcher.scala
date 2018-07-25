@@ -2,11 +2,14 @@ package de.crazything.search
 
 import java.util.concurrent.atomic.AtomicReference
 
+import de.crazything.search.entity.{PkDataSet, SearchResult}
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc}
 import org.apache.lucene.store.Directory
 
 object GermanSearcher {
+
+  private val MAGIC_NUM_DEFAULT_HITS = 100
 
   private val searcherRef: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]]()
 
@@ -18,7 +21,7 @@ object GermanSearcher {
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
                                    queriesEnabled: Option[Int] = None,
-                                   maxHits: Int = 100): Seq[SearchResult[I, T]] = {
+                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS): Seq[SearchResult[I, T]] = {
     val searcherOption = searcherRef.get()
 
     searcherOption match {

@@ -2,7 +2,8 @@ package de.crazything.app.test
 
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.app.{Person, PersonFactory}
-import de.crazything.search.{GermanIndexer, GermanSearcher, QueryConfig, SearchResult}
+import de.crazything.search.entity.SearchResult
+import de.crazything.search.{GermanIndexer, GermanSearcher, QueryConfig}
 import org.scalatest.FlatSpec
 import org.slf4j.LoggerFactory
 

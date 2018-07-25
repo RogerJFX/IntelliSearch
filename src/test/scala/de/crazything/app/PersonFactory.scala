@@ -1,6 +1,7 @@
 package de.crazything.app
 
 import de.crazything.search._
+import de.crazything.search.entity.PkDataSet
 import org.apache.lucene.document._
 import org.apache.lucene.search._
 

@@ -18,7 +18,7 @@ This approach only focuses on the German language so far.
 
 One last note: I initially wrote Scala code, that would have been easily
 translated into Java. I lost this scope and I am sorry for this. However it still 
-is possible, even if it meanwhile would be a real pain in the *whatever*.
+is possible, even if it meanwhile would be a real pain in my holy *beep*.
 
 What's next:
 -

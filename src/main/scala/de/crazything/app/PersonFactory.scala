@@ -6,7 +6,7 @@ import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 
-object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify with QueryConfig {
+object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify with CustomRegexReplace with QueryConfig {
 
   val PK = "id"
 
@@ -45,25 +45,6 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify w
 
   }
 
-  /**
-    * TMP!
-    *
-    * Mayer, Maier, Meyer should match Meier. Even Majr.
-    */
-  private val createRegexTMP: (String) => String = (input) => {
-    val occurs = Seq("ei", "ai", "ey", "ay")
-    val replacement = "(a|e)(i|j|y)e?"
-    occurs.foldLeft(input)((r, c) => r.replace(c, replacement))
-    //input.replaceAll(replacement, replacement)
-    /*
-    Hm, why not input.replaceAll(replacement, replacement)) ?
-     */
-  }
-
-  /*
-   TODO: we should work this out.
-   Maybe some implicits.
-    */
   override def createQuery(person: Person, queryEnable: Int = QueryEnabled.ALL): Query = {
 
     val parser: QueryParser = new QueryParser(s"$LAST_NAME$PHONETIC", GermanIndexer.phoneticAnalyzer)
@@ -77,7 +58,7 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify w
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.REGEX)) {
-      queryBuilder.add(new BoostQuery(new RegexpQuery(new Term(LAST_NAME, createRegexTMP(person.lastName))), Boost.REGEX),
+      queryBuilder.add(new BoostQuery(new RegexpQuery(new Term(LAST_NAME, createRegexTerm(person.lastName))), Boost.REGEX),
         BooleanClause.Occur.SHOULD)
     }
 

@@ -6,7 +6,7 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc}
 import org.apache.lucene.store.Directory
 
-object GermanSearcher extends QueryConfig{
+object GermanSearcher {
 
   private val searcherRef: AtomicReference[IndexSearcher] = new AtomicReference[IndexSearcher]()
 

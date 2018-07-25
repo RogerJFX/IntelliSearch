@@ -9,11 +9,16 @@ The Lucene version is 7.4.0.
 
 The idea is to at least find matches based on phonetic conditions prior to fuzzy matches.
 
-Remember this: language is first spoken, then written. So a phonetic search does make sense. 
+Remember this: language is first spoken, then written. So a phonetic search in front of 
+fuzzy does make sense. 
 
 Final goal is to deduce reliable data out of fuzzy data. 
 
 This approach only focuses on the German language so far. 
+
+One last note: I initially wrote Scala code, that would have been easily
+translated into Java. I lost this scope and I am sorry for this. However it still 
+is possible, even if it meanwhile would be a real pain in the *whatever*.
 
 What's next:
 -

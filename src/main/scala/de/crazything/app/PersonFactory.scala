@@ -6,7 +6,7 @@ import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 
-object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify with CustomRegexReplace with QueryConfig {
+object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexReplace with QueryConfig {
 
   val PK = "id"
 
@@ -37,23 +37,23 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify w
 
     addPkField(document, PK, person.id)
 
-    addField(document, SALUTATION, prepareField(person.salutation))
-    addField(document, FIRST_NAME, prepareField(person.firstName))
-    addField(document, LAST_NAME, prepareField(person.lastName))
-    addField(document, STREET, prepareField(person.street))
-    addField(document, CITY, prepareField(person.city))
+    addField(document, SALUTATION, person.salutation)
+    addField(document, FIRST_NAME, person.firstName)
+    addField(document, LAST_NAME, person.lastName)
+    addField(document, STREET, person.street)
+    addField(document, CITY, person.city)
 
   }
 
   override def createQuery(person: Person, queryEnable: Int = QueryEnabled.ALL): Query = {
 
     val parser: QueryParser = new QueryParser(s"$LAST_NAME$PHONETIC", GermanIndexer.phoneticAnalyzer)
-    val phoneticQuery = parser.parse(prepareField(person.lastName))
+    val phoneticQuery = parser.parse(person.lastName)
 
     val queryBuilder = new BooleanQuery.Builder()
 
     if (checkEnabled(queryEnable, QueryEnabled.TERM)) {
-      queryBuilder.add(new BoostQuery(new TermQuery(new Term(LAST_NAME, prepareField(person.lastName))), Boost.TERM),
+      queryBuilder.add(new BoostQuery(new TermQuery(new Term(LAST_NAME, person.lastName)), Boost.TERM),
         BooleanClause.Occur.SHOULD)
     }
 
@@ -67,7 +67,7 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with FieldModify w
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.FUZZY)) {
-      queryBuilder.add(new BoostQuery(new FuzzyQuery(new Term(LAST_NAME, prepareField(person.lastName)), FUZZY_MAX_EDITS), Boost.FUZZY),
+      queryBuilder.add(new BoostQuery(new FuzzyQuery(new Term(LAST_NAME, person.lastName), FUZZY_MAX_EDITS), Boost.FUZZY),
         BooleanClause.Occur.SHOULD)
     }
 

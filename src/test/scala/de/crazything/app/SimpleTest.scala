@@ -15,10 +15,25 @@ class SimpleTest extends FlatSpec with QueryConfig{
 
   val results: ListBuffer[SearchResult[Int, Person]] = new ListBuffer[SearchResult[Int, Person]]()
 
+  // Just to make sure, nothing unexpected happens during development.
+  private[this] val expectedScores: Map[String, Float] = Map[String, Float](
+    ("Reißer", 31.370277F), // => Reißer
+    ("Rayßer-Fuzzy-HEAD", 15.207415F),
+    ("Rayßer-Fuzzy-LAST", 0.8317767F), // => Mayer!
+    ("Rayßer-Phon", 7.2832184F), // => Reißer
+    ("Raisr", 7.2832184F),
+    ("Müller-Lüdenscheidt", 38.248436F), // => Müller-Lüdenscheidt
+    ("Muller-Ludenscheid", 11.901843F),
+    ("Filosof", 7.2832184F) // => Philosoph
+  )
+
+  private[this] def checkScore(name: String, score: Float) = assert(expectedScores(name) == score)
+
   "Persons" should "find Reißer" in {
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Reißer", "street", "city"), PersonFactory)
     logger.debug(s"Reißer: $searchResult")
     assert(searchResult.length == 1)
+    checkScore("Reißer", searchResult.head.score)
     results.appendAll(searchResult)
   }
 
@@ -26,6 +41,8 @@ class SimpleTest extends FlatSpec with QueryConfig{
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Rayßer", "street", "city"), PersonFactory)
     logger.debug(s"Rayßer (with fuzzy): $searchResult")
     assert(searchResult.length == 2)
+    checkScore("Rayßer-Fuzzy-HEAD", searchResult.head.score)
+    checkScore("Rayßer-Fuzzy-LAST", searchResult.last.score)
     results.appendAll(searchResult)
   }
 
@@ -34,6 +51,7 @@ class SimpleTest extends FlatSpec with QueryConfig{
       QueryEnabled.TERM | QueryEnabled.PHONETIC)
     logger.debug(s"Rayßer (without fuzzy): $searchResult")
     assert(searchResult.length == 1)
+    checkScore("Rayßer-Phon", searchResult.head.score)
     results.appendAll(searchResult)
   }
 
@@ -41,6 +59,7 @@ class SimpleTest extends FlatSpec with QueryConfig{
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Raisr", "street", "city"), PersonFactory)
     logger.debug(s"Raisr: $searchResult")
     assert(searchResult.length == 1)
+    checkScore("Raisr", searchResult.head.score)
     results.appendAll(searchResult)
   }
 
@@ -48,6 +67,7 @@ class SimpleTest extends FlatSpec with QueryConfig{
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Müller-Lüdenscheidt", "street", "city"), PersonFactory)
     logger.debug(s"Müller-Lüdenscheidt: $searchResult")
     assert(searchResult.length == 1)
+    checkScore("Müller-Lüdenscheidt", searchResult.head.score)
     results.appendAll(searchResult)
   }
 
@@ -55,6 +75,7 @@ class SimpleTest extends FlatSpec with QueryConfig{
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Muller-Ludenscheid", "street", "city"), PersonFactory)
     logger.debug(s"Muller-Ludenscheid: $searchResult")
     assert(searchResult.length == 1)
+    checkScore("Muller-Ludenscheid", searchResult.head.score)
     results.appendAll(searchResult)
   }
 
@@ -62,12 +83,20 @@ class SimpleTest extends FlatSpec with QueryConfig{
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Filosof", "street", "city"), PersonFactory)
     logger.debug(s"Filosof: $searchResult")
     assert(searchResult.length == 1)
+    checkScore("Filosof", searchResult.head.score)
     results.appendAll(searchResult)
   }
 
   it should "fail for 'Dr. Klöbner'" in {
     val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Dr. Klöbner", "street", "city"), PersonFactory)
     logger.debug(s"Dr. Klöbner: $searchResult")
+    assert(searchResult.isEmpty) // Nothing found => fail.
+  }
+
+  it should "fail fuzzy Filosof" in {
+    val searchResult = GermanSearcher.search(Person(-1, "Herr", "firstName", "Filosof", "street", "city"), PersonFactory,
+      QueryEnabled.FUZZY)
+    logger.debug(s"Filosof (only fuzzy): $searchResult")
     assert(searchResult.isEmpty) // Nothing found => fail.
   }
 

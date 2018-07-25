@@ -2,21 +2,17 @@ package de.crazything.app
 
 import de.crazything.search._
 import org.apache.lucene.document._
-import org.apache.lucene.index.Term
-import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 
 object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexReplace with QueryConfig {
 
-  val PK = "id"
+  private[this] val PK = "id"
 
-  val SALUTATION = "salutation"
-  val FIRST_NAME = "firstName"
-  val LAST_NAME = "lastName"
-  val STREET = "street"
-  val CITY = "city"
-
-
+  private[this] val SALUTATION = "salutation"
+  private[this] val FIRST_NAME = "firstName"
+  private[this] val LAST_NAME = "lastName"
+  private[this] val STREET = "street"
+  private[this] val CITY = "city"
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
     DataContainer.findById(doc.get(PK).toInt)
@@ -47,28 +43,24 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
 
   override def createQuery(person: Person, queryEnable: Int = QueryEnabled.ALL): Query = {
 
-    val parser: QueryParser = new QueryParser(s"$LAST_NAME$PHONETIC", GermanIndexer.phoneticAnalyzer)
-    val phoneticQuery = parser.parse(person.lastName)
+    import CustomQuery._
 
     val queryBuilder = new BooleanQuery.Builder()
 
     if (checkEnabled(queryEnable, QueryEnabled.TERM)) {
-      queryBuilder.add(new BoostQuery(new TermQuery(new Term(LAST_NAME, person.lastName)), Boost.TERM),
-        BooleanClause.Occur.SHOULD)
+      queryBuilder.add((LAST_NAME, person.lastName, Boost.TERM).exact, BooleanClause.Occur.SHOULD)
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.REGEX)) {
-      queryBuilder.add(new BoostQuery(new RegexpQuery(new Term(LAST_NAME, createRegexTerm(person.lastName))), Boost.REGEX),
-        BooleanClause.Occur.SHOULD)
+      queryBuilder.add((LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex, BooleanClause.Occur.SHOULD)
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.PHONETIC)) {
-      queryBuilder.add(new BoostQuery(phoneticQuery, Boost.PHONETIC), BooleanClause.Occur.SHOULD)
+      queryBuilder.add((LAST_NAME, person.lastName, Boost.PHONETIC).phonetic, BooleanClause.Occur.SHOULD)
     }
 
     if (checkEnabled(queryEnable, QueryEnabled.FUZZY)) {
-      queryBuilder.add(new BoostQuery(new FuzzyQuery(new Term(LAST_NAME, person.lastName), FUZZY_MAX_EDITS), Boost.FUZZY),
-        BooleanClause.Occur.SHOULD)
+      queryBuilder.add((LAST_NAME, person.lastName, Boost.FUZZY).fuzzy, BooleanClause.Occur.SHOULD)
     }
 
     queryBuilder.build()

@@ -5,7 +5,7 @@ import org.apache.lucene.search.Query
 
 abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends FieldRegexReplace with QueryConfig{
 
-  protected val PHONETIC = "PH"
+
 
   protected def addPkField(document: Document, fieldName: String, value: I): Unit = {
     // if we have a custom PK (so I), you have to override toString and implement fromString.

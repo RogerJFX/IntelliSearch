@@ -2,7 +2,7 @@ package de.crazything.app
 
 import de.crazything.search.FieldRegexReplace
 
-trait CustomRegexReplace extends FieldRegexReplace {
+trait GermanRegexReplace extends FieldRegexReplace {
 
   override val regexTerms = Some(Seq(
     "(a|e)(i|j|y)e?",

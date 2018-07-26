@@ -7,7 +7,7 @@ import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc}
 import org.apache.lucene.store.Directory
 
-object GermanSearcher {
+object CommonSearcher {
 
   private val MAGIC_NUM_DEFAULT_HITS = 100
 

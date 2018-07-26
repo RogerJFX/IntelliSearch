@@ -6,7 +6,7 @@ import org.apache.lucene.document._
 import org.apache.lucene.search._
 
 // TODO: get rid of nasty lucene imports. We don't need em here. So f...[beep] create some implicits in the API
-object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexReplace {
+object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with GermanRegexReplace with GermanLanguage {
 
   private[this] val PK = "id"
 
@@ -48,13 +48,16 @@ object PersonFactory extends AbstractTypeFactory[Int, Person] with CustomRegexRe
     * @return The desired BooleanQuery
     */
   override def createQuery(person: Person): Query = {
+
     import CustomQuery.{data2Query, seq2Query}
+
     Seq(
       (LAST_NAME, person.lastName).exact,
       (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
       (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
       (LAST_NAME, person.lastName, Boost.FUZZY, FUZZY_MAX_EDITS).fuzzy
     )
+
   }
 
   /**

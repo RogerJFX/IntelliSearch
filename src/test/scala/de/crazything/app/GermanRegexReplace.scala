@@ -4,9 +4,9 @@ import de.crazything.search.FieldRegexReplace
 
 trait GermanRegexReplace extends FieldRegexReplace {
 
-  override val regexTerms = Some(Seq(
+  override val regexTerms = Seq(
     "(a|e)(i|j|y)e?",
     "(ss|ß)"
-  ))
+  )
 
 }

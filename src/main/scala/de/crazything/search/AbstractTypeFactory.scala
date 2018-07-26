@@ -4,7 +4,7 @@ import de.crazything.search.entity.PkDataSet
 import org.apache.lucene.document._
 import org.apache.lucene.search.Query
 
-abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends FieldRegexReplace with QueryConfig{
+abstract class AbstractTypeFactory[I, -T <: PkDataSet[I]] extends FieldRegexReplace with QueryConfig{
 
   protected def addPkField(document: Document, fieldName: String, value: I): Unit = {
     // if we have a custom PK (so I), you have to override toString and implement fromString.

@@ -18,7 +18,7 @@ trait QueryConfig {
     val FUZZY = 1
   }
 
-  val FUZZY_MAX_EDITS = 2
+  protected val FUZZY_MAX_EDITS = 2
 
   protected val PHONETIC_SUFFIX = "_PH"
 

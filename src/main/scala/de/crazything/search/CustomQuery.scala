@@ -16,7 +16,8 @@ case object CustomQuery extends QueryConfig {
     *                    to default value, if empty (see QueryConfig).
     * @param phoneticAnalyzer The phonetic analyzer.
     */
-  private[CustomQuery] case class CQuery(fieldName: String, value: String, boostOption: Option[Float] = None, fuzzyOption: Option[Int] = None)
+  private[CustomQuery] case class CQuery(fieldName: String, value: String, boostOption: Option[Float] = None,
+                                         fuzzyOption: Option[Int] = None)
                    (phoneticAnalyzer: Analyzer) {
     def exact: Query = new BoostQuery(new TermQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.EXACT))
     def regex: Query = new BoostQuery(new RegexpQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.REGEX))

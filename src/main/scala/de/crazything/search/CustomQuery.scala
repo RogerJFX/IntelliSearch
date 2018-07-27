@@ -9,6 +9,8 @@ case object CustomQuery extends QueryConfig {
   /**
     * Query creator.
     *
+    *
+    *
     * @param fieldName Name of field in search index.
     * @param value value to search.
     * @param boostOption Custom boost factor. If empty, it will fallback to default boost (see QueryConfig).
@@ -16,7 +18,7 @@ case object CustomQuery extends QueryConfig {
     *                    to default value, if empty (see QueryConfig).
     * @param phoneticAnalyzer The phonetic analyzer.
     */
-  private[CustomQuery] case class CQuery(fieldName: String, value: String, boostOption: Option[Float] = None,
+  case class CQuery(fieldName: String, value: String, boostOption: Option[Float] = None,
                                          fuzzyOption: Option[Int] = None)
                    (phoneticAnalyzer: Analyzer) {
     def exact: Query = new BoostQuery(new TermQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.EXACT))
@@ -37,6 +39,7 @@ case object CustomQuery extends QueryConfig {
     */
   implicit def data2Query(tuple: (String, String))(implicit analyzer: Analyzer): CQuery =
     CQuery(tuple._1, tuple._2)(analyzer)
+
   /**
     * Tuple3 to Query.
     * @param tuple fieldName, value, boost
@@ -44,6 +47,7 @@ case object CustomQuery extends QueryConfig {
     */
   implicit def data2Query(tuple: (String, String, Int))(implicit analyzer: Analyzer): CQuery =
     CQuery(tuple._1, tuple._2, Some(tuple._3))(analyzer)
+
   /**
     * Tuple4 to Query.
     * @param tuple fieldName, value, boost, fuzzyMaxEdits

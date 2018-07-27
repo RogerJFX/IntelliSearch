@@ -1,6 +1,6 @@
 package de.crazything.search
 
-import de.crazything.search.entity.PkDataSet
+import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import org.apache.lucene.document._
 import org.apache.lucene.search.Query
 
@@ -25,20 +25,22 @@ abstract class AbstractTypeFactory[I, -T <: PkDataSet[I]] extends QueryConfig{
 
   def createQuery(t: T): Query
 
-  /**
-    * Normally this should not be used. Just if anybody want's to customize, that means temporarily
-    * disable some type of query.
-    *
-    * Note: if you want to use this method and pass any non empty Option for queryEnable, you must
-    * override this method, otherwise an exception will be thrown. If you only pass 'None', createQuery(T) will
-    * be called.
-    *
-    * @param t The instance
-    * @param queryEnable Queries to be enabled (or disabled, if not in mask)
-    * @return Normally a BooleanQuery
-    */
-  def createQuery(t: T, queryEnable: Option[Int] = None): Query = queryEnable match {
-    case None => createQuery(t)
-    case _ => throw new RuntimeException("Please override createQuery with queryEnable option")
-  }
+  def selectQueryCreator:(QueryCriteria, T) => Query
+
+//  /**
+//    * Normally this should not be used. Just if anybody want's to customize, that means temporarily
+//    * disable some type of query.
+//    *
+//    * Note: if you want to use this method and pass any non empty Option for queryEnable, you must
+//    * override this method, otherwise an exception will be thrown. If you only pass 'None', createQuery(T) will
+//    * be called.
+//    *
+//    * @param t The instance
+//    * @param queryEnable Queries to be enabled (or disabled, if not in mask)
+//    * @return Normally a BooleanQuery
+//    */
+//  def createQuery(t: T, queryEnable: Option[Int] = None): Query = queryEnable match {
+//    case None => createQuery(t)
+//    case _ => throw new RuntimeException("Please override createQuery with queryEnable option")
+//  }
 }

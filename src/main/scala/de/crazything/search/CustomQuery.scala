@@ -9,8 +9,6 @@ case object CustomQuery extends QueryConfig {
   /**
     * Query creator.
     *
-    *
-    *
     * @param fieldName Name of field in search index.
     * @param value value to search.
     * @param boostOption Custom boost factor. If empty, it will fallback to default boost (see QueryConfig).

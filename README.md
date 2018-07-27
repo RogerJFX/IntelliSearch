@@ -15,6 +15,33 @@ In this case results must be reliable. Modifications should be as near as possib
 
 Our strategy is to accumulate queries and the weighted results as well.
 
+There is a default hierarchy of Queries:
+
+1. TermQuery => Perfect match is the winner in any case
+1. WildcardQuery => Some suffix missing? Ok then
+1. RegexQuery => Custom regular expressions might be inferred
+1. PhoneticQuery => Some codecs, available for e.g. German or English
+1. FuzzyQuery => Levenstein algorithm, just calculating distances.
+
+In the end a user might write something like
+
+~~~
+  def createFirstAndLastNameQuery(person: Person): Query = {
+    Seq(
+      (LAST_NAME, person.lastName).exact,
+      (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
+      (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
+
+      (FIRST_NAME, person.firstName, Boost.EXACT / 1.2F).exact,
+      (FIRST_NAME, createWildCardTerm(person.firstName), Boost.WILDCARD / 1.5F).wildcard,
+      (FIRST_NAME, createRegexTerm(person.firstName), Boost.REGEX / 2F).regex,
+      (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
+    )
+  }
+~~~
+
+... and combine it as he likes within his factory.
+
 Our goal is to make searches not only reliable but most configurable - in the code, not in JSON. We strongly believe, 
 reliability can only be achieved by a user who knows his case and is capable of doing modifications writing code.
 

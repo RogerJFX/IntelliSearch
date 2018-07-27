@@ -1,11 +1,11 @@
 ReliableSearch
 -
 
-An attempt to make search results most reliable. 
+Another attempt to make search results most reliable. 
 
 There are many use cases for a reliable search:
 
-1. in any case a reliable search improves result's quality
+1. in any case a reliable search improves results' quality
 1. a reliable search might be used in scenarios, that are business critical
 
 In the second case there is a strong need of tweaking from start/code on. So no need for any elastic stuff.

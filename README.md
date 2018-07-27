@@ -1,39 +1,25 @@
-PhoneticSearch
+ReliableSearch
 -
 
-This project is in a very early state (started in 2018, 21th of July). 
-Yet it should appear to be a proof of concept.
+An attempt to make search results most reliable. 
 
-The idea is to at least find matches based on phonetic conditions prior to fuzzy matches. 
+There are many use cases for a reliable search:
 
-Remember this: language is first spoken, then written. So a phonetic search in front of 
-fuzzy does make sense. Of course a perfect match will remain perfect and thus considered.
+1. in any case a reliable search improves result's quality
+1. a reliable search might be used in scenarios, that are business critical
 
-More: there is a RegexQuery used, that scores more than a result of PhoneticQuery.
+In the second case there is a strong need of tweaking from start/code on. So no need for any elastic stuff.
 
-Consider this: if somebody introduces hisself as Peter Maier, you may ask:
+Think of the following scenario: we have two or more customer databases. Now we want to merge them into one database. 
+In this case results must be reliable. Modifications should be as near as possible to the code then.
 
-- Maier?
-- Mayer?
-- Meier?
-- Majr?
+Our strategy is to accumulate queries and the weighted results as well.
 
-So in our test scenario we have the Regex
+Our goal is to make searches not only reliable but most configurable - in the code, not in JSON. We strongly believe, 
+reliability can only be achieved by a user who knows his case and is capable of doing modifications writing code.
 
-~~~
-    (a|e)(i|j|y)e?
-~~~
-
-So Majr will match Maier by RegexQuery with a higher score than of PhoneticQuery.
-
-**Final goal is to deduce reliable data out of fuzzy data.**
-
-It is written in Scala, version 2.12.6. The topic is a search engine using Lucene. 
-The Lucene version is 7.4.0.
+The application is written in Scala, version 2.12.6 using Lucene version is 7.4.0.
 
 One last note: I initially wrote Scala code, that would have been easily
 translated into Java. I lost this scope and I am sorry for this. However it still 
 is possible, even if it meanwhile would be a real pain in my holy *beep*.
-
-
-

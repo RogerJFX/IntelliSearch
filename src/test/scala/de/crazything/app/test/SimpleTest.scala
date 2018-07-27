@@ -21,14 +21,16 @@ class SimpleTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   // Just to make sure, nothing unexpected happens during development.
   private[this] val expectedScores: Map[String, Float] = Map[String, Float](
-    ("Reißer", 31.370277F), // => Reißer
+    ("Reißer", 45.233223F), // => Reißer
     ("Rayßer-Fuzzy-HEAD", 15.207415F),
     ("Rayßer-Fuzzy-LAST", 0.8317767F), // => Mayer!
     ("Rayßer-Phon", 7.2832184F), // => Reißer
     ("Raisr", 7.2832184F),
-    ("Müller-Lüdenscheidt", 38.248436F), // => Müller-Lüdenscheidt
+    ("Müller-Lüdenscheidt", 52.111385F), // => Müller-Lüdenscheidt
     ("Muller-Ludenscheid", 11.901843F),
-    ("Filosof", 7.2832184F) // => Philosoph
+    ("Filosof", 7.2832184F), // => Philosoph
+    ("Theodor Wiesengrund Philosoph", 85.1181F),// => Theodor Wiesengrund Philosoph (Full match first and last name!)
+    ("Theodor Wiesengrund Adorno", 41.27117F) // full match first name
   )
 
   private[this] def checkScore(name: String, score: Float) = assert(expectedScores(name) == score)
@@ -108,20 +110,24 @@ class SimpleTest extends FlatSpec with QueryConfig with GermanLanguage {
     val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Philosoph", firstName="Theodor Wiesengrund"), PersonFactoryDE,
       Some(QueryCriteria(PersonFactoryDE.customQuery_FirstAndLastName)))
     logger.debug(s"Theodor Wiesengrund Philosoph: $searchResult")
-    assert(searchResult.length == 1) // Nothing found => fail.
+    assert(searchResult.length == 1)
+    checkScore("Theodor Wiesengrund Philosoph", searchResult.head.score)
+    results.appendAll(searchResult)
   }
 
   it should "even find Theodor Wiesengrund Adorno" in {
     val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Adorno", firstName="Theodor Wiesengrund"), PersonFactoryDE,
       Some(QueryCriteria(PersonFactoryDE.customQuery_FirstAndLastName)))
     logger.debug(s"Theodor Wiesengrund Adorno: $searchResult")
-    assert(searchResult.length == 1) // Nothing found => fail.
+    assert(searchResult.length == 1)
+    checkScore("Theodor Wiesengrund Adorno", searchResult.head.score)
+    results.appendAll(searchResult)
   }
 
   "Results" should "be reasonably sorted" in {
-    assert(results.length == 8)
+    assert(results.length == 10)
     val sorted: Seq[SearchResult[Int, Person]] = results.sortBy(r => -r.score)
-    assert(sorted.head.obj.lastName == "Müller-Lüdenscheidt") // Better than Raißer due to more characters.
+    assert(sorted.head.obj.lastName == "Philosoph" && sorted.head.obj.firstName == "Theodor Wiesengrund") // Better than Raißer due to more characters.
     assert(sorted.last.obj.lastName == "Mayer") // we never searched for Mayer, so this is a weak guess (fuzzy)
   }
 

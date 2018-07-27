@@ -34,9 +34,10 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
       (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
       (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
 
-      (FIRST_NAME, person.firstName).exact,
-      (FIRST_NAME, createRegexTerm(person.firstName), Boost.REGEX / 2).regex,
-      (FIRST_NAME, person.firstName, Boost.PHONETIC / 2).phonetic
+      (FIRST_NAME, person.firstName, Boost.EXACT / 1.2F).exact,
+      (FIRST_NAME, createWildCardTerm(person.firstName), Boost.WILDCARD / 1.5F).wildcard,
+      (FIRST_NAME, createRegexTerm(person.firstName), Boost.REGEX / 2F).regex,
+      (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
     )
   }
 
@@ -77,6 +78,16 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
 
     queryBuilder.build()
 
+  }
+  // "Hans-Peter", "Hans Peter" will become "Hans*"
+  // "Hans" remains "Hans"
+  private def createWildCardTerm(in: String): String = {
+    val tokens = in.split("[ -]*?")
+    if(tokens.length > 1) {
+      s"${tokens.head}*"
+    } else {
+      in
+    }
   }
 
   private[this] def checkEnabled(queryOr: Int, queryEnabled: Int): Boolean = (queryOr & queryEnabled) == queryEnabled

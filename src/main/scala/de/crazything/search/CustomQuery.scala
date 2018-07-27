@@ -22,6 +22,7 @@ case object CustomQuery extends QueryConfig {
                                          fuzzyOption: Option[Int] = None)
                    (phoneticAnalyzer: Analyzer) {
     def exact: Query = new BoostQuery(new TermQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.EXACT))
+    def wildcard: Query = new BoostQuery(new WildcardQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.WILDCARD))
     def regex: Query = new BoostQuery(new RegexpQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.REGEX))
     def phonetic: Query = {
       val parser: QueryParser = new QueryParser(s"$fieldName$PHONETIC_SUFFIX", phoneticAnalyzer)
@@ -45,7 +46,7 @@ case object CustomQuery extends QueryConfig {
     * @param tuple fieldName, value, boost
     * @return A Query.
     */
-  implicit def data2Query(tuple: (String, String, Int))(implicit analyzer: Analyzer): CQuery =
+  implicit def data2Query(tuple: (String, String, Float))(implicit analyzer: Analyzer): CQuery =
     CQuery(tuple._1, tuple._2, Some(tuple._3))(analyzer)
 
   /**
@@ -53,7 +54,7 @@ case object CustomQuery extends QueryConfig {
     * @param tuple fieldName, value, boost, fuzzyMaxEdits
     * @return A Query.
     */
-  implicit def data2Query(tuple: (String, String, Int, Int))(implicit analyzer: Analyzer): CQuery =
+  implicit def data2Query(tuple: (String, String, Float, Int))(implicit analyzer: Analyzer): CQuery =
     CQuery(tuple._1, tuple._2, Some(tuple._3), Some(tuple._4))(analyzer)
 
   /**

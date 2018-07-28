@@ -21,16 +21,16 @@ class SimpleTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   // Just to make sure, nothing unexpected happens during development.
   private[this] val expectedScores: Map[String, Float] = Map[String, Float](
-    ("Reißer", 45.233223F), // => Reißer
-    ("Rayßer-Fuzzy-HEAD", 15.207415F),
-    ("Rayßer-Fuzzy-LAST", 0.8317767F), // => Mayer!
-    ("Rayßer-Phon", 7.2832184F), // => Reißer
-    ("Raisr", 7.2832184F),
-    ("Müller-Lüdenscheidt", 52.111385F), // => Müller-Lüdenscheidt
-    ("Muller-Ludenscheid", 11.901843F),
-    ("Filosof", 7.2832184F), // => Philosoph
-    ("Theodor Wiesengrund Philosoph", 85.1181F),// => Theodor Wiesengrund Philosoph (Full match first and last name!)
-    ("Theodor Wiesengrund Adorno", 41.27117F) // full match first name
+    ("Reißer", 49.444176F), // => Reißer
+    ("Rayßer-Fuzzy-HEAD", 16.06861F),
+    ("Rayßer-Fuzzy-LAST", 0.9242671F), // => Mayer!
+    ("Rayßer-Phon", 8.041645F), // => Reißer
+    ("Raisr", 8.041645F),
+    ("Müller-Lüdenscheidt", 57.003563F), // => Müller-Lüdenscheidt
+    ("Muller-Ludenscheid", 13.08847F),
+    ("Filosof", 8.041645F), // => Philosoph
+    ("Theodor Wiesengrund Philosoph", 92.571594F),// => Theodor Wiesengrund Philosoph (Full match first and last name!)
+    ("Theodor Wiesengrund Adorno", 44.66786F) // full match first name
   )
 
   private[this] def checkScore(name: String, score: Float) = assert(expectedScores(name) == score)

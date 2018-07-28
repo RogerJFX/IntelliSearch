@@ -15,7 +15,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   private def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.obj.city.contains("Frankfurt")
 
   private def filterFrankfurtAsync(result: SearchResult[Int, Person]): Future[Boolean] = Future {
-    Thread.sleep(1000)
+    Thread.sleep(500) // Come on! Just half a second...
     filterFrankfurt(result)
   }
 

@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object CommonSearcher {
 
-  private val MAGIC_NUM_DEFAULT_HITS = 100
+  private val MAGIC_NUM_DEFAULT_HITS = 100 // ???
 
   private val searcherRef: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]]()
 
@@ -31,7 +31,7 @@ object CommonSearcher {
         val query: Query =
           queryCriteria match {
             case None => factory.createQuery(input)
-            case Some(qeOpt) => factory.selectQueryCreator(qeOpt, input)//factory.createQuery(input, qeOpt)
+            case Some(qeOpt) => factory.selectQueryCreator(qeOpt, input)
           }
 
         val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
@@ -53,5 +53,7 @@ object CommonSearcher {
                                        (implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = Future {
     search(input, factory, queryCriteria, maxHits)
   }
+
+
 
 }

@@ -12,7 +12,7 @@ class FilterTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
-  CommonIndexer.index(DataProvider.readPersons(), PersonFactoryDE)
+  CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
 
   "Filter" should "exclude Mayer living not in Frankfurt" in {
     val searchResult =

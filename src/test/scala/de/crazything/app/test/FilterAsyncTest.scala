@@ -20,7 +20,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   }
 
   before {
-    CommonIndexer.index(DataProvider.readPersons(), PersonFactoryDE)
+    CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
   }
 
   "Async search with sync filter" should "exclude Mayer living not in Frankfurt" in {

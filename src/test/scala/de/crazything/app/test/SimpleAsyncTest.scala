@@ -10,7 +10,7 @@ class SimpleAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
   before {
-    CommonIndexer.index(DataProvider.readPersons(), PersonFactoryDE)
+    CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
   }
 
   "AsyncTest" should "do what we expect" in {

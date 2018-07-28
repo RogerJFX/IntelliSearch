@@ -13,7 +13,7 @@ class SimpleTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   private val logger = LoggerFactory.getLogger(classOf[SimpleTest])
 
-  CommonIndexer.index(DataProvider.readPersons(), PersonFactoryDE)
+  CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
 
   val results: ListBuffer[SearchResult[Int, Person]] = new ListBuffer[SearchResult[Int, Person]]()
 

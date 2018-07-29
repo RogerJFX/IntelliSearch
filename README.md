@@ -64,4 +64,11 @@ Some thoughts
     Java serializer? Just combine REST with RMI. Why not? At least its worth a thought. Using 
     Akka may ease things. 
 
+Trouble alert
+--
 
+Somehow Scala futures don't seem to fit my requirements. Ok, I understand why.
+
+Currently thinking of setting up an own executor pool to really engage any available processor and thus 
+speeding up even very complex search operations. Thinking of operations with many 
+searches and many directories. Even many services.

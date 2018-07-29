@@ -1,6 +1,6 @@
 1;Herr;Franz;Mayer;Hartmannweg 23;80331 München
 2;Herr;Roger;Hösl;Hartmannweg 25;60389 Frankfurt a.M.
 3;Herr;Franz;Reißer;Hartmannweg 27;60389 Frankfurt a.M.
-4;Herr;Vico;Müller-Lüdenscheidt;Hartmannweg 27;60389 Frankfurt a.M.
+4;Herr;Vico;Müller-Lüdenscheidt;Hartmannweg 29;60389 Frankfurt a.M.
 5;Herr;Theodor Wiesengrund;Philosoph;Am Weingarten 10;60487 Frankfurt a.M.
 6;Herr Prof.;Albert;Scharnofske;Herrenhäuser Straße 3a;30419 Hannover

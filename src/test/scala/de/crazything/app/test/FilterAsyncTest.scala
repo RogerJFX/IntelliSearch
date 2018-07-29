@@ -84,6 +84,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
 //      true
 //    }
 
+    // Foo
     def filterTrue(result: SearchResult[Int, Person]): Future[Boolean] = {
       val promise: Promise[Boolean] = Promise[Boolean]
 

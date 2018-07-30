@@ -78,7 +78,12 @@ object CommonSearcherFiltered {
         val filterClass = new FilterAsync(res, filterFn)
         val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
         finalResultFuture.onComplete {
-          case Success(finalResult) => promise.success(finalResult.sortBy(r => -r.score))
+          case Success(finalResult) =>
+            if(finalResult.nonEmpty) {
+              promise.success(finalResult.sortBy(r => -r.score))
+            } else {
+              promise.success(Seq())
+            }
           case Failure(t: TimeoutException) =>
             filterClass.onTimeoutException(t)
             promise.failure(t)

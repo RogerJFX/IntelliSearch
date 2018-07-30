@@ -33,6 +33,14 @@ case object CustomQuery extends QueryConfig {
       boostOption.getOrElse(Boost.FUZZY))
   }
 
+  case class ConditionQuery(query: Query) {
+    def must:(Query, BooleanClause.Occur) = (query, BooleanClause.Occur.MUST)
+    def mustNot:(Query, BooleanClause.Occur) = (query, BooleanClause.Occur.MUST_NOT)
+    def should:(Query, BooleanClause.Occur) = (query, BooleanClause.Occur.SHOULD)
+  }
+
+  implicit def query2ConditionalQuery(q: Query): ConditionQuery = ConditionQuery(q)
+
   /**
     * Tuple2 to Query.
     * @param tuple fieldName, value
@@ -76,6 +84,14 @@ case object CustomQuery extends QueryConfig {
     val queryBuilder = new BooleanQuery.Builder()
     queries.foreach(query => {
       queryBuilder.add(query, BooleanClause.Occur.SHOULD)
+    })
+    queryBuilder.build()
+  }
+
+  implicit def seq2QueryCondition(queries: Seq[(Query, BooleanClause.Occur)]): BooleanQuery = {
+    val queryBuilder = new BooleanQuery.Builder()
+    queries.foreach(t => {
+      queryBuilder.add(t._1, t._2)
     })
     queryBuilder.build()
   }

@@ -55,7 +55,7 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
 
   object PersonFactoryAll extends AbstractTypeFactory[Int, Person] {
 
-    import de.crazything.search.CustomQuery.{data2Query, seq2Query}
+    import de.crazything.search.CustomQuery._
 
     override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = PersonFactoryDE.createInstanceFromDocument(doc)
 
@@ -74,10 +74,10 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
 
     override def selectQueryCreator: (QueryCriteria, Person) => Query = (criteria, person) => {
       if(criteria.queryName == "dummy") {
-        val queryBuilder = new BooleanQuery.Builder()
-        queryBuilder.add(("firstName", "Roger").exact, BooleanClause.Occur.MUST)
-        queryBuilder.add(("lastName", person.lastName).exact, BooleanClause.Occur.MUST)
-        queryBuilder.build()
+        Seq(
+          ("firstName", "Roger").exact.must,
+          ("lastName", person.lastName).exact.must
+        )
       } else createQuery(person)
     }
   }

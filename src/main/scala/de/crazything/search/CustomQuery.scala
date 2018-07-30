@@ -5,6 +5,8 @@ import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.search._
 
+import scala.language.implicitConversions
+
 case object CustomQuery extends QueryConfig {
   /**
     * Query creator.

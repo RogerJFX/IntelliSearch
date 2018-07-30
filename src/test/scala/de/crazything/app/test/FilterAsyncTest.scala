@@ -1,22 +1,22 @@
 package de.crazything.app.test
 
-import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.app.test.helpers.DataProvider
+import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import de.crazything.search.{AbstractTypeFactory, CommonIndexer, CommonSearcherFiltered, QueryConfig}
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfter}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfter, Matchers}
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.TimeoutException
 
-class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig with GermanLanguage {
+class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter with QueryConfig with GermanLanguage {
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
   private def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.obj.city.contains("Frankfurt")
 
-  private def filterFrankfurtAsync(result: SearchResult[Int, Person]): Future[Boolean] = Future {
+  private def filterFrankfurtAsync(result: SearchResult[Int, Person]): Boolean = {
     Thread.sleep(500) // Come on! Just half a second...
     filterFrankfurt(result)
   }
@@ -26,34 +26,36 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
   }
 
-  "Async search with sync filter" should "exclude Mayer living not in Frankfurt" in {
-    CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Mayer"), factory = PersonFactoryDE,
-      filterFn = filterFrankfurt).map(result => {
-      assert(result.isEmpty)
-    })
-  }
+    "Async search with sync filter" should "exclude Mayer living not in Frankfurt" in {
+      CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Mayer"), factory = PersonFactoryDE,
+        filterFn = filterFrankfurt).map(result => {
+        assert(result.isEmpty)
+      })
+    }
 
-  it should "pass Hösl living in Frankfurt" in {
-    CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
-      filterFn = filterFrankfurt).map(result => {
-      assert(result.length == 1)
-    })
-  }
+    it should "pass Hösl living in Frankfurt" in {
+      CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterFrankfurt).map(result => {
+        assert(result.length == 1)
+      })
+    }
 
-  "Async search with async filter" should "exclude Mayer living not in Frankfurt" in {
-    import scala.concurrent.duration._
-    CommonSearcherFiltered.searchAsyncAsync(input = standardPerson.copy(lastName = "Mayer"), factory = PersonFactoryDE,
-      filterFn = filterFrankfurtAsync, filterTimeout = 10.seconds).map(result => {
-      assert(result.isEmpty)
-    })
-  }
+    "Async search with async filter" should "exclude Mayer living not in Frankfurt" in {
+      import scala.concurrent.duration._
+      CommonSearcherFiltered.searchAsyncAsync(input = standardPerson.copy(lastName = "Mayer"), factory = PersonFactoryDE,
+        filterFn = filterFrankfurtAsync, filterTimeout = 10.seconds).map(result => {
+        assert(result.isEmpty)
+      })
+    }
 
-  it should "pass Hösl living in Frankfurt" in {
-    CommonSearcherFiltered.searchAsyncAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
-      filterFn = filterFrankfurtAsync).map(result => {
-      assert(result.length == 1)
-    })
-  }
+    it should "pass Hösl living in Frankfurt" in {
+      CommonSearcherFiltered.searchAsyncAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterFrankfurtAsync).map(result => {
+        assert(result.length == 1)
+      })
+    }
+
+
   // Make sure async processing does not destroy order of results.
   "Results" should "be sorted properly" in {
     object PersonFactoryAll extends AbstractTypeFactory[Int, Person] {
@@ -76,27 +78,15 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
       override def selectQueryCreator: (QueryCriteria, Person) => Query = ???
     }
 
-    //    def filterTrueOLD(result: SearchResult[Int, Person]): Future[Boolean] = Future {
-    //      val timeout: Long = scala.util.Random.nextInt(500).toLong
-    //      Thread.sleep(timeout)
-    //      println(timeout)
-    //      println(result)
-    //      true
-    //    }
-
-    // Foo
-    def filterTrue(result: SearchResult[Int, Person]): Future[Boolean] = {
-      val promise: Promise[Boolean] = Promise[Boolean]
-
-      Future.apply({
-        val timeout: Long = scala.util.Random.nextInt(500).toLong
+    def filterTrue(result: SearchResult[Int, Person]): Boolean = {
+      val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
+      try {
         Thread.sleep(timeout)
-        println(timeout)
-        println(result)
-        promise.success(true)
-      })
-      println(s"Future method $result")
-      promise.future
+      } catch {
+        case _: Exception => // ignore
+      }
+
+      true
     }
 
     def checkOrder(seq: Seq[SearchResult[Int, Person]]): Unit = {
@@ -108,15 +98,19 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
           check(nextHead, nextTail)
         }
       }
-
       check(seq.head, seq.tail)
     }
 
+    import scala.concurrent.duration._
     CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,
-      filterFn = filterTrue).map(result => {
+      filterFn = filterTrue, filterTimeout = 10.seconds).map(result => {
       checkOrder(result)
       assert(result.length == 6)
     })
+
+
   }
+
+
 
 }

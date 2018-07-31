@@ -2,11 +2,13 @@ package de.crazything.app.test
 
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
-import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import de.crazything.search._
+import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import org.apache.lucene.document.Document
-import org.apache.lucene.search.{BooleanClause, BooleanQuery, Query}
+import org.apache.lucene.search.Query
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfter, Matchers}
+
+import scala.concurrent.{Await, Future, Promise}
 
 class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter with QueryConfig with GermanLanguage {
 
@@ -66,7 +68,7 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
     override def createQuery(t: Person): Query = {
 
       Seq(
-        ("lastName", "Hösl").exact,
+        ("lastName", "Hösl").exact, // should is default
         ("firstName", "Fr*").wildcard,
         ("lastName", ".*").regex,
         ("lastName", "Mayer").phonetic)
@@ -98,69 +100,70 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
 
   }
 
+  def checkOrder(seq: Seq[SearchResult[Int, Person]]): Unit = {
+    def check(head: SearchResult[Int, Person], tail: Seq[SearchResult[Int, Person]]): Unit = {
+      val nextHead = tail.head
+      assert(head.score >= nextHead.score)
+      val nextTail = tail.tail
+      if (nextTail.nonEmpty) {
+        check(nextHead, nextTail)
+      }
+    }
+
+    check(seq.head, seq.tail)
+  }
+
+  // blocking
+  def filterTrue(result: SearchResult[Int, Person]): Boolean = {
+    val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
+    try {
+      Thread.sleep(timeout)
+    } catch {
+      case _: Exception => // ignore
+    }
+    true
+  }
+
   // Make sure async processing does not destroy order of results.
-  "Results" should "be sorted async (quickly)" in {
-
-    def filterTrue(result: SearchResult[Int, Person]): Boolean = {
-      val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
-      try {
-        Thread.sleep(timeout)
-      } catch {
-        case _: Exception => // ignore
-      }
-
-      true
-    }
-
-    def checkOrder(seq: Seq[SearchResult[Int, Person]]): Unit = {
-      def check(head: SearchResult[Int, Person], tail: Seq[SearchResult[Int, Person]]): Unit = {
-        val nextHead = tail.head
-        assert(head.score >= nextHead.score)
-        val nextTail = tail.tail
-        if (nextTail.nonEmpty) {
-          check(nextHead, nextTail)
-        }
-      }
-
-      check(seq.head, seq.tail)
-    }
+  "Results" should "be sorted async/future (fast)" in {
 
     import scala.concurrent.duration._
-    CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,
-      filterFn = filterTrue, filterTimeout = 10.seconds).map(result => {
+    // non blocking
+    def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = {
+      val p = Promise[Boolean]
+
+      Future.apply {
+        val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
+        import java.util.concurrent.ScheduledThreadPoolExecutor
+        val executor = new ScheduledThreadPoolExecutor(1)
+        import java.util.concurrent.TimeUnit
+        executor.schedule(new Runnable() {
+          override def run(): Unit = {
+            p.success(true)
+          }
+        }, timeout, TimeUnit.MILLISECONDS)
+      }
+      p.future
+    }
+    CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
+      filterFn = filterTrueFuture, filterTimeout = 10.seconds).map(result => {
       checkOrder(result)
       assert(result.length == 6)
     })
 
+  }
+
+  it should "be sorted async/blocking (fast)" in {
+
+    CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,
+      filterFn = filterTrue).map(result => {
+      checkOrder(result)
+      assert(result.length == 6)
+    })
 
   }
 
-  // Make sure async processing does not destroy order of results.
-  it should "be sorted sync (slowly)" in {
-
-    def filterTrue(result: SearchResult[Int, Person]): Boolean = {
-      val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
-      try {
-        Thread.sleep(timeout)
-      } catch {
-        case _: Exception => // ignore
-      }
-
-      true
-    }
-
-    def checkOrder(seq: Seq[SearchResult[Int, Person]]): Unit = {
-      def check(head: SearchResult[Int, Person], tail: Seq[SearchResult[Int, Person]]): Unit = {
-        val nextHead = tail.head
-        assert(head.score >= nextHead.score)
-        val nextTail = tail.tail
-        if (nextTail.nonEmpty) {
-          check(nextHead, nextTail)
-        }
-      }
-
-      check(seq.head, seq.tail)
-    }
+  it should "be sorted sync/blocking (slow)" in {
 
     CommonSearcherFiltered.searchAsync(input = standardPerson, factory = PersonFactoryAll,
       filterFn = filterTrue).map(result => {
@@ -168,8 +171,6 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
       assert(result.length == 6)
     })
 
-
   }
-
 
 }

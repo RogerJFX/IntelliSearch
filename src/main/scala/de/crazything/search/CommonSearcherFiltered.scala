@@ -79,7 +79,39 @@ object CommonSearcherFiltered {
         val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
         finalResultFuture.onComplete {
           case Success(finalResult) =>
-            if(finalResult.nonEmpty) {
+            if (finalResult.nonEmpty) {
+              promise.success(finalResult.sortBy(r => -r.score))
+            } else {
+              promise.success(Seq())
+            }
+          case Failure(t: TimeoutException) =>
+            filterClass.onTimeoutException(t)
+            promise.failure(t)
+          case Failure(x) => promise.failure(x)
+          case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
+        }
+      case Failure(t) => throw new RuntimeException("Future failed in searchAsyncWithAsyncFilter", t)
+      case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
+    }
+    promise.future
+  }
+
+  // In order to use akka later.
+  def searchAsyncAsyncFuture[I, T <: PkDataSet[I]](input: T,
+                                                   factory: AbstractTypeFactory[I, T],
+                                                   queryCriteria: Option[QueryCriteria] = None,
+                                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                                   filterFn: (SearchResult[I, T]) => Future[Boolean],
+                                                   filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
+    val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
+    searchResult.onComplete {
+      case Success(res) =>
+        val filterClass = new FilterAsyncFuture(res, filterFn)
+        val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
+        finalResultFuture.onComplete {
+          case Success(finalResult) =>
+            if (finalResult.nonEmpty) {
               promise.success(finalResult.sortBy(r => -r.score))
             } else {
               promise.success(Seq())
@@ -99,47 +131,94 @@ object CommonSearcherFiltered {
   //TODO: should be configurable
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
-  private class FilterAsync[I, T <: PkDataSet[I]](raw: Seq[SearchResult[I, T]],
-                                                  filterFn: (SearchResult[I, T]) => Boolean) {
+  private trait Filter[I, T <: PkDataSet[I]] {
     val pool: ExecutorService = Executors.newFixedThreadPool(processors)
+
+    val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
+    val buffer: ListBuffer[SearchResult[I, T]] = ListBuffer[SearchResult[I, T]]()
+    val counter = new AtomicInteger()
+    val procCount = new AtomicInteger()
 
     def onTimeoutException(exc: Exception): Unit = {
       pool.shutdownNow()
     }
 
-    def createFuture(): Future[Seq[SearchResult[I, T]]] = {
-      val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
-      val buffer: ListBuffer[SearchResult[I, T]] = ListBuffer[SearchResult[I, T]]()
-      val counter = new AtomicInteger()
-      val procCount = new AtomicInteger()
-      val len = raw.length
+    def createFuture(): Future[Seq[SearchResult[I, T]]]
 
-      def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
-        promise.success(buffer)
-        pool.shutdown()
-      } else if (procCount.get() < len) {
-        pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
-      }
-
-      val shorter = if (processors < len) processors else len
-      for (i <- 0 until shorter) {
-        procCount.incrementAndGet()
-        pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc()))
-      }
+    protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: (Int) => Unit): Future[Seq[SearchResult[I, T]]] = {
+      body(raw.length)
       promise.future
     }
   }
 
-  private class FutureHandler[I, T <: PkDataSet[I]](filterFn: (SearchResult[I, T]) => Boolean,
-                                                    sr: SearchResult[I, T],
-                                                    buffer: ListBuffer[SearchResult[I, T]],
-                                                    callback: () => Unit) extends Runnable {
+  private class FilterAsync[I, T <: PkDataSet[I]](raw: Seq[SearchResult[I, T]],
+                                                  filterFn: (SearchResult[I, T]) => Boolean) extends Filter[I, T] {
+    override def createFuture(): Future[Seq[SearchResult[I, T]]] = {
+      doCreateFuture(raw, (len: Int) => {
+        def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
+          promise.success(buffer)
+          pool.shutdown()
+        } else if (procCount.get() < len) {
+          pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
+        }
+
+        val shorter = if (processors < len) processors else len
+        for (i <- 0 until shorter) {
+          procCount.incrementAndGet()
+          pool.execute(new TaskHandler(filterFn, raw(i), buffer, () => checkLenInc()))
+        }
+      })
+    }
+  }
+
+  private class FilterAsyncFuture[I, T <: PkDataSet[I]](raw: Seq[SearchResult[I, T]],
+                                                        filterFn: (SearchResult[I, T]) => Future[Boolean])
+    extends Filter[I, T] {
+    override def createFuture(): Future[Seq[SearchResult[I, T]]] = {
+      doCreateFuture(raw, (len: Int) => {
+        def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
+          promise.success(buffer)
+          pool.shutdown()
+        } else if (procCount.get() < len) {
+          pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
+        }
+
+        val shorter = if (processors < len) processors else len
+        for (i <- 0 until shorter) {
+          procCount.incrementAndGet()
+          pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc()))
+        }
+      })
+    }
+  }
+
+  private class TaskHandler[I, T <: PkDataSet[I]](filterFn: (SearchResult[I, T]) => Boolean,
+                                                  sr: SearchResult[I, T],
+                                                  buffer: ListBuffer[SearchResult[I, T]],
+                                                  callback: () => Unit) extends Runnable {
     override def run(): Unit = {
       val success = filterFn(sr)
       if (success) {
         buffer.append(sr)
       }
       callback()
+    }
+  }
+
+  private class FutureHandler[I, T <: PkDataSet[I]](filterFn: (SearchResult[I, T]) => Future[Boolean],
+                                                    sr: SearchResult[I, T],
+                                                    buffer: ListBuffer[SearchResult[I, T]],
+                                                    callback: () => Unit) extends Runnable {
+    override def run(): Unit = {
+      filterFn(sr).onComplete {
+        case Success(bool) =>
+          if (bool) {
+            buffer.append(sr)
+          }
+          callback()
+        case _ =>
+          callback()
+      }
     }
   }
 

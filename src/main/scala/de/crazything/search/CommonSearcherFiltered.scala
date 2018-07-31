@@ -44,6 +44,37 @@ object CommonSearcherFiltered {
     promise.future
   }
 
+  private def doSearchAsyncAsync[I, T <: PkDataSet[I]](input: T,
+                                                       factory: AbstractTypeFactory[I, T],
+                                                       queryCriteria: Option[QueryCriteria] = None,
+                                                       maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                                       getFilterClass: (Seq[SearchResult[I, T]]) => Filter[I, T],
+                                                       filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
+    val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
+    searchResult.onComplete {
+      case Success(res) =>
+        val filterClass: Filter[I, T] = getFilterClass(res)
+        val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
+        finalResultFuture.onComplete {
+          case Success(finalResult) =>
+            if (finalResult.nonEmpty) {
+              promise.success(finalResult.sortBy(r => -r.score))
+            } else {
+              promise.success(Seq())
+            }
+          case Failure(t: TimeoutException) =>
+            filterClass.onTimeoutException(t)
+            promise.failure(t)
+          case Failure(x) => promise.failure(x)
+          case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
+        }
+      case Failure(t) => throw new RuntimeException("Future failed in searchAsyncWithAsyncFilter", t)
+      case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
+    }
+    promise.future
+  }
+
   private val ONE_DAY = Duration.create(1, TimeUnit.DAYS)
 
   /**
@@ -71,29 +102,8 @@ object CommonSearcherFiltered {
                                              maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
                                              filterFn: (SearchResult[I, T]) => Boolean,
                                              filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
-    val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
-    searchResult.onComplete {
-      case Success(res) =>
-        val filterClass = new FilterAsync(res, filterFn)
-        val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
-        finalResultFuture.onComplete {
-          case Success(finalResult) =>
-            if (finalResult.nonEmpty) {
-              promise.success(finalResult.sortBy(r => -r.score))
-            } else {
-              promise.success(Seq())
-            }
-          case Failure(t: TimeoutException) =>
-            filterClass.onTimeoutException(t)
-            promise.failure(t)
-          case Failure(x) => promise.failure(x)
-          case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
-        }
-      case Failure(t) => throw new RuntimeException("Future failed in searchAsyncWithAsyncFilter", t)
-      case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
-    }
-    promise.future
+    def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsync(res, filterFn)
+    doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
   // In order to use akka later.
@@ -103,29 +113,8 @@ object CommonSearcherFiltered {
                                                    maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
                                                    filterFn: (SearchResult[I, T]) => Future[Boolean],
                                                    filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
-    val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
-    searchResult.onComplete {
-      case Success(res) =>
-        val filterClass = new FilterAsyncFuture(res, filterFn)
-        val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
-        finalResultFuture.onComplete {
-          case Success(finalResult) =>
-            if (finalResult.nonEmpty) {
-              promise.success(finalResult.sortBy(r => -r.score))
-            } else {
-              promise.success(Seq())
-            }
-          case Failure(t: TimeoutException) =>
-            filterClass.onTimeoutException(t)
-            promise.failure(t)
-          case Failure(x) => promise.failure(x)
-          case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
-        }
-      case Failure(t) => throw new RuntimeException("Future failed in searchAsyncWithAsyncFilter", t)
-      case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
-    }
-    promise.future
+    def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
+    doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
   //TODO: should be configurable

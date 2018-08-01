@@ -1,6 +1,6 @@
 package de.crazything.search
 
-import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
+import java.util.concurrent.{ExecutorService, Executors, RejectedExecutionException, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
@@ -103,6 +103,7 @@ object CommonSearcherFiltered {
                                              filterFn: (SearchResult[I, T]) => Boolean,
                                              filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsync(res, filterFn)
+
     doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
@@ -114,6 +115,7 @@ object CommonSearcherFiltered {
                                                    filterFn: (SearchResult[I, T]) => Future[Boolean],
                                                    filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
+
     doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
@@ -152,6 +154,7 @@ object CommonSearcherFiltered {
         } else if (procCount.get() < len) {
           pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
         }
+
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
@@ -169,8 +172,8 @@ object CommonSearcherFiltered {
       doCreateFuture(raw, (len: Int) => {
         def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
           promise.success(buffer)
-          if(excThrown) {
-            println("And the fucking result")
+          if (excThrown) {
+            println("And the result is ")
             println(buffer.mkString(" - "))
           }
           pool.shutdown()
@@ -179,14 +182,15 @@ object CommonSearcherFiltered {
           try {
             pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
           } catch {
-            case e: Exception =>
+            case e: RejectedExecutionException =>
               println(procCount.get() - 1)
               println(buffer.mkString(" - "))
-              e.printStackTrace()
               excThrown = true
+              throw new RuntimeException(e)
           }
 
         }
+
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()

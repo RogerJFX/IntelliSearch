@@ -1,6 +1,10 @@
 ReliableSearch
 -
 
+[![Build Status](https://travis-ci.com/RogerJFX/ReliableSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/ReliableSearch)
+[![Coverage Status](https://coveralls.io/repos/github/RogerJFX/ReliableSearch/badge.svg?branch=master)](https://coveralls.io/github/RogerJFX/ReliableSearch?branch=master)
+
+
 Another attempt to make search results most reliable. 
 
 There are many use cases for a reliable search:

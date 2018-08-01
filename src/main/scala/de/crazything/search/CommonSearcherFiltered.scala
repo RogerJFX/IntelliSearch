@@ -123,7 +123,7 @@ object CommonSearcherFiltered {
 
   trait Filter[I, T <: PkDataSet[I]] {
 
-    val pool: ExecutorService = Executors.newFixedThreadPool(processors)
+    val pool: ExecutorService = Executors.newWorkStealingPool(processors) //newFixedThreadPool(processors)
 
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     val buffer: ListBuffer[SearchResult[I, T]] = ListBuffer[SearchResult[I, T]]()

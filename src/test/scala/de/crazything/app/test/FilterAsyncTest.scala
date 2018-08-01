@@ -1,16 +1,16 @@
 package de.crazything.app.test
 
-import de.crazything.app.test.helpers.DataProvider
+import de.crazything.app.test.helpers.{CustomMocks, DataProvider}
 import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfter, Matchers}
+import org.scalatest._
 
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.{Future, Promise, TimeoutException}
 
-class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter with QueryConfig with GermanLanguage {
+class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig with GermanLanguage {
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
@@ -75,10 +75,12 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
     }
 
     override def selectQueryCreator: (QueryCriteria, Person) => Query = (criteria, person) => {
-      if(criteria.queryName == "dummy") {
+      if (criteria.queryName == "dummy") {
         Seq(
           ("firstName", "Roger").exact.must,
-          ("lastName", person.lastName).exact.must
+          ("lastName", person.lastName).exact.must,
+          ("lastName", "Flintstone").exact.mustNot, // ridiculous - just for the code coverage...
+          ("lastName", "ABCABCABCABCABCABCABCABCABCABC").exact.should // ridiculous - ...
         )
       } else createQuery(person)
     }
@@ -88,7 +90,7 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
 
     def filterRoger(result: SearchResult[Int, Person]): Boolean = {
       // normally another Factory/Directory - just a check on some other data source
-      CommonSearcher.search(input = standardPerson.copy(lastName = result.obj.lastName, firstName="Roger"),
+      CommonSearcher.search(input = standardPerson.copy(lastName = result.obj.lastName, firstName = "Roger"),
         factory = PersonFactoryAll, queryCriteria = Some(QueryCriteria("dummy"))).nonEmpty
     }
 
@@ -124,53 +126,77 @@ class FilterAsyncTest extends AsyncFlatSpec with Matchers with BeforeAndAfter wi
     true
   }
 
+  import scala.concurrent.duration._
+
+  // non blocking
+  def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = {
+    val p = Promise[Boolean]
+
+    Future.apply {
+      val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
+      import java.util.concurrent.ScheduledThreadPoolExecutor
+      val executor = new ScheduledThreadPoolExecutor(1)
+      import java.util.concurrent.TimeUnit
+      executor.schedule(new Runnable() {
+        override def run(): Unit = {
+          p.success(true)
+        }
+      }, timeout, TimeUnit.MILLISECONDS)
+    }
+    p.future
+  }
+
   // Make sure async processing does not destroy order of results.
   "Results" should "be sorted async/future (fast)" in {
-
-    import scala.concurrent.duration._
-    // non blocking
-    def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = {
-      val p = Promise[Boolean]
-
-      Future.apply {
-        val timeout: Long = scala.util.Random.nextInt(500).toLong + 500L
-        import java.util.concurrent.ScheduledThreadPoolExecutor
-        val executor = new ScheduledThreadPoolExecutor(1)
-        import java.util.concurrent.TimeUnit
-        executor.schedule(new Runnable() {
-          override def run(): Unit = {
-            p.success(true)
-          }
-        }, timeout, TimeUnit.MILLISECONDS)
-      }
-      p.future
-    }
     CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
       filterFn = filterTrueFuture, filterTimeout = 10.seconds).map(result => {
       checkOrder(result)
       assert(result.length == 6)
     })
+  }
 
+  it should "work on two threads(async/future)" in {
+    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", 2, {
+      CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
+        filterFn = filterTrueFuture, filterTimeout = 10.seconds).map(result => {
+        checkOrder(result)
+        assert(result.length == 6)
+      })
+    })
+  }
+
+  it should "throw TimeoutException" in {
+    recoverToSucceededIf[TimeoutException](
+      CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
+        filterFn = filterTrueFuture, filterTimeout = 600.millis).map(result => {
+        assert(result.length == 6)
+      }))
   }
 
   it should "be sorted async/blocking (fast)" in {
-
     CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,
       filterFn = filterTrue).map(result => {
       checkOrder(result)
       assert(result.length == 6)
     })
+  }
 
+  it should "work on 4 threads(async/blocking)" in {
+    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", 4, {
+      CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,
+        filterFn = filterTrue, filterTimeout = 10.seconds).map(result => {
+        checkOrder(result)
+        assert(result.length == 6)
+      })
+    })
   }
 
   it should "be sorted sync/blocking (slow)" in {
-
     CommonSearcherFiltered.searchAsync(input = standardPerson, factory = PersonFactoryAll,
       filterFn = filterTrue).map(result => {
       checkOrder(result)
       assert(result.length == 6)
     })
-
   }
 
 }

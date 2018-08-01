@@ -13,12 +13,15 @@ object CommonSearcher {
 
   private val MAGIC_NUM_DEFAULT_HITS = 100 // ???
 
-  private val searcherRef: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]]()
+  private val searcherRef: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]](None)
 
-  def setDirectory(dir: Directory): Unit = {
-    val reader: DirectoryReader = DirectoryReader.open(dir)
-    searcherRef.set(Some(new IndexSearcher(reader)))
-  }
+  def setDirectory(dir: Directory): Unit =
+    if (dir == null) {
+      searcherRef.set(None)
+    } else {
+      val reader: DirectoryReader = DirectoryReader.open(dir)
+      searcherRef.set(Some(new IndexSearcher(reader)))
+    }
 
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
@@ -40,7 +43,7 @@ object CommonSearcher {
           SearchResult[I, T](factory.createInstanceFromDocument(hitDoc).asInstanceOf[T], hit.score)
         })
       }
-      case None => throw new RuntimeException("Nobody told us to have a directory reference. No yet finished? " +
+      case None => throw new IllegalStateException("Nobody told us to have a directory reference. No yet finished? " +
         "Anything async? We should fix this then")
     }
 
@@ -53,7 +56,6 @@ object CommonSearcher {
                                        (implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = Future {
     search(input, factory, queryCriteria, maxHits)
   }
-
 
 
 }

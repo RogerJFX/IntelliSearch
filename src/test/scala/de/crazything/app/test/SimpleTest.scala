@@ -4,16 +4,16 @@ import de.crazything.app.test.helpers.DataProvider
 import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.search.entity.{QueryCriteria, SearchResult}
 import de.crazything.search.{CommonIndexer, CommonSearcher, QueryConfig}
-import org.scalatest.FlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
 
-class SimpleTest extends FlatSpec with QueryConfig with GermanLanguage {
+class SimpleTest extends FlatSpec with Matchers with QueryConfig with GermanLanguage {
 
   private val logger = LoggerFactory.getLogger(classOf[SimpleTest])
 
-  CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
+
 
   val results: ListBuffer[SearchResult[Int, Person]] = new ListBuffer[SearchResult[Int, Person]]()
 
@@ -35,7 +35,17 @@ class SimpleTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   private[this] def checkScore(name: String, score: Float) = assert(expectedScores(name) == score)
 
+
+  "Searcher" should "fail with no directory" in {
+    CommonSearcher.setDirectory(null)
+    an [IllegalStateException] should be thrownBy {
+      val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE)
+      assert(searchResult.length == 1)
+    }
+  }
+
   "Persons" should "find Reißer" in {
+    CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
     val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE)
     logger.debug(s"Reißer: $searchResult")
     assert(searchResult.length == 1)

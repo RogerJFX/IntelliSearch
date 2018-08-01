@@ -14,6 +14,7 @@ libraryDependencies ++= Seq (
   "com.typesafe.scala-logging" % "scala-logging-slf4j_2.11" % "2.1.2",
   "ch.qos.logback" % "logback-classic" % "1.1.7",
 
-  "org.scalatest" %% "scalatest" % "3.0.1" % Test
+  "org.scalatest" %% "scalatest" % "3.0.1" % Test,
+  "org.scalamock" %% "scalamock" % "4.1.0" % Test
 
 )

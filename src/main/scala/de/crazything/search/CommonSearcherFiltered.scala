@@ -118,9 +118,11 @@ object CommonSearcherFiltered {
   }
 
   //TODO: should be configurable
+  // Do not make this private. We have to mock it.
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
-  private trait Filter[I, T <: PkDataSet[I]] {
+  trait Filter[I, T <: PkDataSet[I]] {
+
     val pool: ExecutorService = Executors.newFixedThreadPool(processors)
 
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
@@ -150,7 +152,6 @@ object CommonSearcherFiltered {
         } else if (procCount.get() < len) {
           pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
         }
-
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
@@ -164,14 +165,28 @@ object CommonSearcherFiltered {
                                                         filterFn: (SearchResult[I, T]) => Future[Boolean])
     extends Filter[I, T] {
     override def createFuture(): Future[Seq[SearchResult[I, T]]] = {
+      var excThrown = false
       doCreateFuture(raw, (len: Int) => {
         def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
           promise.success(buffer)
+          if(excThrown) {
+            println("And the fucking result")
+            println(buffer.mkString(" - "))
+          }
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
-        }
+          // Waiting for the java.util.concurrent.RejectedExecutionException
+          try {
+            pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
+          } catch {
+            case e: Exception =>
+              println(procCount.get() - 1)
+              println(buffer.mkString(" - "))
+              e.printStackTrace()
+              excThrown = true
+          }
 
+        }
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()

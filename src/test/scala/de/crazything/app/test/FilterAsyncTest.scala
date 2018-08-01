@@ -16,6 +16,10 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
 
   private def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.obj.city.contains("Frankfurt")
 
+  val availProcessors = Runtime.getRuntime.availableProcessors()
+
+  private def filterAvailProcessors(requested: Int) = if(requested > availProcessors) availProcessors else requested
+
   private def filterFrankfurtAsync(result: SearchResult[Int, Person]): Boolean = {
     Thread.sleep(500) // Come on! Just half a second...
     filterFrankfurt(result)
@@ -156,7 +160,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   }
 
   it should "work on two threads(async/future)" in {
-    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", 2, {
+    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", filterAvailProcessors(2), {
       CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
         filterFn = filterTrueFuture, filterTimeout = 10.seconds).map(result => {
         checkOrder(result)
@@ -182,7 +186,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   }
 
   it should "work on 4 threads(async/blocking)" in {
-    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", 4, {
+    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", filterAvailProcessors(4), {
       CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,
         filterFn = filterTrue, filterTimeout = 10.seconds).map(result => {
         checkOrder(result)

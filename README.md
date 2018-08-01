@@ -2,7 +2,7 @@ ReliableSearch
 -
 
 [![Build Status](https://travis-ci.com/RogerJFX/ReliableSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/ReliableSearch)
-[![Coverage Status](https://coveralls.io/repos/github/RogerJFX/ReliableSearch/badge.svg?branch=master)](https://coveralls.io/github/RogerJFX/ReliableSearch?branch=master)
+[![Coverage Status](https://codecov.io/gh/rogerjfx/reliablesearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/ReliableSearch)
 
 
 Another attempt to make search results most reliable. 

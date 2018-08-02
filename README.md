@@ -6,21 +6,26 @@ ReliableSearch
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 
-Another attempt to make search results most reliable. 
+**Another attempt to make search results most reliable.**
 
 There are many use cases for a reliable search:
 
 1. in any case a reliable search improves results' quality
 1. a reliable search might be used in scenarios, that are business critical
 
-In the second case there is a strong need of tweaking from start/code on. So no need for any 
-elastic stuff.
+Our strategy is to accumulate queries and the weighted results as well. That's for the first search.
 
-Think of the following scenario: we have two or more customer databases. Now we want to merge 
-them into one database. In this case results must be reliable. Modifications should be as 
-near as possible to the code then.
+**Another issue:** we might want to use some other services to check/filter our initial search's result. So we decided to 
+implement some further methods taking a filter method as an argument. Filters even might be Futures. So it is possible 
+to gain further information from remote services in order to make our initial result more precise. 
+We think of soon implementing some test cases using Akka.
 
-Our strategy is to accumulate queries and the weighted results as well.
+In some way we have a cascaded search then.
+
+If we in the next step don't let the filters return booleans but filtered results, ... 
+Yes, we should think over that. Currently the project is old less than 2 weeks.
+
+####To come back to the initial search, which of course should be exact as possible:
 
 There is a default hierarchy of Queries:
 
@@ -59,8 +64,7 @@ One last note: I initially wrote Scala code, that would have been easily
 translated into Java. I lost this scope and I am sorry for this. However it still 
 is possible, even if it meanwhile would be a real pain in my holy *beep*.
 
-Some thoughts
---
+####Some thoughts
 
 - Making a service of it is a huge idea, though not in scope at the moment. But...
 - Why not creating a REST interface?

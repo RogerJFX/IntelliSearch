@@ -1,8 +1,9 @@
 package de.crazything.search
 
-import java.util.concurrent.{ExecutorService, Executors, RejectedExecutionException, TimeUnit}
+import java.util.concurrent.{Future => _, TimeoutException => _, _}
 import java.util.concurrent.atomic.AtomicInteger
 
+import de.crazything.search.CommonSearcherFilterHandlers.{FutureHandler, TaskHandler}
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import de.crazything.search.utils.FutureUtil
 
@@ -14,11 +15,9 @@ import scala.util.{Failure, Success}
 /**
   * Combine searches with other filters, maybe other searches.
   */
-object CommonSearcherFiltered {
+object CommonSearcherFiltered extends MagicNumbers {
 
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  private val MAGIC_NUM_DEFAULT_HITS = 500 // ???
 
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
@@ -125,8 +124,10 @@ object CommonSearcherFiltered {
 
   trait Filter[I, T <: PkDataSet[I]] {
 
-    val pool: ExecutorService = Executors.newWorkStealingPool(processors) //newFixedThreadPool(processors)
-
+    val pool: ExecutorService = //new ThreadPoolExecutor(processors, processors, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue[Runnable](1024))
+    //Executors.newWorkStealingPool(processors)
+      Executors.newFixedThreadPool(processors)
+    val ec: ExecutionContext = ExecutionContext.fromExecutorService(pool)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     val buffer: ListBuffer[SearchResult[I, T]] = ListBuffer[SearchResult[I, T]]()
     val counter = new AtomicInteger()
@@ -168,66 +169,24 @@ object CommonSearcherFiltered {
                                                         filterFn: (SearchResult[I, T]) => Future[Boolean])
     extends Filter[I, T] {
     override def createFuture(): Future[Seq[SearchResult[I, T]]] = {
-      var excThrown = false
       doCreateFuture(raw, (len: Int) => {
         def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
           promise.success(buffer)
-          if (excThrown) {
-            println("And the result is ")
-            println(buffer.mkString(" - "))
-          }
+
           pool.shutdown()
         } else if (procCount.get() < len) {
-          // Waiting for the java.util.concurrent.RejectedExecutionException
-          try {
-            pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
-          } catch {
-            case e: RejectedExecutionException =>
-              println(procCount.get() - 1)
-              println(buffer.mkString(" - "))
-              excThrown = true
-              throw new RuntimeException(e)
-          }
-
+          pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc())(ec))
         }
 
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc()))
+          pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc())(ec))
         }
       })
     }
   }
 
-  private class TaskHandler[I, T <: PkDataSet[I]](filterFn: (SearchResult[I, T]) => Boolean,
-                                                  sr: SearchResult[I, T],
-                                                  buffer: ListBuffer[SearchResult[I, T]],
-                                                  callback: () => Unit) extends Runnable {
-    override def run(): Unit = {
-      val success = filterFn(sr)
-      if (success) {
-        buffer.append(sr)
-      }
-      callback()
-    }
-  }
-
-  private class FutureHandler[I, T <: PkDataSet[I]](filterFn: (SearchResult[I, T]) => Future[Boolean],
-                                                    sr: SearchResult[I, T],
-                                                    buffer: ListBuffer[SearchResult[I, T]],
-                                                    callback: () => Unit) extends Runnable {
-    override def run(): Unit = {
-      filterFn(sr).onComplete {
-        case Success(bool) =>
-          if (bool) {
-            buffer.append(sr)
-          }
-          callback()
-        case _ =>
-          callback()
-      }
-    }
-  }
-
 }
+
+

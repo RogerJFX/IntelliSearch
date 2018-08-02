@@ -1,5 +1,7 @@
 package de.crazything.app.test
 
+import java.util.concurrent.RejectedExecutionException
+
 import de.crazything.app.test.helpers.{CustomMocks, DataProvider}
 import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.search._
@@ -7,10 +9,13 @@ import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
 import org.scalatest._
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.{Future, Promise, TimeoutException}
 
 class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig with GermanLanguage {
+
+  private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.FilterAsyncTest")
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
@@ -18,7 +23,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
 
   val availProcessors = Runtime.getRuntime.availableProcessors()
 
-  private def filterAvailProcessors(requested: Int) = if(requested > availProcessors) availProcessors else requested
+  private def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
 
   private def filterFrankfurtAsync(result: SearchResult[Int, Person]): Boolean = {
     Thread.sleep(500) // Come on! Just half a second...
@@ -133,7 +138,8 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   import scala.concurrent.duration._
 
   // non blocking
-  def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = {
+  private def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = {
+
     val p = Promise[Boolean]
 
     Future.apply {
@@ -141,9 +147,18 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
       import java.util.concurrent.ScheduledThreadPoolExecutor
       val executor = new ScheduledThreadPoolExecutor(1)
       import java.util.concurrent.TimeUnit
+
       executor.schedule(new Runnable() {
         override def run(): Unit = {
-          p.success(true)
+          try {
+            p.success(true)
+          } catch { // No chance. Some instance seems to swallow the Exception (Test: "should throw TimeoutException")
+            case ree: RejectedExecutionException =>
+              logger.debug("An execution was rejected due to a too small timeout of {}, message is {}", timeout, ree.getMessage)
+            case e: Exception => // ignore
+              logger.debug("An execution has occurred, message is {}", e.getMessage)
+            case _: Throwable => logger.error("WTF")
+          }
         }
       }, timeout, TimeUnit.MILLISECONDS)
     }
@@ -170,6 +185,10 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   }
 
   it should "throw TimeoutException" in {
+    logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    logger.warn("We expect TimeoutException in this test, and RejectedExecutionException as well. So no worries.")
+    logger.warn("Reason: we shut down the ThreadPool immediately after a TimeoutException. So the remaining Tasks cannot be executed.")
+    logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     recoverToSucceededIf[TimeoutException](
       CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
         filterFn = filterTrueFuture, filterTimeout = 600.millis).map(result => {

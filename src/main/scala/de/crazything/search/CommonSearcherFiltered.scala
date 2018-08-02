@@ -49,7 +49,6 @@ object CommonSearcherFiltered extends MagicSettings {
           case exc: Exception => promise.failure(exc)
         }
       case Failure(t) => promise.failure(t)
-      case _ => throw new RuntimeException("Unknown Error in searchAsync")
     }
     promise.future
   }
@@ -78,33 +77,12 @@ object CommonSearcherFiltered extends MagicSettings {
             filterClass.onTimeoutException(t)
             promise.failure(t)
           case Failure(x) => promise.failure(x)
-          case _ => throw new RuntimeException("Unknown Error in doSearchAsyncAsync")
         }
       case Failure(t) => promise.failure(t)
-      case _ => throw new RuntimeException("Unknown Error in doSearchAsyncAsync")
     }
     promise.future
   }
 
-  /**
-    * EXPERIMENTAL
-    *
-    * Both, the search and filtering is async. Might once be helpful, if comparable data for filtering process
-    * comes from somewhere remote.
-    *
-    * Normally searchAsync will do, so if you plan to filter right here.
-    *
-    * @param input         Search input
-    * @param factory       Factory to be provided.
-    * @param queryCriteria Optional criteria to help factory to decide which query to select.
-    * @param maxHits       Max hits of search process before filtering. Default 500.
-    * @param filterFn      The filter function as future.
-    * @param filterTimeout Timeout for filtering. Keep in mind there may lots of async filter processes. This Duration
-    *                      covers the time of all(!) processes. So it should not be too small. Default is one day.
-    * @tparam I PK type of data object
-    * @tparam T type of data object
-    * @return Sequence of SearchResult as Future.
-    */
   def searchAsyncAsync[I, T <: PkDataSet[I]](input: T,
                                              factory: AbstractTypeFactory[I, T],
                                              searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
@@ -145,6 +123,10 @@ object CommonSearcherFiltered extends MagicSettings {
     def onTimeoutException(exc: Exception): Unit = {
       pool.shutdownNow()
     }
+    def onFilterException(exc: Throwable): Unit = {
+      promise.failure(exc)
+      pool.shutdownNow()
+    }
     def createFuture(): Future[Seq[SearchResult[I, T]]]
     protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: (Int) => Unit): Future[Seq[SearchResult[I, T]]] = {
       body(raw.length)
@@ -160,12 +142,12 @@ object CommonSearcherFiltered extends MagicSettings {
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
+          pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException))
         }
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new TaskHandler(filterFn, raw(i), buffer, () => checkLenInc()))
+          pool.execute(new TaskHandler(filterFn, raw(i), buffer, () => checkLenInc(), onFilterException))
         }
       })
     }
@@ -180,17 +162,15 @@ object CommonSearcherFiltered extends MagicSettings {
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc())(ec))
+          pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException)(ec))
         }
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc())(ec))
+          pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc(), onFilterException)(ec))
         }
       })
     }
   }
 
 }
-
-

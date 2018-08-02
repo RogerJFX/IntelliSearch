@@ -101,6 +101,15 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     )
   }
 
+  it should "throw an exception if filter does (async, async)." in {
+    recoverToSucceededIf[Exception](
+      CommonSearcherFiltered.searchAsyncAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterException).map(result => {
+        assert(result.length == 1)
+      })
+    )
+  }
+
   object PersonFactoryAll extends AbstractTypeFactory[Int, Person] {
 
     import de.crazything.search.CustomQuery._
@@ -202,6 +211,10 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     p.future
   }
 
+  private def filterExceptionFuture(result: SearchResult[Int, Person]): Future[Boolean] = Future {
+    throw new RuntimeException("Howdy, I don't like this request.")
+  }
+
   // Make sure async processing does not destroy order of results.
   "Results" should "be sorted async/future (fast)" in {
     CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
@@ -221,6 +234,18 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     })
   }
 
+  it should "throw an exception if filter does (asyncAsyncFuture, 2 threads)." in {
+    // Wonder, if this works reliably.
+    CustomMocks.mockObjectFieldAsync("de.crazything.search.CommonSearcherFiltered", "processors", filterAvailProcessors(2), {
+      recoverToSucceededIf[Exception](
+        CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+          filterFn = filterExceptionFuture).map(result => {
+          assert(result.length == 1)
+        })
+      )
+    })
+  }
+
   it should "throw TimeoutException" in {
     logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     logger.warn("We expect TimeoutException in this test, and RejectedExecutionException as well. So no worries.")
@@ -232,6 +257,17 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
         assert(result.length == 6)
       }))
   }
+
+  it should "throw an exception if filter does (asyncAsyncFuture)." in {
+    recoverToSucceededIf[Exception](
+      CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterExceptionFuture).map(result => {
+        assert(result.length == 1)
+      })
+    )
+  }
+
+
 
   it should "be sorted async/blocking (fast)" in {
     CommonSearcherFiltered.searchAsyncAsync(input = standardPerson, factory = PersonFactoryAll,

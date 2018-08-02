@@ -184,7 +184,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
   import scala.concurrent.duration._
 
   // non blocking
-  private def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = {
+  private def filterBooleanFuture(result: SearchResult[Int, Person], filterResult: Boolean): Future[Boolean] = {
 
     val p = Promise[Boolean]
 
@@ -197,7 +197,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
       executor.schedule(new Runnable() {
         override def run(): Unit = {
           try {
-            p.success(true)
+            p.success(filterResult)
           } catch { // No chance. Some instance seems to swallow the Exception (Test: "should throw TimeoutException")
             case ree: RejectedExecutionException =>
               logger.debug("An execution was rejected due to a too small timeout of {}, message is {}", timeout, ree.getMessage)
@@ -211,6 +211,10 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     p.future
   }
 
+  private def filterTrueFuture(result: SearchResult[Int, Person]) = filterBooleanFuture(result, true)
+  private def filterFalseFuture(result: SearchResult[Int, Person]) = filterBooleanFuture(result, false)
+
+
   private def filterExceptionFuture(result: SearchResult[Int, Person]): Future[Boolean] = Future {
     throw new RuntimeException("Howdy, I don't like this request.")
   }
@@ -221,6 +225,13 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
       filterFn = filterTrueFuture, filterTimeout = 10.seconds).map(result => {
       checkOrder(result)
       assert(result.length == 6)
+    })
+  }
+
+  it should "be empty after false filter" in {
+    CommonSearcherFiltered.searchAsyncAsyncFuture(input = standardPerson, factory = PersonFactoryAll,
+      filterFn = filterFalseFuture, filterTimeout = 10.seconds).map(result => {
+      assert(result.isEmpty)
     })
   }
 

@@ -25,7 +25,8 @@ In some way we have a cascaded search then.
 If we in the next step don't let the filters return booleans but filtered results, ... 
 Yes, we should think over that. Currently the project is old less than 2 weeks.
 
-###To come back to the initial search, which of course should be exact as possible:
+To come back to the initial search, which of course should be exact as possible:
+-
 
 There is a default hierarchy of Queries:
 
@@ -64,7 +65,8 @@ One last note: I initially wrote Scala code, that would have been easily
 translated into Java. I lost this scope and I am sorry for this. However it still 
 is possible, even if it meanwhile would be a real pain in my holy *beep*.
 
-###Some thoughts
+Some thoughts
+-
 
 - Making a service of it is a huge idea, though not in scope at the moment. But...
 - Why not creating a REST interface?

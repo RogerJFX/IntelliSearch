@@ -30,4 +30,15 @@ object CustomMocks {
     }
     fut
   }
+
+  def interceptTestAsync[R <: Future[Assertion]](before: () => _, after: () => _, assertion: => R)
+                                                (implicit ex: ExecutionContext): Future[Assertion] = {
+    before()
+    val fut = assertion
+    fut.andThen {
+      case _ => after()
+    }
+    fut
+
+  }
 }

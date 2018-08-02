@@ -1,28 +1,30 @@
 package de.crazything.search
 
-import java.util.concurrent.{Future => _, TimeoutException => _, _}
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{Future => _, TimeoutException => _, _}
 
 import de.crazything.search.CommonSearcherFilterHandlers.{FutureHandler, TaskHandler}
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import de.crazything.search.utils.FutureUtil
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent._
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
 
 /**
   * Combine searches with other filters, maybe other searches.
   */
-object CommonSearcherFiltered extends MagicNumbers {
+object CommonSearcherFiltered extends MagicSettings {
 
+  // I bet, this will be changed soon.
+  // TODO: Don't forget this line! The ThreadPool should not be sufficient, if it comes to real mass processing.
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
                                    queryCriteria: Option[QueryCriteria] = None,
-                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                    filterFn: (SearchResult[I, T]) => Boolean): Seq[SearchResult[I, T]] = {
     val searchResult: Seq[SearchResult[I, T]] = CommonSearcher.search(input, factory, queryCriteria, maxHits)
     searchResult.filter((sr: SearchResult[I, T]) => filterFn(sr))
@@ -31,14 +33,20 @@ object CommonSearcherFiltered extends MagicNumbers {
   def searchAsync[I, T <: PkDataSet[I]](input: T,
                                         factory: AbstractTypeFactory[I, T],
                                         queryCriteria: Option[QueryCriteria] = None,
-                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                         filterFn: (SearchResult[I, T]) => Boolean): Future[Seq[SearchResult[I, T]]] = {
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
-      case Success(res) => promise.success(res.filter(sr => filterFn(sr)))
-      case Failure(t) => throw new RuntimeException("Future failed in searchAsyncWithFilter", t)
-      case _ => throw new RuntimeException("Unknown Error in searchAsyncWithFilter")
+      case Success(res) =>
+        try {
+          val result = res.filter(sr => filterFn(sr))
+          promise.success(result)
+        } catch {
+          case exc: Exception => promise.failure(exc)
+        }
+      case Failure(t) => promise.failure(t)
+      case _ => throw new RuntimeException("Unknown Error in searchAsync")
     }
     promise.future
   }
@@ -46,7 +54,7 @@ object CommonSearcherFiltered extends MagicNumbers {
   private def doSearchAsyncAsync[I, T <: PkDataSet[I]](input: T,
                                                        factory: AbstractTypeFactory[I, T],
                                                        queryCriteria: Option[QueryCriteria] = None,
-                                                       maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                                       maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                                        getFilterClass: (Seq[SearchResult[I, T]]) => Filter[I, T],
                                                        filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
@@ -66,15 +74,13 @@ object CommonSearcherFiltered extends MagicNumbers {
             filterClass.onTimeoutException(t)
             promise.failure(t)
           case Failure(x) => promise.failure(x)
-          case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
+          case _ => throw new RuntimeException("Unknown Error in doSearchAsyncAsync")
         }
-      case Failure(t) => throw new RuntimeException("Future failed in searchAsyncWithAsyncFilter", t)
-      case _ => throw new RuntimeException("Unknown Error in searchAsyncWithAsyncFilter")
+      case Failure(t) => promise.failure(t)
+      case _ => throw new RuntimeException("Unknown Error in doSearchAsyncAsync")
     }
     promise.future
   }
-
-  private val ONE_DAY = Duration.create(1, TimeUnit.DAYS)
 
   /**
     * EXPERIMENTAL
@@ -98,7 +104,7 @@ object CommonSearcherFiltered extends MagicNumbers {
   def searchAsyncAsync[I, T <: PkDataSet[I]](input: T,
                                              factory: AbstractTypeFactory[I, T],
                                              queryCriteria: Option[QueryCriteria] = None,
-                                             maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                             maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                              filterFn: (SearchResult[I, T]) => Boolean,
                                              filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsync(res, filterFn)
@@ -110,7 +116,7 @@ object CommonSearcherFiltered extends MagicNumbers {
   def searchAsyncAsyncFuture[I, T <: PkDataSet[I]](input: T,
                                                    factory: AbstractTypeFactory[I, T],
                                                    queryCriteria: Option[QueryCriteria] = None,
-                                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                                    filterFn: (SearchResult[I, T]) => Future[Boolean],
                                                    filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)

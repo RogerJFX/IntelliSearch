@@ -30,6 +30,10 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     filterFrankfurt(result)
   }
 
+  private def filterException(result: SearchResult[Int, Person]): Boolean = {
+    throw new RuntimeException("Howdy, I don't like this request.")
+  }
+
 
   before {
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
@@ -42,7 +46,36 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     })
   }
 
+  it should "throw an exception if filter does." in {
+    recoverToSucceededIf[Exception](
+      CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterException).map(result => {
+        assert(result.length == 1)
+      })
+    )
+  }
+
+//  it should "throw an exception if filter does." in {
+//    CustomMocks.interceptTestAsync(() => {CommonSearcher.setDirectory(null)},
+//      () => {CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)}, {
+//        recoverToSucceededIf[Exception](
+//          CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+//            filterFn = filterFrankfurt).map(result => {
+//            assert(result.length == 1)
+//          })
+//        )
+//    })
+////    CommonSearcher.setDirectory(null)
+////    recoverToSucceededIf[Exception](
+////      CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+////        filterFn = filterFrankfurt).map(result => {
+////        assert(result.length == 1)
+////      })
+////    )
+//  }
+
   it should "pass Hösl living in Frankfurt" in {
+    //CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
     CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
       filterFn = filterFrankfurt).map(result => {
       assert(result.length == 1)

@@ -9,9 +9,7 @@ import org.apache.lucene.store.Directory
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object CommonSearcher {
-
-  private val MAGIC_NUM_DEFAULT_HITS = 100 // ???
+object CommonSearcher extends MagicSettings{
 
   private val searcherRef: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]](None)
 
@@ -26,8 +24,9 @@ object CommonSearcher {
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
                                    queryCriteria: Option[QueryCriteria] = None,
-                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS): Seq[SearchResult[I, T]] = {
-    val searcherOption = searcherRef.get()
+                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                   searcherOption: Option[IndexSearcher] = searcherRef.get()): Seq[SearchResult[I, T]] = {
+    //val searcherOption = searcherRef.get()
 
     searcherOption match {
       case Some(searcher) => {
@@ -52,9 +51,10 @@ object CommonSearcher {
   def searchAsync[I, T <: PkDataSet[I]](input: T,
                                         factory: AbstractTypeFactory[I, T],
                                         queryCriteria: Option[QueryCriteria] = None,
-                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS)
+                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                        searcherOption: Option[IndexSearcher] = searcherRef.get())
                                        (implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = Future {
-    search(input, factory, queryCriteria, maxHits)
+    search(input, factory, queryCriteria, maxHits, searcherOption)
   }
 
 

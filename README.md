@@ -11,7 +11,7 @@ ReliableSearch
 There are many use cases for a reliable search:
 
 1. in any case a reliable search improves results' quality
-1. a reliable search might be used in scenarios, that are business critical
+1. a reliable search might be used in scenarios, that are business critical (e.g. local database merging)
 
 Our strategy is to accumulate queries and the weighted results as well. That's for the first search.
 

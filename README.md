@@ -31,7 +31,7 @@ Yes, we should think over that. Currently the project is old less than 2 weeks.
 
 And yes, we should think about some website explaining and documenting all this. Stay tuned.
 
-To come back to the initial search, which of course should be exact as possible:
+To come back to the initial search, which of course should be as exact as possible:
 -
 
 There is a default hierarchy of Queries:

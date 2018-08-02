@@ -10,8 +10,8 @@ personal appearance, race, religion, or sexual identity and orientation.
 
 ## Our Standards
 
-We don't give a damned shit on anybody not being or becoming our friend. We are cool 
-and we try to keep staying cool. 
+We don't give a damn shit on anybody not being or not becoming our friend. We strongly believe to be cool 
+and we try to keep this state. 
 
 That's all. 
 

@@ -16,14 +16,20 @@ There are many use cases for a reliable search:
 Our strategy is to accumulate queries and the weighted results as well. That's for the first search.
 
 **Another issue:** we might want to use some other services to check/filter our initial search's result. So we decided to 
-implement some further methods taking a filter method as an argument. Filters even might be Futures. So it is possible 
-to gain further information from remote services in order to make our initial result more precise. 
-We think of soon implementing some test cases using Akka.
+implement some further methods taking a filter method as an argument. 
+
+Filters might be blocking, which is not recommended in most cases, or non blocking. However, if a filter works on the 
+very same machine, a blocking filter might be preferable.
+
+Those Filters even might be Futures (non blocking then). So it is possible to gain further information from remote 
+services in order to make our initial result more precise. We think of soon implementing some test cases using Akka.
 
 In some way we have a cascaded search then.
 
 If we in the next step don't let the filters return booleans but filtered results, ... 
 Yes, we should think over that. Currently the project is old less than 2 weeks.
+
+And yes, we should think about some website explaining and documenting all this. Stay tuned.
 
 To come back to the initial search, which of course should be exact as possible:
 -

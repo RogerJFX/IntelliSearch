@@ -118,15 +118,12 @@ object CommonSearcherFiltered extends MagicNumbers {
     doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
-  //TODO: should be configurable
-  // Do not make this private. We have to mock it.
+  // Do not make this private. We have to mock it in some tests.
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
   trait Filter[I, T <: PkDataSet[I]] {
-
-    val pool: ExecutorService = //new ThreadPoolExecutor(processors, processors, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue[Runnable](1024))
-    //Executors.newWorkStealingPool(processors)
-      Executors.newFixedThreadPool(processors)
+    // Yes, we can do this here. We take care of the pool in our createFuture methods.
+    val pool: ExecutorService = Executors.newFixedThreadPool(processors)
     val ec: ExecutionContext = ExecutionContext.fromExecutorService(pool)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     val buffer: ListBuffer[SearchResult[I, T]] = ListBuffer[SearchResult[I, T]]()
@@ -136,9 +133,7 @@ object CommonSearcherFiltered extends MagicNumbers {
     def onTimeoutException(exc: Exception): Unit = {
       pool.shutdownNow()
     }
-
     def createFuture(): Future[Seq[SearchResult[I, T]]]
-
     protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: (Int) => Unit): Future[Seq[SearchResult[I, T]]] = {
       body(raw.length)
       promise.future
@@ -155,7 +150,6 @@ object CommonSearcherFiltered extends MagicNumbers {
         } else if (procCount.get() < len) {
           pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc()))
         }
-
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
@@ -172,12 +166,10 @@ object CommonSearcherFiltered extends MagicNumbers {
       doCreateFuture(raw, (len: Int) => {
         def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
           promise.success(buffer)
-
           pool.shutdown()
         } else if (procCount.get() < len) {
           pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc())(ec))
         }
-
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()

@@ -6,13 +6,16 @@ import org.apache.lucene.store.Directory
 
 object CommonIndexer extends AbstractIndexer {
 
-  override protected def putDirectoryReference(directory: Directory): Unit = {
-    CommonSearcher.setDirectory(directory)
+  override protected def putDirectoryReference(directory: Directory, name: String): Unit = {
+    //CommonSearcher.setDirectory(directory)
+    DirectoryContainer.setDirectory(name, directory)
   }
 
-  def index[I, T <: PkDataSet[I]](data: Seq[T], factory: AbstractTypeFactory[I, T])
+  def index[I, T <: PkDataSet[I]](data: Seq[T],
+                                  factory: AbstractTypeFactory[I, T],
+                                  name: String = DEFAULT_DIRECTORY_NAME)
                                  (implicit phoneticAnalyzer: Analyzer): Unit = {
-    createIndex(phoneticAnalyzer, data, factory)
+    createIndex(phoneticAnalyzer, data, factory, name)
   }
 
 }

@@ -55,24 +55,18 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
     )
   }
 
-//  it should "throw an exception if filter does." in {
-//    CustomMocks.interceptTestAsync(() => {CommonSearcher.setDirectory(null)},
-//      () => {CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)}, {
-//        recoverToSucceededIf[Exception](
-//          CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
-//            filterFn = filterFrankfurt).map(result => {
-//            assert(result.length == 1)
-//          })
-//        )
-//    })
-////    CommonSearcher.setDirectory(null)
-////    recoverToSucceededIf[Exception](
-////      CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
-////        filterFn = filterFrankfurt).map(result => {
-////        assert(result.length == 1)
-////      })
-////    )
-//  }
+
+  it should "throw an exception if directory is not loaded." in {
+    val nullSearcherName = "SimpleTest-NullSearcher"
+    DirectoryContainer.setDirectory(nullSearcherName, null)
+
+    recoverToSucceededIf[Exception](
+      CommonSearcherFiltered.searchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterFrankfurt, searcherOption = DirectoryContainer.pickSearcher(nullSearcherName)).map(result => {
+        assert(result.length == 1)
+      })
+    )
+  }
 
   it should "pass Hösl living in Frankfurt" in {
     //CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
@@ -95,6 +89,16 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig
       filterFn = filterFrankfurtAsync).map(result => {
       assert(result.length == 1)
     })
+  }
+
+  it should "throw an exception if directory is not loaded (async, async)." in {
+    recoverToSucceededIf[Exception](
+      CommonSearcherFiltered.searchAsyncAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
+        filterFn = filterFrankfurt, searcherOption =
+          DirectoryContainer.pickSearcher("I bet there is no searcher for this string")).map(result => {
+        assert(result.length == 1)
+      })
+    )
   }
 
   object PersonFactoryAll extends AbstractTypeFactory[Int, Person] {

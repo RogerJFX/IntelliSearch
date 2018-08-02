@@ -6,6 +6,7 @@ import java.util.concurrent.{Future => _, TimeoutException => _, _}
 import de.crazything.search.CommonSearcherFilterHandlers.{FutureHandler, TaskHandler}
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import de.crazything.search.utils.FutureUtil
+import org.apache.lucene.search.IndexSearcher
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent._
@@ -23,19 +24,21 @@ object CommonSearcherFiltered extends MagicSettings {
 
   def search[I, T <: PkDataSet[I]](input: T,
                                    factory: AbstractTypeFactory[I, T],
+                                   searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                    queryCriteria: Option[QueryCriteria] = None,
                                    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                    filterFn: (SearchResult[I, T]) => Boolean): Seq[SearchResult[I, T]] = {
-    val searchResult: Seq[SearchResult[I, T]] = CommonSearcher.search(input, factory, queryCriteria, maxHits)
+    val searchResult: Seq[SearchResult[I, T]] = CommonSearcher.search(input, factory, queryCriteria, maxHits, searcherOption)
     searchResult.filter((sr: SearchResult[I, T]) => filterFn(sr))
   }
 
   def searchAsync[I, T <: PkDataSet[I]](input: T,
                                         factory: AbstractTypeFactory[I, T],
+                                        searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                         queryCriteria: Option[QueryCriteria] = None,
                                         maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                         filterFn: (SearchResult[I, T]) => Boolean): Future[Seq[SearchResult[I, T]]] = {
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
       case Success(res) =>
@@ -53,11 +56,12 @@ object CommonSearcherFiltered extends MagicSettings {
 
   private def doSearchAsyncAsync[I, T <: PkDataSet[I]](input: T,
                                                        factory: AbstractTypeFactory[I, T],
+                                                       searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                                        queryCriteria: Option[QueryCriteria] = None,
                                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                                        getFilterClass: (Seq[SearchResult[I, T]]) => Filter[I, T],
                                                        filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits)
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
       case Success(res) =>
@@ -103,25 +107,27 @@ object CommonSearcherFiltered extends MagicSettings {
     */
   def searchAsyncAsync[I, T <: PkDataSet[I]](input: T,
                                              factory: AbstractTypeFactory[I, T],
+                                             searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                              queryCriteria: Option[QueryCriteria] = None,
                                              maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                              filterFn: (SearchResult[I, T]) => Boolean,
                                              filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsync(res, filterFn)
 
-    doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
+    doSearchAsyncAsync(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
   // In order to use akka later.
   def searchAsyncAsyncFuture[I, T <: PkDataSet[I]](input: T,
                                                    factory: AbstractTypeFactory[I, T],
+                                                   searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                                    queryCriteria: Option[QueryCriteria] = None,
                                                    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                                    filterFn: (SearchResult[I, T]) => Future[Boolean],
                                                    filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
 
-    doSearchAsyncAsync(input, factory, queryCriteria, maxHits, getFilterClass, filterTimeout)
+    doSearchAsyncAsync(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, filterTimeout)
   }
 
   // Do not make this private. We have to mock it in some tests.

@@ -36,16 +36,16 @@ class SimpleTest extends FlatSpec with Matchers with QueryConfig with GermanLang
   private[this] def checkScore(name: String, score: Float) = assert(expectedScores(name) == score)
 
 
-  "Searcher" should "fail with no directory" in {
-    CommonSearcher.setDirectory(null)
-    an [IllegalStateException] should be thrownBy {
-      val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE)
-      assert(searchResult.length == 1)
-    }
-  }
+//  "Searcher" should "fail with no directory" in {
+//    CommonSearcher.setDirectory(null)
+//    an [IllegalStateException] should be thrownBy {
+//      val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE)
+//      assert(searchResult.length == 1)
+//    }
+//  }
 
   "Persons" should "find Reißer" in {
-    CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
+    //CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
     val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE)
     logger.debug(s"Reißer: $searchResult")
     assert(searchResult.length == 1)

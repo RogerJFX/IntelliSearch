@@ -15,7 +15,9 @@ object RestClient extends QuickJsonParser{
   implicit val system: ActorSystem = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  private val mimeType = "application/json"
+  implicit val String2Writable: BodyWritable[String] =
+    BodyWritable(str => InMemoryBody(ByteString.fromString(str)), "application/json")
+
 
   def get[P](url: String)(implicit resFormat: OFormat[P]): Future[P] = {
     val wsClient: StandaloneWSClient = StandaloneAhcWSClient()
@@ -34,9 +36,6 @@ object RestClient extends QuickJsonParser{
   }
 
   def post[T, P](url: String, payload: T)(implicit reqFormat: OFormat[T], resFormat: OFormat[P]): Future[P] = {
-    implicit val String2Writable: BodyWritable[String] = {
-      BodyWritable(str => InMemoryBody(ByteString.fromString(str)), mimeType)
-    }
     val wsClient: StandaloneWSClient = StandaloneAhcWSClient()
     val futureResponse: Future[P] =
       wsClient.url(url)
@@ -51,4 +50,5 @@ object RestClient extends QuickJsonParser{
       case _ => wsClient.close()
     }
   }
+
 }

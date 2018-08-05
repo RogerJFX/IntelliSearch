@@ -41,7 +41,7 @@ class SimpleTest extends FlatSpec with Matchers with QueryConfig with GermanLang
     val nullSearcherName = "SimpleTest-NullSearcher"
     DirectoryContainer.setDirectory(nullSearcherName, null)
     an [IllegalStateException] should be thrownBy {
-      val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE,
+      val searchResult: Seq[SearchResult[Int, Person]] = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE,
         searcherOption = DirectoryContainer.pickSearcher(nullSearcherName))
       assert(searchResult.length == 1)
     }

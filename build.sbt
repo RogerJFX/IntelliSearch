@@ -1,8 +1,13 @@
+
 name := "soracle"
 
 version := "0.1"
 
 scalaVersion := "2.12.6"
+
+lazy val root = (project in file("."))
+  .settings(Build.projectSettings)
+  .settings(Build.assemblySettings)
 
 libraryDependencies ++= Seq (
   "org.apache.lucene" % "lucene-core" % "7.4.0",

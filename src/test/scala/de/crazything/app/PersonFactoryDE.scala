@@ -1,12 +1,13 @@
 package de.crazything.app
 
+import java.util.concurrent.atomic.AtomicReference
+
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import org.apache.lucene.document._
 import org.apache.lucene.search._
 import org.slf4j.LoggerFactory
 
-// TODO: get rid of nasty lucene imports. We don't need em here. So f...[beep] create some implicits in the API
 object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries {
 
   private val logger = LoggerFactory.getLogger(PersonFactoryDE.getClass)
@@ -51,6 +52,24 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
       case _ =>
         logger.warn("No matching query name found. Falling back to standard `createQuery`")
         createQuery(person)
+    }
+
+  }
+
+  object DataContainer {
+
+    case class Data(data: Seq[Person]) {
+      def findById(id: Int): Option[Person] = data.find(d => d.id == id)
+    }
+
+    private val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
+
+    def setData(data: Seq[Person]): Unit = {
+      dataRef.set(Data(data))
+    }
+
+    def findById(id: Int): Person = {
+      dataRef.get().findById(id).get
     }
 
   }

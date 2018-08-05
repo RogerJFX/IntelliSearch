@@ -26,6 +26,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
+  // Some AKKA property left in configuration. IntelliJ test works, though. Tomorrow...
 //  def filterHasFacebook(result: SearchResult[Int, Person]): Future[Boolean] = {
 //    val restResponse: Future[SocialPersonCollection] =
 //      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialFor"), result.obj)

@@ -8,7 +8,7 @@ ReliableSearch
 
 **Another attempt to make search results most reliable.**
 
-:boom: So I finally have it done: micro services now work. First issue is filtering only, however. 
+:boom: So I finally have it done: micro services for cascading search processes now work. First issue is filtering only, however. 
 Watch out! Next coming soon.
 
 There are many use cases for a reliable search:

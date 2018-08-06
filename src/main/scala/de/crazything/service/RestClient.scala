@@ -3,24 +3,31 @@ package de.crazything.service
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
+import com.typesafe.config.{Config, ConfigFactory}
 import play.api.libs.json.OFormat
+import play.api.libs.ws.ahc.{AhcWSClientConfig, AhcWSClientConfigFactory, StandaloneAhcWSClient}
 import play.api.libs.ws.{BodyWritable, InMemoryBody, StandaloneWSClient}
-import play.api.libs.ws.ahc.StandaloneAhcWSClient
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 object RestClient extends QuickJsonParser{
 
-  implicit val system: ActorSystem = ActorSystem()
+  private val classLoader: ClassLoader = RestClient.getClass.getClassLoader
+
+  private val config: Config = ConfigFactory.load(classLoader, "application.conf")
+
+  private val ahcWsConfig: AhcWSClientConfig = AhcWSClientConfigFactory.forConfig(config)
+
+  implicit val system: ActorSystem = ActorSystem("RestClient", config, classLoader)
+
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   implicit val String2Writable: BodyWritable[String] =
     BodyWritable(str => InMemoryBody(ByteString.fromString(str)), "application/json")
 
 
-  def get[P](url: String)(implicit resFormat: OFormat[P]): Future[P] = {
-    val wsClient: StandaloneWSClient = StandaloneAhcWSClient()
+  def get[P](url: String)(implicit resFormat: OFormat[P], exc: ExecutionContext): Future[P] = {
+    val wsClient: StandaloneWSClient = StandaloneAhcWSClient(ahcWsConfig)
     val futureResponse: Future[P] =
       wsClient.url(url)
         .get()
@@ -35,8 +42,9 @@ object RestClient extends QuickJsonParser{
     }
   }
 
-  def post[T, P](url: String, payload: T)(implicit reqFormat: OFormat[T], resFormat: OFormat[P]): Future[P] = {
-    val wsClient: StandaloneWSClient = StandaloneAhcWSClient()
+  def post[T, P](url: String, payload: T)(implicit reqFormat: OFormat[T], resFormat: OFormat[P],
+                                          exc: ExecutionContext): Future[P] = {
+    val wsClient: StandaloneWSClient = StandaloneAhcWSClient(ahcWsConfig)
     val futureResponse: Future[P] =
       wsClient.url(url)
         .post(t2JsonString[T](payload))

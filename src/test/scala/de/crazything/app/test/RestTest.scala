@@ -18,21 +18,21 @@ class RestTest extends AsyncFlatSpec with BeforeAndAfterAll /*with FilterAsync*/
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
   "GET" should "at least work" in {
-    RestClient.get(urlFromUri("foo")).map(response => {
+    RestClient.get[Person](urlFromUri("foo")).map(response => {
       assert(response == standardPerson)
     })
   }
 
   it should "find nothing for dummy uri" in {
     recoverToSucceededIf[RuntimeException] {
-      RestClient.get(urlFromUri("youNeverFindThis")).map(response => {
+      RestClient.get[Person](urlFromUri("youNeverFindThis")).map(response => {
         assert(response == standardPerson)
       })
     }
   }
 
   "POST" should "receive an echo as case class" in {
-    RestClient.post(urlFromUri("qux"), standardPerson).map(response => {
+    RestClient.post[Person, Person](urlFromUri("qux"), standardPerson).map(response => {
       assert(response == standardPerson)
     })
   }

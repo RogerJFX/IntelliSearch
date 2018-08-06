@@ -8,6 +8,9 @@ ReliableSearch
 
 **Another attempt to make search results most reliable.**
 
+:boom: So I finally have it done: micro services now work. First issue only is filtering, how ever. 
+Watch out! Next coming soon.
+
 There are many use cases for a reliable search:
 
 1. in any case a reliable search improves results' quality

@@ -3,16 +3,15 @@ package de.crazything.app
 import java.io.File
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
+import de.crazything.search.CommonSearcher
 import de.crazything.search.entity.SearchResult
-import de.crazything.search.entity.SearchResult._
-import de.crazything.search.{CommonSearcher, DirectoryContainer}
 import de.crazything.service.{QuickJsonParser, RestServer}
 import play.api.Mode
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Results}
 import play.api.routing.Router
-import play.core.server.{NettyServer, ServerConfig}
 import play.api.routing.sird._
+import play.core.server.{NettyServer, ServerConfig}
 
 object NettyRunner extends QuickJsonParser{
 
@@ -44,9 +43,16 @@ object NettyRunner extends QuickJsonParser{
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
         val searchResult: Seq[SearchResult[Int, SocialPerson]] = CommonSearcher.search(socialPerson, SocialPersonFactory)
-        // Ui! This will become somewhat difficult later
-        //val strSearchResult: String = t2JsonString[SearchResult[Int, SocialPerson]](searchResult)
         val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult.map(r => r.obj)))
+        Results.Created(strSearchResult).as("application/json")
+      }
+    }
+    case POST(p"/findSocialForScored") => Action {
+      request => {
+        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
+        val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
+        val searchResult: Seq[SearchResult[Int, SocialPerson]] = CommonSearcher.search(socialPerson, SocialPersonFactory)
+        val strSearchResult: String = t2JsonString[SocialPersonColScored](SocialPersonColScored(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }
     }

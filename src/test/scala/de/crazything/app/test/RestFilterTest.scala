@@ -2,6 +2,7 @@ package de.crazything.app.test
 
 import de.crazything.app.Person._
 import de.crazything.app.SocialPersonCollection._
+import de.crazything.app.SocialPersonColScored._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.SearchResult
@@ -37,6 +38,15 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
     restResponse.map(res => res.socialPersons.exists(entry => entry.facebookId.isDefined))
   }
 
+  def filterHasFacebookScored(result: SearchResult[Int, Person]): Future[Boolean] = {
+    val restResponse: Future[SocialPersonColScored] =
+      RestClient.post[Person, SocialPersonColScored](urlFromUri("findSocialForScored"), result.obj)
+    restResponse.andThen {
+      case Success(res) => println(res)
+    }
+    restResponse.map(res => res.socialPersons.exists(entry => entry.obj.facebookId.isDefined && entry.score > 20F))
+  }
+
   "Rest filter" should "get an empty result for missing facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Mayer", "street", "city")
     CommonSearcherFiltered.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
@@ -60,6 +70,14 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
         RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialFor"), result.obj)
           .map(res => res.socialPersons.exists(entry => entry.facebookId.isDefined))
       }, filterTimeout = 3.seconds).map(result => {
+      assert(result.length == 1)
+    })
+  }
+
+  "Scored remote" should "get a non empty score result for person having facebook account" in {
+    val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
+    CommonSearcherFiltered.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+      filterFn = filterHasFacebookScored, filterTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
   }

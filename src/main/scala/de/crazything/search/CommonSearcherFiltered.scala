@@ -124,8 +124,10 @@ object CommonSearcherFiltered extends MagicSettings {
       pool.shutdownNow()
     }
     def onFilterException(exc: Throwable): Unit = {
-      promise.failure(exc)
-      pool.shutdownNow()
+      if(!promise.isCompleted) {
+        promise.failure(exc)
+        pool.shutdownNow()
+      }
     }
     def createFuture(): Future[Seq[SearchResult[I, T]]]
     protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: (Int) => Unit): Future[Seq[SearchResult[I, T]]] = {

@@ -3,7 +3,8 @@ package de.crazything.app.test
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.search.entity.SearchResult
-import de.crazything.search.{CommonIndexer, CommonSearcherFiltered, QueryConfig}
+import de.crazything.search.ext.FilteringSearcher
+import de.crazything.search.{CommonIndexer, QueryConfig}
 import org.scalatest.FlatSpec
 
 class FilterTest extends FlatSpec with QueryConfig with GermanLanguage {
@@ -16,13 +17,13 @@ class FilterTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   "Filter" should "exclude Mayer living not in Frankfurt" in {
     val searchResult =
-      CommonSearcherFiltered.search(standardPerson.copy(lastName = "Mayer"), PersonFactoryDE, filterFn = filterFrankfurt)
+      FilteringSearcher.search(standardPerson.copy(lastName = "Mayer"), PersonFactoryDE, filterFn = filterFrankfurt)
     assert(searchResult.isEmpty)
   }
 
   it should "pass Hösl living in Frankfurt" in {
     val searchResult =
-      CommonSearcherFiltered.search(standardPerson.copy(lastName = "Hösl"), PersonFactoryDE, filterFn = filterFrankfurt)
+      FilteringSearcher.search(standardPerson.copy(lastName = "Hösl"), PersonFactoryDE, filterFn = filterFrankfurt)
     assert(searchResult.length == 1)
   }
 

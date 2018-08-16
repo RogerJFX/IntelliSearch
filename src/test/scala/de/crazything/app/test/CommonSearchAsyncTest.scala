@@ -5,7 +5,7 @@ import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
 import de.crazything.search.{CommonIndexer, CommonSearcher, QueryConfig}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfter}
 
-class SimpleAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig with GermanLanguage{
+class CommonSearchAsyncTest extends AsyncFlatSpec with BeforeAndAfter with QueryConfig with GermanLanguage{
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 

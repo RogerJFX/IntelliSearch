@@ -1,21 +1,46 @@
-package de.crazything.search
+package de.crazything.search.ext
 
-import java.util.concurrent.{ExecutorService, Executors}
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, Executors}
 
-import de.crazything.search.CommonSearcherCombineHandlers.CombineHandler
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
+import de.crazything.search.ext.RunnableHandlers.MapperFutureHandler
 import de.crazything.search.utils.FutureUtil
+import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
 import org.apache.lucene.search.IndexSearcher
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.util.{Failure, Success}
 
-object CommonSearcherCombined extends MagicSettings {
+object MappingSearcher extends MagicSettings {
 
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  private def callSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  (searchResult: Seq[SearchResult[I1, T1]],
+   combineClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
+   secondLevelTimeout: FiniteDuration = ONE_DAY,
+   promise: Promise[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]]): Unit = {
+
+    val combinationClass: Combine[I1, I2, T1, T2] = combineClass(searchResult)
+    val finalResultFuture = FutureUtil.futureWithTimeout(combinationClass.createFuture(), secondLevelTimeout)
+
+    finalResultFuture.onComplete {
+      case Success(finalResult) =>
+        if (finalResult.nonEmpty) {
+          promise.success(finalResult.sortBy(res => res._1.score))
+        } else {
+          promise.success(Seq())
+        }
+      case Failure(t: TimeoutException) =>
+        combinationClass.onTimeoutException(t)
+        promise.failure(t)
+      case Failure(x) => promise.failure(x)
+    }
+
+  }
 
   private def doCombine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (input: T1,
@@ -24,25 +49,12 @@ object CommonSearcherCombined extends MagicSettings {
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    combineClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
-   filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
+   secondLevelTimeout: FiniteDuration = ONE_DAY): Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
     val searchResult: Future[Seq[SearchResult[I1, T1]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = Promise[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]]
     searchResult.onComplete {
       case Success(res) =>
-        val combinationClass: Combine[I1, I2, T1, T2] = combineClass(res)
-        val finalResultFuture = FutureUtil.futureWithTimeout(combinationClass.createFuture(), filterTimeout)
-        finalResultFuture.onComplete {
-          case Success(finalResult) =>
-            if (finalResult.nonEmpty) {
-              promise.success(finalResult.sortBy(res => res._1.score))
-            } else {
-              promise.success(Seq())
-            }
-          case Failure(t: TimeoutException) =>
-            combinationClass.onTimeoutException(t)
-            promise.failure(t)
-          case Failure(x) => promise.failure(x)
-        }
+        callSecondLevel(res, combineClass, secondLevelTimeout, promise)
       case Failure(t) => promise.failure(t)
     }
     promise.future
@@ -55,11 +67,11 @@ object CommonSearcherCombined extends MagicSettings {
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    combineFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-   filterTimeout: FiniteDuration = ONE_DAY)
+   secondLevelTimeout: FiniteDuration = ONE_DAY)
   : Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
-    def getFilterClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new CombineAsyncFuture(res, combineFn)
+    def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new CombineAsyncFuture(res, combineFn)
 
-    doCombine(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, filterTimeout)
+    doCombine(input, factory, searcherOption, queryCriteria, maxHits, secondLevelClass, secondLevelTimeout)
   }
 
   val processors: Int = Runtime.getRuntime.availableProcessors()
@@ -102,13 +114,13 @@ object CommonSearcherCombined extends MagicSettings {
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new CombineHandler(combineFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onCombineException)(ec))
+          pool.execute(new MapperFutureHandler(combineFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onCombineException)(ec))
         }
 
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new CombineHandler(combineFn, raw(i), buffer, () => checkLenInc(), onCombineException)(ec))
+          pool.execute(new MapperFutureHandler(combineFn, raw(i), buffer, () => checkLenInc(), onCombineException)(ec))
         }
       })
     }

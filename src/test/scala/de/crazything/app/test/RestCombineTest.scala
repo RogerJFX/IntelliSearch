@@ -5,7 +5,8 @@ import de.crazything.app.SocialPersonColScored._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.SearchResult
-import de.crazything.search.{CommonIndexer, CommonSearcherCombined}
+import de.crazything.search.CommonIndexer
+import de.crazything.search.ext.MappingSearcher
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
 import org.slf4j.{Logger, LoggerFactory}
@@ -47,8 +48,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    CommonSearcherCombined.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-      combineFn = combineFacebookScored, filterTimeout = 3.seconds).map(result => {
+    MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
+      combineFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       println(result)
       assert(result.length == 1)
     })
@@ -56,8 +57,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   it should "get a non mixed score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
-    CommonSearcherCombined.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-      combineFn = combineFacebookScored, filterTimeout = 3.seconds).map(result => {
+    MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
+      combineFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       println(result)
       assert(result.length == 2)
       // Mayer was found, but hasn't got a facebook account
@@ -69,7 +70,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   "Combined exc" should "throw an exception if filter does." in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
     recoverToSucceededIf[NumberFormatException](
-      CommonSearcherCombined.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
+      MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
         combineFn = combineFacebookScoredExc).map(result => {
         assert(result.length == 1)
       })
@@ -83,8 +84,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     recoverToSucceededIf[TimeoutException](
-      CommonSearcherCombined.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-        combineFn = combineFacebookScored, filterTimeout = 10.millis).map(result => {
+      MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
+        combineFn = combineFacebookScored, secondLevelTimeout = 10.millis).map(result => {
         assert(result.length == 1)
       })
     )

@@ -1,4 +1,4 @@
-package de.crazything.app.test
+package de.crazything.app.test.simpletest
 
 import de.crazything.app.Person
 import de.crazything.app.Person._

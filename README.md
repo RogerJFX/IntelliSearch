@@ -38,7 +38,7 @@ There is a default hierarchy of Queries:
 In the end a user might write something like
 
 ~~~
-  def createFirstAndLastNameQuery(person: Person): Query = {
+  def createQuery(person: Person): Query = {
     Seq(
       (LAST_NAME, person.lastName).exact,
       (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
@@ -55,7 +55,7 @@ In the end a user might write something like
 Or even
 
 ~~~
-  def createFirstAndLastNameQuery(person: Person): Query = {
+  def createQuery(person: Person): Query = {
     Seq(
       (LAST_NAME, person.lastName).exact.should,
       (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex.must,
@@ -63,7 +63,6 @@ Or even
       (LAST_NAME, "Trump").exact.mustNot
     )
   }
-
 ~~~
 
 More coming soon. 

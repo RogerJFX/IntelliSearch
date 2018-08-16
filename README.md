@@ -20,7 +20,7 @@ service giving us more information. And think of this information sources are so
 first level results by remote services' results? Why not mapping them in order to get a tree of more qualified results, 
 that might be filtered later?
 
-That's, what we are about at this very moment. Looks pretty fine so far.
+That's what we are about at this very moment. Looks pretty fine so far.
 
 And yes, we should think about some website explaining and documenting all this. Stay tuned.
 
@@ -66,4 +66,4 @@ Or even
 
 ~~~
 
-Soon more.
+More coming soon. 

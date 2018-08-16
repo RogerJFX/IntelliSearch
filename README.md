@@ -8,33 +8,23 @@ ReliableSearch
 
 **Another attempt to make search results most reliable.**
 
-:beer: Currently remaining in the :beer: state. No real clue where to go and what it all should be or might become good 
-for. Some further experiments in devel branch. Cheers.
-
 There are many use cases for a reliable search:
 
 1. in any case a reliable search improves results' quality
 1. a reliable search might be used in scenarios, that are business critical (e.g. local database merging)
 
-Our strategy is to accumulate queries and the weighted results as well. That's for the first search.
+Our strategy is to accumulate queries and the weighted results as well. That's for the first level search.
 
-**Another issue:** we might want to use some other services to check/filter our initial search's result. So we decided to 
-implement some further methods taking a filter method as an argument. 
+We decided to introduce a second level searching process. Think of having another directory, database or whatever 
+service giving us more information. And think of this information sources are somewhere remote. So why not filtering 
+first level results by remote services' results? Why not mapping them in order to get a tree of more qualified results, 
+that might be filtered later?
 
-Filters might be blocking, which is not recommended in most cases, or non blocking. However, if a filter works on the 
-very same machine, a blocking filter might be preferable.
-
-Those Filters even might be Futures (non blocking then). So it is possible to gain further information from remote 
-services in order to make our initial result more precise. We think of soon implementing some test cases using Akka.
-
-In some way we have a cascaded search then.
-
-If we in the next step don't let the filters return booleans but filtered results, ... 
-Yes, we should think over that. Currently the project is old less than 2 weeks.
+That's, what we are about at this very moment. Looks pretty fine so far.
 
 And yes, we should think about some website explaining and documenting all this. Stay tuned.
 
-To come back to the initial search, which of course should be as exact as possible:
+To come back to the first level search, which of course should be as exact as possible:
 -
 
 There is a default hierarchy of Queries:

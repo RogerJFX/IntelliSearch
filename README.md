@@ -58,8 +58,8 @@ Or even
   def createQuery(person: Person): Query = {
     Seq(
       (LAST_NAME, person.lastName).exact.should,
-      (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex.must,
-      (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic.must,
+      (LAST_NAME, createRegexTerm(person.lastName)).regex.must,
+      (LAST_NAME, person.lastName).phonetic.must,
       (LAST_NAME, "Trump").exact.mustNot
     )
   }

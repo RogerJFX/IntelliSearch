@@ -99,7 +99,6 @@ object CommonSearcherCombined extends MagicSettings {
     override def createFuture(): Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
       doCreateFuture(raw, (len: Int) => {
         def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
-          println("checkLen")
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {

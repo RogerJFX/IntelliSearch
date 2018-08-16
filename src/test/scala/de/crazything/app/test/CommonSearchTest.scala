@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ListBuffer
 
-class SimpleTest extends FlatSpec with Matchers with QueryConfig with GermanLanguage {
+class CommonSearchTest extends FlatSpec with Matchers with QueryConfig with GermanLanguage {
 
-  private val logger = LoggerFactory.getLogger(classOf[SimpleTest])
+  private val logger = LoggerFactory.getLogger(classOf[CommonSearchTest])
 
 
 

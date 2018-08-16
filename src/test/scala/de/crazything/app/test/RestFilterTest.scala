@@ -6,7 +6,8 @@ import de.crazything.app.SocialPersonColScored._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.SearchResult
-import de.crazything.search.{CommonIndexer, CommonSearcherFiltered}
+import de.crazything.search.CommonIndexer
+import de.crazything.search.ext.FilteringSearcher
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
 import play.core.server.NettyServer
@@ -49,7 +50,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   "Rest filter" should "get an empty result for missing facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Mayer", "street", "city")
-    CommonSearcherFiltered.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebook, filterTimeout = 3.seconds).map(result => {
       assert(result.isEmpty)
     })
@@ -57,7 +58,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   it should "get a non empty result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    CommonSearcherFiltered.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebook, filterTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
@@ -65,7 +66,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   it should "get a non empty result - or write it like this (demo)." in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    CommonSearcherFiltered.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = (result: SearchResult[Int, Person]) => {
         RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialFor"), result.obj)
           .map(res => res.socialPersons.exists(entry => entry.facebookId.isDefined))
@@ -76,7 +77,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    CommonSearcherFiltered.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebookScored, filterTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })

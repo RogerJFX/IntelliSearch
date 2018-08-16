@@ -1,11 +1,12 @@
-package de.crazything.search
+package de.crazything.search.ext
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Future => _, TimeoutException => _, _}
 
-import de.crazything.search.CommonSearcherFilterHandlers.{FutureHandler, TaskHandler}
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
+import de.crazything.search.ext.RunnableHandlers.{FilterHandler, FilterFutureHandler}
 import de.crazything.search.utils.FutureUtil
+import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
 import org.apache.lucene.search.IndexSearcher
 
 import scala.collection.mutable.ListBuffer
@@ -16,7 +17,7 @@ import scala.util.{Failure, Success}
 /**
   * Combine searches with other filters, maybe other searches.
   */
-object CommonSearcherFiltered extends MagicSettings {
+object FilteringSearcher extends MagicSettings {
 
   // I bet, this will be changed soon.
   // TODO: Don't forget this line! The ThreadPool should not be sufficient, if it comes to real mass processing.
@@ -53,6 +54,30 @@ object CommonSearcherFiltered extends MagicSettings {
     promise.future
   }
 
+  private def callRemote[I1, T1 <: PkDataSet[I1]]
+  (searchResult: Seq[SearchResult[I1, T1]],
+   combineClass: (Seq[SearchResult[I1, T1]]) => Filter[I1, T1],
+   filterTimeout: FiniteDuration = ONE_DAY,
+   promise: Promise[Seq[SearchResult[I1, T1]]]): Unit = {
+
+    val filterClass: Filter[I1, T1] = combineClass(searchResult)
+    val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
+
+    finalResultFuture.onComplete {
+      case Success(finalResult) =>
+        if (finalResult.nonEmpty) {
+          promise.success(finalResult.sortBy(res => -res.score))
+        } else {
+          promise.success(Seq())
+        }
+      case Failure(t: TimeoutException) =>
+        filterClass.onTimeoutException(t)
+        promise.failure(t)
+      case Failure(x) => promise.failure(x)
+    }
+
+  }
+
   private def doSearchAsyncAsync[I, T <: PkDataSet[I]](input: T,
                                                        factory: AbstractTypeFactory[I, T],
                                                        searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
@@ -64,20 +89,7 @@ object CommonSearcherFiltered extends MagicSettings {
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
       case Success(res) =>
-        val filterClass: Filter[I, T] = getFilterClass(res)
-        val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
-        finalResultFuture.onComplete {
-          case Success(finalResult) =>
-            if (finalResult.nonEmpty) {
-              promise.success(finalResult.sortBy(r => -r.score))
-            } else {
-              promise.success(Seq())
-            }
-          case Failure(t: TimeoutException) =>
-            filterClass.onTimeoutException(t)
-            promise.failure(t)
-          case Failure(x) => promise.failure(x)
-        }
+        callRemote(res, getFilterClass, filterTimeout, promise)
       case Failure(t) => promise.failure(t)
     }
     promise.future
@@ -89,10 +101,10 @@ object CommonSearcherFiltered extends MagicSettings {
                                              queryCriteria: Option[QueryCriteria] = None,
                                              maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                              filterFn: (SearchResult[I, T]) => Boolean,
-                                             filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
+                                             secondLevelTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsync(res, filterFn)
 
-    doSearchAsyncAsync(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, filterTimeout)
+    doSearchAsyncAsync(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, secondLevelTimeout)
   }
 
   // In order to use akka later.
@@ -124,8 +136,10 @@ object CommonSearcherFiltered extends MagicSettings {
       pool.shutdownNow()
     }
     def onFilterException(exc: Throwable): Unit = {
-      promise.failure(exc)
-      pool.shutdownNow()
+      if(!promise.isCompleted) {
+        promise.failure(exc)
+        pool.shutdownNow()
+      }
     }
     def createFuture(): Future[Seq[SearchResult[I, T]]]
     protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: (Int) => Unit): Future[Seq[SearchResult[I, T]]] = {
@@ -142,12 +156,12 @@ object CommonSearcherFiltered extends MagicSettings {
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new TaskHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException))
+          pool.execute(new FilterHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException))
         }
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new TaskHandler(filterFn, raw(i), buffer, () => checkLenInc(), onFilterException))
+          pool.execute(new FilterHandler(filterFn, raw(i), buffer, () => checkLenInc(), onFilterException))
         }
       })
     }
@@ -162,12 +176,12 @@ object CommonSearcherFiltered extends MagicSettings {
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new FutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException)(ec))
+          pool.execute(new FilterFutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException)(ec))
         }
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new FutureHandler(filterFn, raw(i), buffer, () => checkLenInc(), onFilterException)(ec))
+          pool.execute(new FilterFutureHandler(filterFn, raw(i), buffer, () => checkLenInc(), onFilterException)(ec))
         }
       })
     }

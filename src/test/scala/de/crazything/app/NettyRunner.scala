@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import de.crazything.search.CommonSearcher
 import de.crazything.search.entity.SearchResult
-import de.crazything.service.{QuickJsonParser, RestServer}
+import de.crazything.service.{QuickJsonParser, EmbeddedRestServer}
 import play.api.Mode
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Results}
@@ -24,7 +24,7 @@ object NettyRunner extends QuickJsonParser{
     Some(0),
     None,
     "127.0.0.1",
-    Mode.Prod,
+    Mode.Test,
     System.getProperties)
 
   val router: Router = Router.from { // No, Router.from is not deprecated, but Tags above "from".
@@ -64,7 +64,7 @@ object NettyRunner extends QuickJsonParser{
   def runServer: NettyServer = {
     this.synchronized {
       if (testRunCalls.getAndIncrement() == 0) {
-        val runningServer = RestServer.run(serverConfig, router)
+        val runningServer = EmbeddedRestServer.run(serverConfig, router)
         serverRef.set(runningServer)
         runningServer
       } else {

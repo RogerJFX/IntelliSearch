@@ -1,4 +1,4 @@
-package de.crazything.app.test
+package de.crazything.app.test.simpletest
 
 import de.crazything.app.Person._
 import de.crazything.app.{NettyRunner, Person}

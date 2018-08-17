@@ -3,9 +3,9 @@ package de.crazything.app
 import java.io.File
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
-import de.crazything.search.CommonSearcher
+import de.crazything.search.{CommonSearcher, DirectoryContainer}
 import de.crazything.search.entity.SearchResult
-import de.crazything.service.{QuickJsonParser, EmbeddedRestServer}
+import de.crazything.service.{EmbeddedRestServer, QuickJsonParser}
 import play.api.Mode
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Results}
@@ -42,7 +42,8 @@ object NettyRunner extends QuickJsonParser{
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
-        val searchResult: Seq[SearchResult[Int, SocialPerson]] = CommonSearcher.search(socialPerson, SocialPersonFactory)
+        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
+          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
         val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult.map(r => r.obj)))
         Results.Created(strSearchResult).as("application/json")
       }
@@ -51,7 +52,9 @@ object NettyRunner extends QuickJsonParser{
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
-        val searchResult: Seq[SearchResult[Int, SocialPerson]] = CommonSearcher.search(socialPerson, SocialPersonFactory)
+        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
+          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
+
         val strSearchResult: String = t2JsonString[SocialPersonColScored](SocialPersonColScored(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }

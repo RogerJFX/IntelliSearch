@@ -21,9 +21,6 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
   private[app] val FACEBOOK_ID = "facebookId"
   private[app] val TWITTER_ID = "twitterId"
 
-  val customEnabledQuery_Name = "customEnabledQuery_lastName"
-  val customQuery_FirstAndLastName = "customQuery_FirstAndLastName"
-
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
     DataContainer.findById(doc.get(PK).toInt)
   }

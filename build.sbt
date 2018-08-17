@@ -28,3 +28,19 @@ libraryDependencies ++= Seq (
 )
 
 fork in test := true
+
+enablePlugins(DockerPlugin)
+
+import sbt.File
+
+dockerfile in docker := {
+  val artifact: File = assembly.value
+  val artifactTargetPath = s"/app/${artifact.name}"
+
+  new Dockerfile {
+    from("openjdk:8-jre")
+    add(artifact, artifactTargetPath)
+    copy(new File("src/test/resources/personsSocial.txt"), "/app/data.txt", "daemon:daemon")
+    entryPoint("java", "-jar", artifactTargetPath)
+  }
+}

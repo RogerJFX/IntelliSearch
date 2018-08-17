@@ -25,7 +25,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   override def beforeAll(): Unit = {
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
-    CommonIndexer.index(DataProvider.readSocialPersons(), SocialPersonFactory)
+    CommonIndexer.index(DataProvider.readSocialPersons(), SocialPersonFactory, "remoteIndex")
   }
 
   override def afterAll: Unit = NettyRunner.stopServer()
@@ -35,6 +35,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   def combineFacebookScored(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SocialPersonColScored] =
       RestClient.post[Person, SocialPersonColScored](urlFromUri("findSocialForScored"), result.obj)
+    println(result.obj)
     restResponse.andThen {
       case Success(res) => println(res)
       case Failure(t) => println(t.getMessage)

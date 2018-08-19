@@ -23,7 +23,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   override def beforeAll(): Unit = {
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
-    CommonIndexer.index(DataProvider.readSocialPersons(), SocialPersonFactory)
+    CommonIndexer.index(DataProvider.readSocialPersons(), SocialPersonFactory, "remoteIndex")
   }
 
   override def afterAll: Unit = NettyRunner.stopServer()

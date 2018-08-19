@@ -21,6 +21,7 @@ object CommonSearcher extends MagicSettings{
           }
 
         val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
+
         hits.map(hit => {
           val hitDoc = searcher.doc(hit.doc)
           SearchResult[I, T](factory.createInstanceFromDocument(hitDoc).asInstanceOf[T], hit.score)

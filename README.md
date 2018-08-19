@@ -18,11 +18,39 @@ Our strategy is to accumulate queries and the weighted results as well. That's f
 We decided to introduce a second level searching process. Think of having another directory, database or whatever 
 service giving us more information. And think of this information sources are somewhere remote. So why not filtering 
 first level results by remote services' results? Why not mapping them in order to get a tree of more qualified results, 
-that might be filtered later?
+that might be filtered later? Even unions would be reasonable.
 
-That's what we are about at this very moment. Looks pretty fine so far.
+**Currently there are 2 docker images**, that we put to their own sbt modules. A first test is working.
+However only one docker instance is used so far. More coming soon. 
+We plan to play around with them some time. And we sure will come to many docker images once we will start 
+using Akka clusters.
 
-And yes, we should think about some website explaining and documenting all this. Stay tuned.
+To start the new docker images, run 
+
+~~~
+sbt clean dockerize
+~~~
+
+This will run the integration tests right after the dockered services are alive.
+
+If you just want the docker containers keep alive, but want to run new tests towards them, call
+
+~~~
+sbt intTest
+~~~
+
+Attention! sbt test will fail, since the docker images will not be running then.
+
+~~~
+// FAILS! Call `sbt unitTest` OR `sbt intTest`
+sbt test
+~~~
+
+Only unit test will be executed by
+
+~~~
+sbt unitTest
+~~~
 
 To come back to the first level search, which of course should be as exact as possible:
 -

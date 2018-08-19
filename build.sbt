@@ -45,7 +45,13 @@ libraryDependencies ++= Seq(
 
 fork in test := true
 
-import CustomTasks._
+lazy val unitTest = taskKey[Unit]("Only run unit tests excluding docker tests")
+
+unitTest := {
+  (testOnly in Test).toTask(s" de.crazything.app.test.*").value
+}
+
+import CustomTasks.{intTest, _}
 
 dockerTasks
 

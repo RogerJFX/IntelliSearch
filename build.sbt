@@ -9,7 +9,23 @@ lazy val root = (project in file("."))
   .settings(Build.projectSettings)
   .settings(Build.assemblySettings)
 
-libraryDependencies ++= Seq (
+lazy val integration1 = Project("Int1", file("modules/int1"))
+  .dependsOn(root % "compile->compile;test->test")
+  .aggregate(root)
+  .settings(Build.projectSettings)
+  .settings(CustomTasks.assemblyTestSettings)
+  .enablePlugins(DockerPlugin)
+  .settings(CustomTasks.dockerSettings1)
+
+lazy val integration2 = Project("Int2", file("modules/int2"))
+  .dependsOn(root % "compile->compile;test->test")
+  .aggregate(root)
+  .settings(Build.projectSettings)
+  .settings(CustomTasks.assemblyTestSettings)
+  .enablePlugins(DockerPlugin)
+  .settings(CustomTasks.dockerSettings2)
+
+libraryDependencies ++= Seq(
   "org.apache.lucene" % "lucene-core" % "7.4.0",
   "org.apache.lucene" % "lucene-analyzers-common" % "7.4.0",
   "org.apache.lucene" % "lucene-queryparser" % "7.4.0",
@@ -29,18 +45,17 @@ libraryDependencies ++= Seq (
 
 fork in test := true
 
-enablePlugins(DockerPlugin)
+import CustomTasks._
 
-import sbt.File
+dockerTasks
 
-dockerfile in docker := {
-  val artifact: File = assembly.value
-  val artifactTargetPath = s"/app/${artifact.name}"
+TaskKey[Unit]("dockerize") := {
+  Def.sequential(
+    docker in integration1,
+    docker in integration2,
+    runDocker,
+    intTest
+  ).value
 
-  new Dockerfile {
-    from("openjdk:8-jre")
-    add(artifact, artifactTargetPath)
-    copy(new File("src/test/resources/personsSocial.txt"), "/app/data.txt", "daemon:daemon")
-    entryPoint("java", "-jar", artifactTargetPath)
-  }
+  println("Rerun integration test with sbt intTest")
 }

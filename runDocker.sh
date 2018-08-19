@@ -1,7 +1,8 @@
 #!/bin/bash
 
-kill $(ps -ef | grep "p 900[1]:9001" | awk '{print $2}')
-kill $(ps -ef | grep "p 900[2]:9002" | awk '{print $2}')
+docker container stop $(docker container ps | grep "int1/int1" | awk '{print $1}')
+docker container stop $(docker container ps | grep "int2/int2" | awk '{print $1}')
+
 
 nohup docker run -p 9001:9001 int1/int1:latest &> /dev/null &
 nohup docker run -p 9002:9002 int2/int2:latest &> /dev/null &

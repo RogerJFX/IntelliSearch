@@ -14,7 +14,8 @@ abstract class AbstractTypeFactory[I, -T <: PkDataSet[I]] extends QueryConfig{
 
   protected def addField(document: Document, fieldName: String, value: String): Unit = {
     document.add(new Field(fieldName, value, StringField.TYPE_NOT_STORED))
-    document.add(new Field(s"$fieldName$PHONETIC_SUFFIX", value, TextField.TYPE_NOT_STORED))
+//    document.add(new Field(s"$fieldName$PHONETIC_SUFFIX", value, TextField.TYPE_NOT_STORED))
+    addTextField(document, s"$fieldName$PHONETIC_SUFFIX", value)
   }
 
   protected def addTextField(document: Document, fieldName: String, value: String): Unit = {

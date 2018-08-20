@@ -6,21 +6,21 @@ import de.crazything.search.entity.SearchResult
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{CommonIndexer, CommonSearcher}
 import de.crazything.service.{QuickJsonParser, RestClient}
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfter}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfter, BeforeAndAfterAll}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
-class DockerTest1 extends AsyncFlatSpec with BeforeAndAfter with QuickJsonParser with GermanLanguage {
+class DockerTest1 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage {
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
-  before {
+  override def beforeAll(): Unit = {
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
   }
 
-  def urlFromUri(uri: String): String = s"http://127.0.0.1:9001/$uri"
+  def urlFromUri(uri: String): String = s"http://127.0.0.1:9002/$uri"
 
   def combineFacebookScored(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SocialPersonColScored] =

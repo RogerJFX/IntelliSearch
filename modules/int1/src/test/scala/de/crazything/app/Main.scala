@@ -19,7 +19,7 @@ object Main extends App with GermanLanguage{
     throw new IllegalArgumentException("Please gimme a port")
   }
 
-  CommonIndexer.index(DataProvider.readSocialPersonsResource(), SocialPersonFactory)
+  CommonIndexer.index(DataProvider.readVerySimplePersonsResource(), PersonFactoryDE)
 
   val serverConfig = ServerConfig(
     this.getClass.getClassLoader,
@@ -33,26 +33,14 @@ object Main extends App with GermanLanguage{
 
   val router: Router = Router.from { // No, Router.from is not deprecated, but Tags above "from".
     case GET(p"/test") => Action {
-      Results.Ok("It works!")
+      Results.Ok("It works! I got base data 4u.")
     }
-    case POST(p"/findSocialFor") => Action {
+    case POST(p"/findBaseDataFor") => Action {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
-        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
-          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory)
-        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult.map(r => r.obj)))
-        Results.Created(strSearchResult).as("application/json")
-      }
-    }
-    case POST(p"/findSocialForScored") => Action {
-      request => {
-        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
-        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
-          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory)
-
-        val strSearchResult: String = t2JsonString[SocialPersonColScored](SocialPersonColScored(searchResult))
+        val searchResult: Seq[SearchResult[Int, Person]] =
+          CommonSearcher.search(input = person, factory = PersonFactoryDE)
+        val strSearchResult: String = t2JsonString[PersonCollection](PersonCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }
     }
@@ -62,6 +50,5 @@ object Main extends App with GermanLanguage{
   }
 
   val runningServer = EmbeddedRestServer.run(serverConfig, router)
-  println(runningServer.httpPort.get)
 
 }

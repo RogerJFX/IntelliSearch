@@ -4,3 +4,4 @@
 /project/project
 /modules/**/target
 **/*/test/suites
+/nohup.out

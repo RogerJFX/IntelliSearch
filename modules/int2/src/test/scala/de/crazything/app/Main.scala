@@ -33,7 +33,7 @@ object Main extends App with GermanLanguage {
 
   val router: Router = Router.from { // No, Router.from is not deprecated, but Tags above "from".
     case GET(p"/test") => Action {
-      Results.Ok("It works!")
+      Results.Ok("It works! I got social data 4u.")
     }
     case POST(p"/findSocialFor") => Action {
       request => {
@@ -62,6 +62,5 @@ object Main extends App with GermanLanguage {
   }
 
   val runningServer = EmbeddedRestServer.run(serverConfig, router)
-  println(runningServer.httpPort.get)
 
 }

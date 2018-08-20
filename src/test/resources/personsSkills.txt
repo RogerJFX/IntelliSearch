@@ -1,0 +1,7 @@
+11;Franz;Mayer;Marketing
+21;Roger;Hösl;Scala;Java;Lucene;PostgreSQL;Javascript;Typescript
+# This guy hasn't got any skills.
+31;Franz;Reißer
+41;Vico;Müller-Lüdenscheidt;Cartoons;Comedy
+51;Theodor Wiesengrund;Philosoph;Philosophy;Musicology
+61;Albert;Scharnofske;Java;Assembly

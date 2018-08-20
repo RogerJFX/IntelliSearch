@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker container stop $(docker container ps | grep "int1/int1" | awk '{print $1}')
-docker container stop $(docker container ps | grep "int2/int2" | awk '{print $1}')
+docker container stop $(docker container ps | grep "9001/tcp" | awk '{print $1}')
+docker container stop $(docker container ps | grep "9002/tcp" | awk '{print $1}')
 
 
 nohup docker run -p 9001:9001 int1/int1:latest &> /dev/null &

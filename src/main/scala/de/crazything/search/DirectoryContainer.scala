@@ -38,3 +38,7 @@ object DirectoryContainer extends MagicSettings {
 
   def defaultSearcher: Option[IndexSearcher] = _defaultSearcher.get()
 }
+
+trait DirectoryContainer {
+  implicit def stringToSearcher(name: String): Option[IndexSearcher] = DirectoryContainer.pickSearcher(name)
+}

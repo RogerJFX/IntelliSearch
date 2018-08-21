@@ -5,21 +5,31 @@ import java.io.File
 import de.crazything.app.NettyRunner.{jsonString2T, t2JsonString}
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.SearchResult
+import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{CommonIndexer, CommonSearcher}
-import de.crazything.service.EmbeddedRestServer
+import de.crazything.service.{EmbeddedRestServer, RestClient}
 import play.api.Mode
 import play.api.mvc.{Action, Results}
 import play.api.routing.Router
 import play.api.routing.sird._
 import play.core.server.ServerConfig
 
-object Main extends App with GermanLanguage{
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
+object Main extends App with GermanLanguage with Network{
 
   if(args.length == 0) {
     throw new IllegalArgumentException("Please gimme a port")
   }
 
   CommonIndexer.index(DataProvider.readVerySimplePersonsResource(), PersonFactoryDE)
+
+  def combineFacebookScored(basePerson: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
+    val restResponse: Future[SocialPersonCollection] =
+      RestClient.post[Person, SocialPersonCollection](urlFromUriSocial("findSocialForScored"), basePerson.obj)
+    restResponse.map(res => res.socialPersons)
+  }
 
   val serverConfig = ServerConfig(
     this.getClass.getClassLoader,
@@ -30,9 +40,9 @@ object Main extends App with GermanLanguage{
     "0.0.0.0",
     Mode.Prod,
     System.getProperties)
-
+  val test = "test"
   val router: Router = Router.from { // No, Router.from is not deprecated, but Tags above "from".
-    case GET(p"/test") => Action {
+    case GET(p"/$test") => Action {
       Results.Ok("It works! I got base data 4u.")
     }
     case POST(p"/findBaseDataFor") => Action {
@@ -42,6 +52,22 @@ object Main extends App with GermanLanguage{
           CommonSearcher.search(input = person, factory = PersonFactoryDE)
         val strSearchResult: String = t2JsonString[PersonCollection](PersonCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
+      }
+    }
+    case POST(p"/findBaseDataForWithSocial") => Action.async {
+      request => {
+        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
+        MappingSearcher.searchCombined(input = person, factory = PersonFactoryDE,
+          combineFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((searchResult: Seq[(SearchResult[Int, Person], Seq[SearchResult[Int, SocialPerson]])]) => {
+          val sequence: Seq[PersonWithSocialResults] = for {
+            sr <- searchResult
+            p = sr._1
+            sp = sr._2
+          } yield PersonWithSocialResults(p, sp)
+
+          val strSearchResult: String = t2JsonString[PersonWithSocialPersonsCollection](PersonWithSocialPersonsCollection(sequence))
+          Results.Created(strSearchResult).as("application/json")
+        })
       }
     }
     case _ => Action {

@@ -1,7 +1,7 @@
 package de.crazything.app.test
 
 import de.crazything.app.Person._
-import de.crazything.app.SocialPersonColScored._
+import de.crazything.app.SocialPersonCollection._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.SearchResult
@@ -33,8 +33,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
   def combineFacebookScored(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
-    val restResponse: Future[SocialPersonColScored] =
-      RestClient.post[Person, SocialPersonColScored](urlFromUri("findSocialForScored"), result.obj)
+    val restResponse: Future[SocialPersonCollection] =
+      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialForScored"), result.obj)
     println(result.obj)
     restResponse.andThen {
       case Success(res) => println(res)

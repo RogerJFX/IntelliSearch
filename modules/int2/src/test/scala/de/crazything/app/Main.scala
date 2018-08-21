@@ -35,16 +35,7 @@ object Main extends App with GermanLanguage {
     case GET(p"/test") => Action {
       Results.Ok("It works! I got social data 4u.")
     }
-    case POST(p"/findSocialFor") => Action {
-      request => {
-        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
-        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
-          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory)
-        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult.map(r => r.obj)))
-        Results.Created(strSearchResult).as("application/json")
-      }
-    }
+
     case POST(p"/findSocialForScored") => Action {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
@@ -52,7 +43,7 @@ object Main extends App with GermanLanguage {
         val searchResult: Seq[SearchResult[Int, SocialPerson]] =
           CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory)
 
-        val strSearchResult: String = t2JsonString[SocialPersonColScored](SocialPersonColScored(searchResult))
+        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }
     }

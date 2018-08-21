@@ -38,16 +38,16 @@ object NettyRunner extends QuickJsonParser{
         Results.Created(body).as("application/json")
       }
     }
-    case POST(p"/findSocialFor") => Action {
-      request => {
-        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
-        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
-          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
-        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult.map(r => r.obj)))
-        Results.Created(strSearchResult).as("application/json")
-      }
-    }
+//    case POST(p"/findSocialFor") => Action {
+//      request => {
+//        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
+//        val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
+//        val searchResult: Seq[SearchResult[Int, SocialPerson]] =
+//          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
+//        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult.map(r => r.obj)))
+//        Results.Created(strSearchResult).as("application/json")
+//      }
+//    }
     case POST(p"/findSocialForScored") => Action {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
@@ -55,7 +55,7 @@ object NettyRunner extends QuickJsonParser{
         val searchResult: Seq[SearchResult[Int, SocialPerson]] =
           CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
 
-        val strSearchResult: String = t2JsonString[SocialPersonColScored](SocialPersonColScored(searchResult))
+        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }
     }

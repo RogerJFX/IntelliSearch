@@ -42,5 +42,4 @@ object CommonSearcher extends MagicSettings{
     search(input, factory, queryCriteria, maxHits, searcherOption)
   }
 
-
 }

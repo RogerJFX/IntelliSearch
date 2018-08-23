@@ -4,7 +4,7 @@ import java.io.File
 
 import de.crazything.app.NettyRunner.{jsonString2T, t2JsonString}
 import de.crazything.app.test.helpers.DataProvider
-import de.crazything.search.entity.SearchResult
+import de.crazything.search.entity.{SearchResult, SearchResultCollection}
 import de.crazything.search.{CommonIndexer, CommonSearcher}
 import de.crazything.service.EmbeddedRestServer
 import play.api.Mode
@@ -43,7 +43,7 @@ object Main extends App with GermanLanguage {
         val searchResult: Seq[SearchResult[Int, SocialPerson]] =
           CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory)
 
-        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult))
+        val strSearchResult: String = t2JsonString[SearchResultCollection[Int, SocialPerson]](SearchResultCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }
     }

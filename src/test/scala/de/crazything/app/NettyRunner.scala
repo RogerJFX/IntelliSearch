@@ -4,14 +4,19 @@ import java.io.File
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import de.crazything.search.{CommonSearcher, DirectoryContainer}
-import de.crazything.search.entity.SearchResult
-import de.crazything.service.{EmbeddedRestServer, QuickJsonParser}
+import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
+import de.crazything.search.ext.MappingSearcher
+import de.crazything.service.{EmbeddedRestServer, QuickJsonParser, RestClient}
 import play.api.Mode
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, Results}
 import play.api.routing.Router
 import play.api.routing.sird._
 import play.core.server.{NettyServer, ServerConfig}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 object NettyRunner extends QuickJsonParser{
 
@@ -55,8 +60,24 @@ object NettyRunner extends QuickJsonParser{
         val searchResult: Seq[SearchResult[Int, SocialPerson]] =
           CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
 
-        val strSearchResult: String = t2JsonString[SocialPersonCollection](SocialPersonCollection(searchResult))
+        val strSearchResult: String = t2JsonString[SearchResultCollection[Int, SocialPerson]](SearchResultCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
+      }
+    }
+    case POST(p"/mapSocial2Base") => Action.async {
+      request => {
+        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
+        MappingSearcher.searchCombined(input = person, factory = PersonFactoryDE,
+          combineFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((searchResult: Seq[(SearchResult[Int, Person], Seq[SearchResult[Int, SocialPerson]])]) => {
+          val sequence: Seq[MappedResults[Int, Int, Person, SocialPerson]] = for {
+            sr <- searchResult
+            p = sr._1
+            sp = sr._2
+          } yield MappedResults[Int, Int, Person, SocialPerson](p, sp)
+
+          val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(sequence))
+          Results.Created(strSearchResult).as("application/json")
+        })
       }
     }
     case _ => Action {
@@ -69,6 +90,7 @@ object NettyRunner extends QuickJsonParser{
       if (testRunCalls.getAndIncrement() == 0) {
         val runningServer = EmbeddedRestServer.run(serverConfig, router)
         serverRef.set(runningServer)
+        port = runningServer.httpPort.get
         runningServer
       } else {
         serverRef.get()
@@ -82,5 +104,15 @@ object NettyRunner extends QuickJsonParser{
         serverRef.get().stop()
       }
     }
+  }
+
+  var port = 0
+
+  def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
+
+  def combineFacebookScored(basePerson: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
+    val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), basePerson.obj)
+    restResponse.map(res => res.entries)
   }
 }

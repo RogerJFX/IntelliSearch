@@ -1,11 +1,10 @@
 package de.crazything.app.test
 
 import de.crazything.app.Person._
-import de.crazything.app.SocialPersonCollection._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
-import de.crazything.search.entity.SearchResult
-import de.crazything.search.CommonIndexer
+import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
+import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer}
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
@@ -16,7 +15,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, TimeoutException}
 import scala.util.{Failure, Success}
 
-class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage {
+class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer{
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RestCombineTest")
 
@@ -26,6 +25,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   override def beforeAll(): Unit = {
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
     CommonIndexer.index(DataProvider.readSocialPersons(), SocialPersonFactory, "remoteIndex")
+    CommonIndexer.index(DataProvider.readSkilledPersons(), SkilledPersonFactory, "skilledIndex")
   }
 
   override def afterAll: Unit = NettyRunner.stopServer()
@@ -33,14 +33,14 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
   def combineFacebookScored(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
-    val restResponse: Future[SocialPersonCollection] =
-      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialForScored"), result.obj)
+    val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
     println(result.obj)
     restResponse.andThen {
       case Success(res) => println(res)
       case Failure(t) => println(t.getMessage)
     }
-    restResponse.map(res => res.socialPersons)
+    restResponse.map(res => res.entries)
   }
 
   def combineFacebookScoredExc(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = Future {
@@ -90,5 +90,33 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
         assert(result.length == 1)
       })
     )
+  }
+
+  "Mapping" should "run locally" in {
+    val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
+
+    def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
+    Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
+      val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
+        skilledPerson.obj.lastName.getOrElse("-"), "", "")
+      val restResponse: Future[MappedResultsCollection[Int, Int, Person, SocialPerson]] =
+        RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
+          urlFromUri("mapSocial2Base"), searchedBasePerson)
+      val result: Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] =
+        restResponse.map(res => {
+          res.entries.map(rr => SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]](rr, rr.target.score))
+        })
+      result
+    }
+
+
+    MappingSearcher.searchCombined(input = searchedSkilledPerson, factory = SkilledPersonFactory,
+      searcherOption = "skilledIndex",
+      combineFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
+      .map((result: Seq[(SearchResult[Int, SkilledPerson], Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]])]) => {
+        println(result)
+        assert(result.head._2.head.obj.results.length == 2)
+        assert(result.length == 1)
+      })
   }
 }

@@ -4,7 +4,7 @@ import java.io.File
 
 import de.crazything.app.NettyRunner.{jsonString2T, t2JsonString}
 import de.crazything.app.test.helpers.DataProvider
-import de.crazything.search.entity.SearchResult
+import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{CommonIndexer, CommonSearcher}
 import de.crazything.service.{EmbeddedRestServer, RestClient}
@@ -26,9 +26,9 @@ object Main extends App with GermanLanguage with Network{
   CommonIndexer.index(DataProvider.readVerySimplePersonsResource(), PersonFactoryDE)
 
   def combineFacebookScored(basePerson: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
-    val restResponse: Future[SocialPersonCollection] =
-      RestClient.post[Person, SocialPersonCollection](urlFromUriSocial("findSocialForScored"), basePerson.obj)
-    restResponse.map(res => res.socialPersons)
+    val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUriSocial("findSocialForScored"), basePerson.obj)
+    restResponse.map(res => res.entries)
   }
 
   val serverConfig = ServerConfig(
@@ -50,7 +50,7 @@ object Main extends App with GermanLanguage with Network{
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         val searchResult: Seq[SearchResult[Int, Person]] =
           CommonSearcher.search(input = person, factory = PersonFactoryDE)
-        val strSearchResult: String = t2JsonString[PersonCollection](PersonCollection(searchResult))
+        val strSearchResult: String = t2JsonString[SearchResultCollection[Int, Person]](SearchResultCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }
     }
@@ -66,6 +66,22 @@ object Main extends App with GermanLanguage with Network{
           } yield PersonWithSocialResults(p, sp)
 
           val strSearchResult: String = t2JsonString[PersonWithSocialPersonsCollection](PersonWithSocialPersonsCollection(sequence))
+          Results.Created(strSearchResult).as("application/json")
+        })
+      }
+    }
+    case POST(p"/mapSocial2Base") => Action.async {
+      request => {
+        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
+        MappingSearcher.searchCombined(input = person, factory = PersonFactoryDE,
+          combineFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((searchResult: Seq[(SearchResult[Int, Person], Seq[SearchResult[Int, SocialPerson]])]) => {
+          val sequence: Seq[MappedResults[Int, Int, Person, SocialPerson]] = for {
+            sr <- searchResult
+            p = sr._1
+            sp = sr._2
+          } yield MappedResults[Int, Int, Person, SocialPerson](p, sp)
+
+          val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(sequence))
           Results.Created(strSearchResult).as("application/json")
         })
       }

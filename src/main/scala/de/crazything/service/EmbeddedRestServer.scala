@@ -15,10 +15,10 @@ object EmbeddedRestServer {
   private val logger: Logger = LoggerFactory.getLogger(EmbeddedRestServer.getClass)
 
   def run(_serverConfig: ServerConfig, _router: Router): NettyServer = {
-    if(_serverConfig.mode == Mode.Prod) {
-      logger.warn("This embedded server may not fit your needs in Production mode. " +
-        "Consider setting up some module using the play framework.")
-    }
+    logger.info("Running Embedded server in Mode {}. " +
+        "For running in production mode consider setting up some module using the play framework.",
+      _serverConfig.mode.toString)
+
     val components =
       new NettyServerComponents with BuiltInComponents  with NoHttpFiltersComponents {
         override lazy val serverConfig: ServerConfig = _serverConfig

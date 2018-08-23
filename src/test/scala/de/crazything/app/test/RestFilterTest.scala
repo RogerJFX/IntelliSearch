@@ -1,7 +1,6 @@
 package de.crazything.app.test
 
 import de.crazything.app.Person._
-//import de.crazything.app.SocialPersonCollection._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.{SearchResult, SearchResultCollection}
@@ -29,24 +28,6 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
   override def afterAll: Unit = NettyRunner.stopServer()
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
-
-//  def filterHasFacebook(result: SearchResult[Int, Person]): Future[Boolean] = {
-//    val restResponse: Future[SocialPersonCollection] =
-//      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialFor"), result.obj)
-//    restResponse.andThen {
-//      case Success(res) => println(res)
-//    }
-//    restResponse.map(res => res.socialPersons.exists(entry => entry.facebookId.isDefined))
-//  }
-
-//  def filterHasFacebookScored(result: SearchResult[Int, Person]): Future[Boolean] = {
-//    val restResponse: Future[SocialPersonCollection] =
-//      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialForScored"), result.obj)
-//    restResponse.andThen {
-//      case Success(res) => println(res)
-//    }
-//    restResponse.map(res => res.socialPersons.exists(entry => entry.obj.facebookId.isDefined && entry.score > 20F))
-//  }
 
   def filterHasFacebookScored(result: SearchResult[Int, Person]): Future[Boolean] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =

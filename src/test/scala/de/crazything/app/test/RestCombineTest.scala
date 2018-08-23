@@ -2,7 +2,7 @@ package de.crazything.app.test
 
 import de.crazything.app.Person._
 import de.crazything.app._
-import de.crazything.app.test.helpers.DataProvider
+import de.crazything.app.test.helpers.{CustomMocks, DataProvider}
 import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer}
 import de.crazything.search.ext.MappingSearcher
@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, TimeoutException}
 import scala.util.{Failure, Success}
 
-class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer{
+class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer with FilterAsync{
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RestCombineTest")
 
@@ -78,6 +78,20 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     )
   }
 
+  it should "work on 4 threads." in {
+    val availProcessors = Runtime.getRuntime.availableProcessors()
+    def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
+    val searchedPerson = Person(-1, "Herr", "foobar", "foobar", "street", "city")
+    CustomMocks.mockObjectFieldAsync("de.crazything.search.ext.MappingSearcher", "processors", filterAvailProcessors(4), {
+      MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryAll,
+        combineFn = combineFacebookScored).map(result => {
+        assert(result.length == 6)
+      })
+    })
+
+
+  }
+
   it should "throw TimeoutException" in {
     logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     logger.warn("We expect TimeoutException in this test, and RejectedExecutionException as well. So no worries.")
@@ -119,4 +133,5 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
         assert(result.length == 1)
       })
   }
+
 }

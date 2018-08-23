@@ -31,7 +31,7 @@ object RunnableHandlers {
   }
 
   class FilterFutureHandler[I, +T <: PkDataSet[I]]
-  (filterFn: (SearchResult[I, T]) => Future[Boolean],
+  (filterFuture: (SearchResult[I, T]) => Future[Boolean],
    sr: SearchResult[I, T],
    buffer: ListBuffer[SearchResult[I, T]],
    callback: () => Unit,
@@ -40,7 +40,7 @@ object RunnableHandlers {
     implicit val exc: ExecutionContext = ec
 
     override def run(): Unit = {
-      filterFn(sr).onComplete {
+      filterFuture(sr).onComplete {
         case Success(bool) =>
           if (bool) {
             buffer.append(sr)
@@ -53,7 +53,7 @@ object RunnableHandlers {
   }
 
   class MapperFutureHandler[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]]
-  (filterFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+  (mapperFuture: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
    sr: SearchResult[I1, T1],
    buffer: ListBuffer[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])],
    callback: () => Unit,
@@ -62,7 +62,7 @@ object RunnableHandlers {
     implicit val exc: ExecutionContext = ec
 
     override def run(): Unit = {
-      filterFn(sr).onComplete {
+      mapperFuture(sr).onComplete {
         case Success(remoteResult) =>
           buffer.append((sr, remoteResult))
           callback()

@@ -29,7 +29,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
     })
   }
 
-  "Cascaded search" should "find at least one set" in {
+  "Cascaded search" should "work using custom case class" in {
 
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
 
@@ -53,7 +53,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
       })
   }
 
-  it should "work with generic DTO class" in {
+  it should "even work with generic DTO class" in {
 
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
 

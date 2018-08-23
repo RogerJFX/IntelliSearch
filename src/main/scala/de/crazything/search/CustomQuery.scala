@@ -46,24 +46,24 @@ case object CustomQuery extends QueryConfig {
     * @param tuple fieldName, value
     * @return A Query.
     */
-  implicit def data2Query(tuple: (String, String))(implicit analyzer: Analyzer): CQuery =
-    CQuery(tuple._1, tuple._2)(analyzer)
+  implicit def data2Query(tuple: (String, String))(implicit phoneticAnalyzer: Analyzer): CQuery =
+    CQuery(tuple._1, tuple._2)(phoneticAnalyzer)
 
   /**
     * Tuple3 to Query.
     * @param tuple fieldName, value, boost
     * @return A Query.
     */
-  implicit def data2Query(tuple: (String, String, Float))(implicit analyzer: Analyzer): CQuery =
-    CQuery(tuple._1, tuple._2, Some(tuple._3))(analyzer)
+  implicit def data2Query(tuple: (String, String, Float))(implicit phoneticAnalyzer: Analyzer): CQuery =
+    CQuery(tuple._1, tuple._2, Some(tuple._3))(phoneticAnalyzer)
 
   /**
     * Tuple4 to Query.
     * @param tuple fieldName, value, boost, fuzzyMaxEdits
     * @return A Query.
     */
-  implicit def data2Query(tuple: (String, String, Float, Int))(implicit analyzer: Analyzer): CQuery =
-    CQuery(tuple._1, tuple._2, Some(tuple._3), Some(tuple._4))(analyzer)
+  implicit def data2Query(tuple: (String, String, Float, Int))(implicit phoneticAnalyzer: Analyzer): CQuery =
+    CQuery(tuple._1, tuple._2, Some(tuple._3), Some(tuple._4))(phoneticAnalyzer)
 
   /**
     * Creates a BooleanQuery of a Sequence of partial Queries. Just pass something like:
@@ -88,6 +88,19 @@ case object CustomQuery extends QueryConfig {
     queryBuilder.build()
   }
 
+  /**
+    * Creates a BooleanQuery of a Sequence of partial Queries. Just pass something like:
+    *
+    * {{{
+    *   Seq(
+    *     (LAST_NAME, person.lastName).exact.should,
+    *     (LAST_NAME, person.lastName).phonetic.must,
+    *     (LAST_NAME, person.lastName).fuzzy.mustNot
+    *   )
+    * }}}
+    * @param queries Sequence of queries to pass.
+    * @return The Boolean query.
+    */
   implicit def seq2QueryCondition(queries: Seq[(Query, BooleanClause.Occur)]): BooleanQuery = {
     val queryBuilder = new BooleanQuery.Builder()
     queries.foreach(t => {

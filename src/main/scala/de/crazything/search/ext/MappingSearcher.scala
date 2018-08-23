@@ -14,19 +14,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.util.{Failure, Success}
 
-// Hm...
-//class MappingSearcher[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
-//  def searchCombined(input: T1,
-//                     factory: AbstractTypeFactory[I1, T1],
-//                     searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
-//                     queryCriteria: Option[QueryCriteria] = None,
-//                     maxHits: Int = MappingSearcher.MAGIC_NUM_DEFAULT_HITS_FILTERED,
-//                     combineFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-//                     secondLevelTimeout: FiniteDuration = MappingSearcher.ONE_DAY)
-//  : Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] =
-//    MappingSearcher.searchCombined(input, factory, searcherOption, queryCriteria, maxHits, combineFn, secondLevelTimeout)
-//}
-
 object MappingSearcher extends MagicSettings {
 
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,11 +29,11 @@ object MappingSearcher extends MagicSettings {
 
     finalResultFuture.onComplete {
       case Success(finalResult) =>
-        if (finalResult.nonEmpty) {
+//        if (finalResult.nonEmpty) { // should never be empty.
           promise.success(finalResult.sortBy(res => res._1.score))
-        } else {
-          promise.success(Seq())
-        }
+//        } else {
+//          promise.success(Seq())
+//        }
       case Failure(t: TimeoutException) =>
         combinationClass.onTimeoutException(t)
         promise.failure(t)

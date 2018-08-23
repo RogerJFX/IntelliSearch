@@ -20,12 +20,12 @@ object MappingSearcher extends MagicSettings {
 
   private def callSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (searchResult: Seq[SearchResult[I1, T1]],
-   combineClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
+   mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = ONE_DAY,
    promise: Promise[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]]): Unit = {
 
-    val combinationClass: Combine[I1, I2, T1, T2] = combineClass(searchResult)
-    val finalResultFuture = FutureUtil.futureWithTimeout(combinationClass.createFuture(), secondLevelTimeout)
+    val mappingClass: Combine[I1, I2, T1, T2] = mapperClass(searchResult)
+    val finalResultFuture = FutureUtil.futureWithTimeout(mappingClass.createFuture(), secondLevelTimeout)
 
     finalResultFuture.onComplete {
       case Success(finalResult) =>
@@ -35,43 +35,43 @@ object MappingSearcher extends MagicSettings {
 //          promise.success(Seq())
 //        }
       case Failure(t: TimeoutException) =>
-        combinationClass.onTimeoutException(t)
+        mappingClass.onTimeoutException(t)
         promise.failure(t)
       case Failure(x) => promise.failure(x)
     }
 
   }
 
-  private def doCombine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  private def doMap[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (input: T1,
    factory: AbstractTypeFactory[I1, T1],
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-   combineClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
+   mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = ONE_DAY): Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
     val searchResult: Future[Seq[SearchResult[I1, T1]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = Promise[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]]
     searchResult.onComplete {
       case Success(res) =>
-        callSecondLevel(res, combineClass, secondLevelTimeout, promise)
+        callSecondLevel(res, mapperClass, secondLevelTimeout, promise)
       case Failure(t) => promise.failure(t)
     }
     promise.future
   }
 
-  def searchCombined[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  def searchMapping[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (input: T1,
    factory: AbstractTypeFactory[I1, T1],
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-   combineFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+   mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
    secondLevelTimeout: FiniteDuration = ONE_DAY)
   : Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
-    def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new CombineAsyncFuture(res, combineFn)
+    def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
 
-    doCombine(input, factory, searcherOption, queryCriteria, maxHits, secondLevelClass, secondLevelTimeout)
+    doMap(input, factory, searcherOption, queryCriteria, maxHits, secondLevelClass, secondLevelTimeout)
   }
 
   val processors: Int = Runtime.getRuntime.availableProcessors()
@@ -104,9 +104,9 @@ object MappingSearcher extends MagicSettings {
     }
   }
 
-  private class CombineAsyncFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  private class MapperAsyncFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (raw: Seq[SearchResult[I1, T1]],
-   combineFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]])
+   mappingFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]])
     extends Combine[I1, I2, T1, T2] {
     override def createFuture(): Future[Seq[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])]] = {
       doCreateFuture(raw, (len: Int) => {
@@ -114,13 +114,13 @@ object MappingSearcher extends MagicSettings {
           promise.success(buffer)
           pool.shutdown()
         } else if (procCount.get() < len) {
-          pool.execute(new MapperFutureHandler(combineFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onCombineException)(ec))
+          pool.execute(new MapperFutureHandler(mappingFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onCombineException)(ec))
         }
 
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()
-          pool.execute(new MapperFutureHandler(combineFn, raw(i), buffer, () => checkLenInc(), onCombineException)(ec))
+          pool.execute(new MapperFutureHandler(mappingFn, raw(i), buffer, () => checkLenInc(), onCombineException)(ec))
         }
       })
     }

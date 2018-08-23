@@ -54,14 +54,14 @@ object FilteringSearcher extends MagicSettings {
     promise.future
   }
 
-  private def callRemote[I1, T1 <: PkDataSet[I1]]
+  private def callSecondLevel[I1, T1 <: PkDataSet[I1]]
   (searchResult: Seq[SearchResult[I1, T1]],
-   combineClass: (Seq[SearchResult[I1, T1]]) => Filter[I1, T1],
+   filterClass: (Seq[SearchResult[I1, T1]]) => Filter[I1, T1],
    filterTimeout: FiniteDuration = ONE_DAY,
    promise: Promise[Seq[SearchResult[I1, T1]]]): Unit = {
 
-    val filterClass: Filter[I1, T1] = combineClass(searchResult)
-    val finalResultFuture = FutureUtil.futureWithTimeout(filterClass.createFuture(), filterTimeout)
+    val filteringClass: Filter[I1, T1] = filterClass(searchResult)
+    val finalResultFuture = FutureUtil.futureWithTimeout(filteringClass.createFuture(), filterTimeout)
 
     finalResultFuture.onComplete {
       case Success(finalResult) =>
@@ -71,7 +71,7 @@ object FilteringSearcher extends MagicSettings {
           promise.success(Seq())
         }
       case Failure(t: TimeoutException) =>
-        filterClass.onTimeoutException(t)
+        filteringClass.onTimeoutException(t)
         promise.failure(t)
       case Failure(x) => promise.failure(x)
     }
@@ -89,7 +89,7 @@ object FilteringSearcher extends MagicSettings {
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
       case Success(res) =>
-        callRemote(res, getFilterClass, filterTimeout, promise)
+        callSecondLevel(res, getFilterClass, filterTimeout, promise)
       case Failure(t) => promise.failure(t)
     }
     promise.future

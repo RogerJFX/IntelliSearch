@@ -49,8 +49,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-      combineFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
+    MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+      mapperFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       println(result)
       assert(result.length == 1)
     })
@@ -58,8 +58,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   it should "get a non mixed score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
-    MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-      combineFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
+    MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+      mapperFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       println(result)
       assert(result.length == 2)
       // Mayer was found, but hasn't got a facebook account
@@ -71,8 +71,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   "Combined exc" should "throw an exception if filter does." in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
     recoverToSucceededIf[NumberFormatException](
-      MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-        combineFn = combineFacebookScoredExc).map(result => {
+      MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+        mapperFn = combineFacebookScoredExc).map(result => {
         assert(result.length == 1)
       })
     )
@@ -83,8 +83,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
     val searchedPerson = Person(-1, "Herr", "foobar", "foobar", "street", "city")
     CustomMocks.mockObjectFieldAsync("de.crazything.search.ext.MappingSearcher", "processors", filterAvailProcessors(4), {
-      MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryAll,
-        combineFn = combineFacebookScored).map(result => {
+      MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryAll,
+        mapperFn = combineFacebookScored).map(result => {
         assert(result.length == 6)
       })
     })
@@ -99,8 +99,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     recoverToSucceededIf[TimeoutException](
-      MappingSearcher.searchCombined(input = searchedPerson, factory = PersonFactoryDE,
-        combineFn = combineFacebookScored, secondLevelTimeout = 10.millis).map(result => {
+      MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+        mapperFn = combineFacebookScored, secondLevelTimeout = 10.millis).map(result => {
         assert(result.length == 1)
       })
     )
@@ -124,9 +124,9 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     }
 
 
-    MappingSearcher.searchCombined(input = searchedSkilledPerson, factory = SkilledPersonFactory,
+    MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
-      combineFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
+      mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[(SearchResult[Int, SkilledPerson], Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]])]) => {
         println(result)
         assert(result.head._2.head.obj.results.length == 2)

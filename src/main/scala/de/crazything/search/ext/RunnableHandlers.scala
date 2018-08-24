@@ -52,26 +52,6 @@ object RunnableHandlers {
     }
   }
 
-  class MapperFutureHandlerOLD[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]]
-  (mapperFuture: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-   sr: SearchResult[I1, T1],
-   buffer: ListBuffer[(SearchResult[I1, T1], Seq[SearchResult[I2, T2]])],
-   callback: () => Unit,
-   onFilterException: (Throwable) => Unit)(ec: ExecutionContext) extends Runnable {
-
-    implicit val exc: ExecutionContext = ec
-
-    override def run(): Unit = {
-      mapperFuture(sr).onComplete {
-        case Success(remoteResult) =>
-          buffer.append((sr, remoteResult))
-          callback()
-        case Failure(t) =>
-          onFilterException(t)
-      }
-    }
-  }
-
   class MapperFutureHandler[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]]
   (mapperFuture: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
    sr: SearchResult[I1, T1],

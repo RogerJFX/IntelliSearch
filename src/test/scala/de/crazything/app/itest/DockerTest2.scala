@@ -46,9 +46,9 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
     MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
-      .map((result: Seq[(SearchResult[Int, SkilledPerson], Seq[SearchResult[Int, PersonWithSocialResults]])]) => {
+      .map((result: Seq[MappedResults[Int, Int, SkilledPerson, PersonWithSocialResults]]) => {
         println(result)
-        assert(result.head._2.head.obj.socialResults.length == 2)
+        assert(result.head.results.head.obj.socialResults.length == 2)
         assert(result.length == 1)
       })
   }
@@ -75,9 +75,9 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
     MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
-      .map((result: Seq[(SearchResult[Int, SkilledPerson], Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]])]) => {
+      .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
         println(result)
-        assert(result.head._2.head.obj.results.length == 2)
+        assert(result.head.results.head.obj.results.length == 2)
         assert(result.length == 1)
       })
   }

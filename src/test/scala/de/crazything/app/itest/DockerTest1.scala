@@ -3,7 +3,7 @@ package de.crazything.app.itest
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.CommonIndexer
-import de.crazything.search.entity.{SearchResult, SearchResultCollection}
+import de.crazything.search.entity.{MappedResults, SearchResult, SearchResultCollection}
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
@@ -34,7 +34,7 @@ class DockerTest1 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
   "Scored remote docker" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
-      mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((result: Seq[(SearchResult[Int, Person], Seq[SearchResult[Int, SocialPerson]])]) => {
+      mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((result: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
       println(result)
       assert(result.length == 1)
     })

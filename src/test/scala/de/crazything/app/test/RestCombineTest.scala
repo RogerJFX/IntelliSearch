@@ -63,8 +63,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
       println(result)
       assert(result.length == 2)
       // Mayer was found, but hasn't got a facebook account
-      assert(result.head._2.nonEmpty)
-      assert(result.head._2.head.obj.facebookId.isEmpty)
+      assert(result.head.results.nonEmpty)
+      assert(result.head.results.head.obj.facebookId.isEmpty)
     })
   }
 
@@ -127,9 +127,9 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
-      .map((result: Seq[(SearchResult[Int, SkilledPerson], Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]])]) => {
+      .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
         println(result)
-        assert(result.head._2.head.obj.results.length == 2)
+        assert(result.head.results.head.obj.results.length == 2)
         assert(result.length == 1)
       })
   }

@@ -61,6 +61,20 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
     promise.future
   }
 
+  /**
+    * Common filtered search. First we search an input right here, so locally (we should have an index of our own then).
+    *
+    * @param input not sufficient input to search similarities for.
+    * @param factory The factory
+    * @param searcherOption Another index as default to search? Ok then. Might even be a String due to implicits.
+    * @param queryCriteria Local criteria
+    * @param maxHits Local max hits.
+    * @param filterFn The filtering function to pass.
+    * @param secondLevelTimeout remote timeout
+    * @tparam I Type of primary key of type T
+    * @tparam T Type to search for
+    * @return Just the filtered sequence of results.
+    */
   def search[I, T <: PkDataSet[I]]
   (input: T,
    factory: AbstractTypeFactory[I, T],

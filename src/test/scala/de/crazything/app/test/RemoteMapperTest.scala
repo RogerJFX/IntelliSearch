@@ -7,7 +7,7 @@ import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{CommonIndexer, DirectoryContainer}
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
-import org.slf4j.{Logger, LoggerFactory}
+//import org.slf4j.{Logger, LoggerFactory}
 import play.core.server.NettyServer
 
 import scala.concurrent.Future

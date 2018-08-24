@@ -15,11 +15,14 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.util.{Failure, Success}
 
+/*
+  TODO: it cannot remain in this state.
+ */
 object MappingSearcher extends MagicSettings {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  private def callSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  private def processSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (searchResult: Seq[SearchResult[I1, T1]],
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
@@ -39,14 +42,14 @@ object MappingSearcher extends MagicSettings {
 
   }
 
-  private def doMap[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  private def processFirstLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (primaryResult: Future[Seq[SearchResult[I1, T1]]],
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     val promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]] = Promise[Seq[MappedResults[I1, I2, T1, T2]]]
     primaryResult.onComplete {
       case Success(res) =>
-        callSecondLevel(res, mapperClass, secondLevelTimeout, promise)
+        processSecondLevel(res, mapperClass, secondLevelTimeout, promise)
       case Failure(t) => promise.failure(t)
     }
     promise.future
@@ -62,18 +65,20 @@ object MappingSearcher extends MagicSettings {
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
+
     val searchResult: Future[Seq[SearchResult[I1, T1]]] =
       CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
-    doMap(searchResult, secondLevelClass, secondLevelTimeout)
+    processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
   def searchMappingFromFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
-  (initialFuture: Future[Seq[SearchResult[I1, T1]]] ,
+  (initialFuture: Future[Seq[SearchResult[I1, T1]]],
    mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
-    doMap(initialFuture, secondLevelClass, secondLevelTimeout)
+
+    processFirstLevel(initialFuture, secondLevelClass, secondLevelTimeout)
   }
 
   def searchMappingRemote[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
@@ -85,15 +90,17 @@ object MappingSearcher extends MagicSettings {
   (implicit fmt: OFormat[T1])
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
+
     val searchResult: Future[Seq[SearchResult[I1, T1]]] =
       CommonSearcher.searchRemote[I1, T1](input, url, firstLevelTimeout)
-    doMap(searchResult, secondLevelClass, secondLevelTimeout)
+    processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
   trait Combine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
     // Yes, we can do this here. We take care of the pool in our createFuture methods.
+    //val processors: Int
     val pool: ExecutorService = Executors.newFixedThreadPool(processors)
     val ec: ExecutionContext = ExecutionContext.fromExecutorService(pool)
     val promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]] = Promise[Seq[MappedResults[I1, I2, T1, T2]]]
@@ -114,8 +121,8 @@ object MappingSearcher extends MagicSettings {
 
     def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]]
 
-    protected def doCreateFuture(raw: Seq[SearchResult[I1, T1]], body: (Int) => Unit)
-    : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+    protected def doCreateFuture(raw: Seq[SearchResult[I1, T1]],
+                                 body: (Int) => Unit): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
       body(raw.length)
       promise.future
     }
@@ -142,6 +149,8 @@ object MappingSearcher extends MagicSettings {
         }
       })
     }
+
+    //override val processors: Int = 4
   }
 
 }

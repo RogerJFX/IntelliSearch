@@ -3,9 +3,8 @@ package de.crazything.app.test
 import de.crazything.app.Person._
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
-import de.crazything.search.entity.{SearchResult, SearchResultCollection}
-import de.crazything.search.entity.SearchResultCollection._
 import de.crazything.search.CommonIndexer
+import de.crazything.search.entity.{SearchResult, SearchResultCollection}
 import de.crazything.search.ext.FilteringSearcher
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
@@ -29,6 +28,24 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
+//  def filterHasFacebook(result: SearchResult[Int, Person]): Future[Boolean] = {
+//    val restResponse: Future[SocialPersonCollection] =
+//      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialFor"), result.obj)
+//    restResponse.andThen {
+//      case Success(res) => println(res)
+//    }
+//    restResponse.map(res => res.socialPersons.exists(entry => entry.facebookId.isDefined))
+//  }
+
+//  def filterHasFacebookScored(result: SearchResult[Int, Person]): Future[Boolean] = {
+//    val restResponse: Future[SocialPersonCollection] =
+//      RestClient.post[Person, SocialPersonCollection](urlFromUri("findSocialForScored"), result.obj)
+//    restResponse.andThen {
+//      case Success(res) => println(res)
+//    }
+//    restResponse.map(res => res.socialPersons.exists(entry => entry.obj.facebookId.isDefined && entry.score > 20F))
+//  }
+
   def filterHasFacebookScored(result: SearchResult[Int, Person]): Future[Boolean] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
       RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
@@ -41,7 +58,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
   "Rest filter" should "get an empty result for missing facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Mayer", "street", "city")
     FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
-      filterFn = filterHasFacebookScored, filterTimeout = 3.seconds).map(result => {
+      filterFn = filterHasFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.isEmpty)
     })
   }
@@ -49,7 +66,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
   it should "get a non empty result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
-      filterFn = filterHasFacebookScored, filterTimeout = 3.seconds).map(result => {
+      filterFn = filterHasFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
   }
@@ -60,7 +77,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
       filterFn = (result: SearchResult[Int, Person]) => {
         RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
           .map(res => res.entries.exists(entry => entry.obj.facebookId.isDefined))
-      }, filterTimeout = 3.seconds).map(result => {
+      }, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
   }
@@ -68,7 +85,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
-      filterFn = filterHasFacebookScored, filterTimeout = 3.seconds).map(result => {
+      filterFn = filterHasFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
   }

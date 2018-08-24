@@ -134,6 +134,20 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
       })
   }
 
+  it should "throw first level exception" in {
+    recoverToSucceededIf[Exception](
+      MappingSearcher.searchMapping(input = null, factory = SkilledPersonFactory,
+        searcherOption = "badIndex",
+        mapperFn = null, secondLevelTimeout = 15.seconds)
+        .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
+          println(result)
+          assert(result.head.results.head.obj.results.length == 2)
+          assert(result.length == 1)
+        })
+
+    )
+  }
+
   "SimpleRemoteSearch" should "work anyway" in {
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
     CommonSearcher.searchRemote[Int, SkilledPerson](searchedSkilledPerson, urlFromUri("findSkilledPerson")).map(result => {

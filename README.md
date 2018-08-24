@@ -12,13 +12,60 @@ There are many use cases for a reliable search:
 
 1. in any case a reliable search improves results' quality
 1. a reliable search might be used in scenarios, that are business critical (e.g. local database merging)
+1. a real reliable search might gather and compare data from multiple services to 
+    1. filter primary search results
+    1. enhance primary search result by further matching search results
+    1. in the end it might by used to obtain even more but still weighted, thus reliable results
+    since it is possible to weight results after obtaining a tree of one to many results.
 
-Our strategy is to accumulate queries and the weighted results as well. That's for the first level search.
+What we have so far
+-
 
-We decided to introduce a second level searching process. Think of having another directory, database or whatever 
-service giving us more information. And think of this information sources are somewhere remote. So why not filtering 
-first level results by remote services' results? Why not mapping them in order to get a tree of more qualified results, 
-that might be filtered later? Even unions would be reasonable.
+1. There is a sophisticated search procedure for any search (service) instance including optional
+phonetic search. 
+1. There are services based on Rest. Any searching service can
+    1. search his own index an call another service for filtering issues.
+    1. search his own index an call another service for mapping issues.
+    1. search another service and call right another one for filtering or mapping.
+    So this service does not need to have an own searching index, since it is just delegating.
+1. We can filter over many services.
+1. We can have real cascading stacks as well. 
+
+A typical mapping result over three instances might look like (numbers are scores just for reliability)
+
+*Some or None are Options in Scala. Sorry for your inconvenience*
+
+*MappedResults and SearchResult are our own classes in "main", e.g. SkilledPerson is a test class*
+~~~
+List(
+  MappedResults(
+    SearchResult(
+      SkilledPerson(21,Some("Roger"),Some("Hösl"),Some(List("Scala", "Java", "Lucene"))),27.38844),
+      List(
+        SearchResult(
+          MappedResults(
+            SearchResult(
+              Person(2,"Herr","Roger","Hösl","Some street 25", "Some city"),49.444176),
+              List(
+                SearchResult(SocialPerson(2,"Roger","Hösl",Some("roger"),None),36.71957), 
+                SearchResult(SocialPerson(14,"Roger","Hoesl",Some("roger"),Some("hoesl")),4.0875263)
+              )
+            ), 
+        49.444176
+      )
+    )
+  )
+)
+~~~
+
+In this particular scenario we searched for persons with some skills in the first instance. 
+After that we try to gather base data from a remote service. Upon those results we try to get some social media 
+data from a further service.
+
+Using filters instead of mappings of course would give us only one result list instead of getting this bunch of data
+as a result.
+
+The unit testing is fine so far, but of course we decided to run some integration tests.
 
 **Currently there are 2 docker images**, that we put to their own sbt modules. A first test is working.
 However only one docker instance is used so far. More coming soon. 
@@ -54,6 +101,8 @@ sbt unitTest
 
 To come back to the first level search, which of course should be as exact as possible:
 -
+
+Any service instance of course does, what is described next.
 
 There is a default hierarchy of Queries:
 

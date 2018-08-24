@@ -8,6 +8,7 @@ import de.crazything.search.ext.RunnableHandlers.MapperFutureHandler
 import de.crazything.search.utils.FutureUtil
 import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
 import org.apache.lucene.search.IndexSearcher
+import play.api.libs.json.OFormat
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.FiniteDuration
@@ -39,17 +40,11 @@ object MappingSearcher extends MagicSettings {
   }
 
   private def doMap[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
-  (input: T1,
-   factory: AbstractTypeFactory[I1, T1],
-   searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
-   queryCriteria: Option[QueryCriteria] = None,
-   maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
+  (primaryResult: Future[Seq[SearchResult[I1, T1]]],
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
-    val searchResult: Future[Seq[SearchResult[I1, T1]]] =
-      CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]] = Promise[Seq[MappedResults[I1, I2, T1, T2]]]
-    searchResult.onComplete {
+    primaryResult.onComplete {
       case Success(res) =>
         callSecondLevel(res, mapperClass, secondLevelTimeout, promise)
       case Failure(t) => promise.failure(t)
@@ -67,8 +62,32 @@ object MappingSearcher extends MagicSettings {
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
+    val searchResult: Future[Seq[SearchResult[I1, T1]]] =
+      CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
+    doMap(searchResult, secondLevelClass, secondLevelTimeout)
+  }
 
-    doMap(input, factory, searcherOption, queryCriteria, maxHits, secondLevelClass, secondLevelTimeout)
+  def searchMappingFromFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  (initialFuture: Future[Seq[SearchResult[I1, T1]]] ,
+   mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+  : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+    def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
+    doMap(initialFuture, secondLevelClass, secondLevelTimeout)
+  }
+
+  def searchMappingRemote[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  (input: T1,
+   url: String,
+   firstLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
+   mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+  (implicit fmt: OFormat[T1])
+  : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+    def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
+    val searchResult: Future[Seq[SearchResult[I1, T1]]] =
+      CommonSearcher.searchRemote[I1, T1](input, url, firstLevelTimeout)
+    doMap(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
   val processors: Int = Runtime.getRuntime.availableProcessors()

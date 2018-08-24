@@ -21,7 +21,7 @@ object MappingSearcher extends MagicSettings {
   private def callSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (searchResult: Seq[SearchResult[I1, T1]],
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
-   secondLevelTimeout: FiniteDuration = ONE_DAY,
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
    promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]]): Unit = {
 
     val mappingClass: Combine[I1, I2, T1, T2] = mapperClass(searchResult)
@@ -45,7 +45,7 @@ object MappingSearcher extends MagicSettings {
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
-   secondLevelTimeout: FiniteDuration = ONE_DAY): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     val searchResult: Future[Seq[SearchResult[I1, T1]]] =
       CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]] = Promise[Seq[MappedResults[I1, I2, T1, T2]]]
@@ -64,7 +64,7 @@ object MappingSearcher extends MagicSettings {
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-   secondLevelTimeout: FiniteDuration = ONE_DAY)
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
 

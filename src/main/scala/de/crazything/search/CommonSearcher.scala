@@ -1,9 +1,15 @@
 package de.crazything.search
 
-import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
+import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult, SearchResultCollection}
+import de.crazything.search.ext.MappingSearcher.DEFAULT_TIMEOUT
+import de.crazything.search.utils.FutureUtil
+import de.crazything.service.RestClient
 import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc}
+import play.api.libs.json.{Format, OFormat}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success}
 
 object CommonSearcher extends MagicSettings{
 
@@ -40,6 +46,22 @@ object CommonSearcher extends MagicSettings{
                                         searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher)
                                        (implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = Future {
     search(input, factory, queryCriteria, maxHits, searcherOption)
+  }
+
+  def searchRemote[I, T <: PkDataSet[I]](input: T,
+                                         url: String,
+                                         timeout: FiniteDuration = DEFAULT_TIMEOUT)
+                                        (implicit fmt: OFormat[T],
+                                         rmt: OFormat[SearchResultCollection[I, T]],
+                                         ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {
+    val promise = Promise[Seq[SearchResult[I, T]]]()
+    val postFuture: Future[SearchResultCollection[I, T]] = RestClient.post[T, SearchResultCollection[I, T]](url, input)
+    val timingOutFuture = FutureUtil.futureWithTimeout(postFuture, timeout)
+    timingOutFuture.onComplete {
+      case Success(r: SearchResultCollection[I, T]) => promise.success(r.entries)
+      case Failure(t) => promise.failure(t)
+    }
+    promise.future
   }
 
 }

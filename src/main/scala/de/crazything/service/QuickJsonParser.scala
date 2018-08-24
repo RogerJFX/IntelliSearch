@@ -1,6 +1,6 @@
 package de.crazything.service
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 
 trait QuickJsonParser {
 

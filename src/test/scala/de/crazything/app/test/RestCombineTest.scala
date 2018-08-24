@@ -134,4 +134,21 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
       })
   }
 
+  "SimpleRemoteSearch" should "work anyway" in {
+    val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
+    CommonSearcher.searchRemote[Int, SkilledPerson](searchedSkilledPerson, urlFromUri("findSkilledPerson")).map(result => {
+      assert(result.length == 1)
+    })
+  }
+
+  it should "timeout" in {
+    val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
+    recoverToSucceededIf[TimeoutException](
+      CommonSearcher.searchRemote[Int, SkilledPerson](searchedSkilledPerson, urlFromUri("findSkilledPerson"), 2.millis).map(result => {
+        assert(result.length == 1)
+      })
+    )
+
+  }
+
 }

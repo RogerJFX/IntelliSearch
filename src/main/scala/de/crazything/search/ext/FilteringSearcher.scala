@@ -57,7 +57,7 @@ object FilteringSearcher extends MagicSettings {
   private def callSecondLevel[I1, T1 <: PkDataSet[I1]]
   (searchResult: Seq[SearchResult[I1, T1]],
    filterClass: (Seq[SearchResult[I1, T1]]) => Filter[I1, T1],
-   filterTimeout: FiniteDuration = ONE_DAY,
+   filterTimeout: FiniteDuration = DEFAULT_TIMEOUT,
    promise: Promise[Seq[SearchResult[I1, T1]]]): Unit = {
 
     val filteringClass: Filter[I1, T1] = filterClass(searchResult)
@@ -84,7 +84,7 @@ object FilteringSearcher extends MagicSettings {
                                                        queryCriteria: Option[QueryCriteria] = None,
                                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                                        getFilterClass: (Seq[SearchResult[I, T]]) => Filter[I, T],
-                                                       filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
+                                                       filterTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
@@ -101,7 +101,7 @@ object FilteringSearcher extends MagicSettings {
                                              queryCriteria: Option[QueryCriteria] = None,
                                              maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                              filterFn: (SearchResult[I, T]) => Boolean,
-                                             secondLevelTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
+                                             secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsync(res, filterFn)
 
     doSearchAsyncAsync(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, secondLevelTimeout)
@@ -114,7 +114,7 @@ object FilteringSearcher extends MagicSettings {
                                                    queryCriteria: Option[QueryCriteria] = None,
                                                    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
                                                    filterFn: (SearchResult[I, T]) => Future[Boolean],
-                                                   filterTimeout: FiniteDuration = ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
+                                                   filterTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
     def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
 
     doSearchAsyncAsync(input, factory, searcherOption, queryCriteria, maxHits, getFilterClass, filterTimeout)

@@ -74,6 +74,15 @@ object NettyRunner extends QuickJsonParser{
         })
       }
     }
+    case POST(p"/findSkilledPerson") => Action {
+      request => {
+        val person: SkilledPerson = jsonString2T[SkilledPerson](request.body.asJson.get.toString())
+        val searchResult: Seq[SearchResult[Int, SkilledPerson]] =
+          CommonSearcher.search(input = person, factory = SkilledPersonFactory, searcherOption = DirectoryContainer.pickSearcher("skilledIndex"))
+        val strSearchResult: String = t2JsonString[SearchResultCollection[Int, SkilledPerson]](SearchResultCollection(searchResult))
+        Results.Created(strSearchResult).as("application/json")
+      }
+    }
     case _ => Action {
       Results.NotFound
     }

@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import com.typesafe.config.{Config, ConfigFactory}
-import play.api.libs.json.OFormat
+import play.api.libs.json.{Format, OFormat}
 import play.api.libs.ws.ahc.{AhcWSClientConfig, AhcWSClientConfigFactory, StandaloneAhcWSClient}
 import play.api.libs.ws.{BodyWritable, InMemoryBody, StandaloneWSClient}
 

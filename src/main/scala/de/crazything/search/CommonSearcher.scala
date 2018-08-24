@@ -1,7 +1,7 @@
 package de.crazything.search
 
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult, SearchResultCollection}
-import de.crazything.search.ext.MappingSearcher.DEFAULT_TIMEOUT
+import de.crazything.search.ext.MappingSearcher.MAGIC_DEFAULT_TIMEOUT
 import de.crazything.search.utils.FutureUtil
 import de.crazything.service.RestClient
 import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc}
@@ -50,7 +50,7 @@ object CommonSearcher extends MagicSettings{
 
   def searchRemote[I, T <: PkDataSet[I]](input: T,
                                          url: String,
-                                         timeout: FiniteDuration = DEFAULT_TIMEOUT)
+                                         timeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT)
                                         (implicit fmt: OFormat[T],
                                          rmt: OFormat[SearchResultCollection[I, T]],
                                          ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {

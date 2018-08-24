@@ -23,12 +23,12 @@ object MappingSearcher extends MagicSettings {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private def processSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
-  (searchResult: Seq[SearchResult[I1, T1]],
+  (primaryResult: Seq[SearchResult[I1, T1]],
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT,
    promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]]): Unit = {
 
-    val mappingClass: Combine[I1, I2, T1, T2] = mapperClass(searchResult)
+    val mappingClass: Combine[I1, I2, T1, T2] = mapperClass(primaryResult)
     val finalResultFuture = FutureUtil.futureWithTimeout(mappingClass.createFuture(), secondLevelTimeout)
 
     finalResultFuture.onComplete {
@@ -43,11 +43,11 @@ object MappingSearcher extends MagicSettings {
   }
 
   private def processFirstLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
-  (primaryResult: Future[Seq[SearchResult[I1, T1]]],
+  (primaryResultFuture: Future[Seq[SearchResult[I1, T1]]],
    mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     val promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]] = Promise[Seq[MappedResults[I1, I2, T1, T2]]]
-    primaryResult.onComplete {
+    primaryResultFuture.onComplete {
       case Success(res) =>
         processSecondLevel(res, mapperClass, secondLevelTimeout, promise)
       case Failure(t) => promise.failure(t)
@@ -62,7 +62,7 @@ object MappingSearcher extends MagicSettings {
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
 
@@ -74,7 +74,7 @@ object MappingSearcher extends MagicSettings {
   def searchFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (initialFuture: Future[Seq[SearchResult[I1, T1]]],
    mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
 
@@ -84,9 +84,9 @@ object MappingSearcher extends MagicSettings {
   def searchRemote[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (input: T1,
    url: String,
-   firstLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
+   firstLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT,
    mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT)
   (implicit fmt: OFormat[T1])
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)

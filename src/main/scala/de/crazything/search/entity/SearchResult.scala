@@ -4,6 +4,9 @@ import play.api.libs.json._
 
 case class SearchResult[I, +T <: PkDataSet[I]](obj: T, score: Float)
 
+/**
+  * JSON formatting hints.
+  */
 object SearchResult {
 
   implicit def format[I, T <: PkDataSet[I]](implicit fmt: Format[T]): OFormat[SearchResult[I, T]] =

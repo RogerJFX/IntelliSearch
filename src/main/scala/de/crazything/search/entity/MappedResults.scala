@@ -2,9 +2,23 @@ package de.crazything.search.entity
 
 import play.api.libs.json._
 
+/**
+  * So we have search results of a primary search procedure. We might want to associate results from other services
+  * to each of those primary results. This is what this class is about.
+  *
+  * @param target Primary search result
+  * @param results Results typically from a remote index matching target.
+  * @tparam I1 Type of primary key of T1
+  * @tparam I2 Type of primary key of T2
+  * @tparam T1 Type of primary search result.
+  * @tparam T2 Type of second, normally remote result.
+  */
 case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](target: SearchResult[I1, T1], results: Seq[SearchResult[I2, T2]])
   extends PkDataSet[I1](target.obj.getId) // Just a placeholder. Target must not be null and will never. results may be empty.
 
+/**
+  * JSON formatting hints.
+  */
 object MappedResults {
   implicit def format[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (implicit fmt1: Format[T1], fmt2: Format[T2]): OFormat[MappedResults[I1, I2, T1, T2]] =

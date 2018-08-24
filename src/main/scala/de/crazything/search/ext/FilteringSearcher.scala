@@ -25,12 +25,12 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private def processSecondLevel[I1, T1 <: PkDataSet[I1]]
-  (searchResult: Seq[SearchResult[I1, T1]],
+  (primaryResult: Seq[SearchResult[I1, T1]],
    filterClass: (Seq[SearchResult[I1, T1]]) => Filter[I1, T1],
-   filterTimeout: FiniteDuration = DEFAULT_TIMEOUT,
+   filterTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT,
    promise: Promise[Seq[SearchResult[I1, T1]]]): Unit = {
 
-    val filteringClass: Filter[I1, T1] = filterClass(searchResult)
+    val filteringClass: Filter[I1, T1] = filterClass(primaryResult)
     val finalResultFuture = FutureUtil.futureWithTimeout(filteringClass.createFuture(), filterTimeout)
 
     finalResultFuture.onComplete {
@@ -49,11 +49,11 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
   }
 
   private def processFirstLevel[I, T <: PkDataSet[I]]
-  (primaryResult: Future[Seq[SearchResult[I, T]]],
+  (primaryResultFuture: Future[Seq[SearchResult[I, T]]],
    getFilterClass: (Seq[SearchResult[I, T]]) => Filter[I, T],
-   filterTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
+   filterTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
-    primaryResult.onComplete {
+    primaryResultFuture.onComplete {
       case Success(res) =>
         processSecondLevel(res, getFilterClass, filterTimeout, promise)
       case Failure(t) => promise.failure(t)
@@ -68,7 +68,7 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    filterFn: (SearchResult[I, T]) => Future[Boolean],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
@@ -77,7 +77,7 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
   def searchFuture[I, T <: PkDataSet[I]]
   (initialFuture: Future[Seq[SearchResult[I, T]]],
    filterFn: (SearchResult[I, T]) => Future[Boolean],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT)
   (implicit fmt: OFormat[T]): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
     processFirstLevel(initialFuture, secondLevelClass, secondLevelTimeout)
@@ -86,9 +86,9 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
   def searchRemote[I, T <: PkDataSet[I]]
   (input: T,
    url: String,
-   firstLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
+   firstLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT,
    filterFn: (SearchResult[I, T]) => Future[Boolean],
-   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+   secondLevelTimeout: FiniteDuration = MAGIC_DEFAULT_TIMEOUT)
   (implicit fmt: OFormat[T]): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchRemote[I, T](input, url, firstLevelTimeout)

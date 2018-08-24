@@ -17,13 +17,13 @@ class FilterTest extends FlatSpec with QueryConfig with GermanLanguage {
 
   "Filter" should "exclude Mayer living not in Frankfurt" in {
     val searchResult =
-      FilteringSearcher.search(standardPerson.copy(lastName = "Mayer"), PersonFactoryDE, filterFn = filterFrankfurt)
+      FilteringSearcher.simpleSearch(standardPerson.copy(lastName = "Mayer"), PersonFactoryDE, filterFn = filterFrankfurt)
     assert(searchResult.isEmpty)
   }
 
   it should "pass Hösl living in Frankfurt" in {
     val searchResult =
-      FilteringSearcher.search(standardPerson.copy(lastName = "Hösl"), PersonFactoryDE, filterFn = filterFrankfurt)
+      FilteringSearcher.simpleSearch(standardPerson.copy(lastName = "Hösl"), PersonFactoryDE, filterFn = filterFrankfurt)
     assert(searchResult.length == 1)
   }
 

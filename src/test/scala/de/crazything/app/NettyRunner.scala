@@ -67,7 +67,7 @@ object NettyRunner extends QuickJsonParser{
     case POST(p"/mapSocial2Base") => Action.async {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        MappingSearcher.searchMapping(input = person, factory = PersonFactoryDE,
+        MappingSearcher.search(input = person, factory = PersonFactoryDE,
           mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
           val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))
           Results.Created(strSearchResult).as("application/json")

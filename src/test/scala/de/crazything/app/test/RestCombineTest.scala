@@ -49,7 +49,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+    MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       mapperFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       println(result)
       assert(result.length == 1)
@@ -58,7 +58,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   it should "get a non mixed score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
-    MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+    MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       mapperFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       println(result)
       assert(result.length == 2)
@@ -71,7 +71,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   "Combined exc" should "throw an exception if filter does." in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
     recoverToSucceededIf[NumberFormatException](
-      MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+      MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
         mapperFn = combineFacebookScoredExc).map(result => {
         assert(result.length == 1)
       })
@@ -83,7 +83,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
     val searchedPerson = Person(-1, "Herr", "foobar", "foobar", "street", "city")
     CustomMocks.mockObjectFieldAsync("de.crazything.search.ext.MappingSearcher", "processors", filterAvailProcessors(4), {
-      MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryAll,
+      MappingSearcher.search(input = searchedPerson, factory = PersonFactoryAll,
         mapperFn = combineFacebookScored).map(result => {
         assert(result.length == 6)
       })
@@ -99,7 +99,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     recoverToSucceededIf[TimeoutException](
-      MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+      MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
         mapperFn = combineFacebookScored, secondLevelTimeout = 10.millis).map(result => {
         assert(result.length == 1)
       })
@@ -124,7 +124,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     }
 
 
-    MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
+    MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
@@ -136,7 +136,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   it should "throw first level exception" in {
     recoverToSucceededIf[Exception](
-      MappingSearcher.searchMapping(input = null, factory = SkilledPersonFactory,
+      MappingSearcher.search(input = null, factory = SkilledPersonFactory,
         searcherOption = "badIndex",
         mapperFn = null, secondLevelTimeout = 15.seconds)
         .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {

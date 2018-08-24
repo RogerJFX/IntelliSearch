@@ -4,10 +4,12 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Future => _, TimeoutException => _, _}
 
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
+import de.crazything.search.ext.MappingSearcher.DEFAULT_TIMEOUT
 import de.crazything.search.ext.RunnableHandlers.FilterFutureHandler
 import de.crazything.search.utils.FutureUtil
 import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
 import org.apache.lucene.search.IndexSearcher
+import play.api.libs.json.OFormat
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent._
@@ -60,7 +62,7 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
     promise.future
   }
 
-  def searchAsyncAsyncFuture[I, T <: PkDataSet[I]]
+  def search[I, T <: PkDataSet[I]]
   (input: T,
    factory: AbstractTypeFactory[I, T],
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
@@ -68,9 +70,30 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
    filterFn: (SearchResult[I, T]) => Future[Boolean],
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT): Future[Seq[SearchResult[I, T]]] = {
-    def getFilterClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
+    def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
-    processFirstLevel(searchResult, getFilterClass, secondLevelTimeout)
+    processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
+  }
+
+  def searchFuture[I, T <: PkDataSet[I]]
+  (initialFuture: Future[Seq[SearchResult[I, T]]],
+   filterFn: (SearchResult[I, T]) => Future[Boolean],
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+  (implicit fmt: OFormat[T]): Future[Seq[SearchResult[I, T]]] = {
+    def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
+    processFirstLevel(initialFuture, secondLevelClass, secondLevelTimeout)
+  }
+
+  def searchRemote[I, T <: PkDataSet[I]]
+  (input: T,
+   url: String,
+   firstLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,
+   filterFn: (SearchResult[I, T]) => Future[Boolean],
+   secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
+  (implicit fmt: OFormat[T]): Future[Seq[SearchResult[I, T]]] = {
+    def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchRemote[I, T](input, url, firstLevelTimeout)
+    processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
   // Do not make this private. We have to mock it in some tests.

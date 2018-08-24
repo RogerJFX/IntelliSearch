@@ -3,7 +3,7 @@ package de.crazything.app.test
 import de.crazything.app._
 import de.crazything.app.test.helpers.DataProvider
 import de.crazything.search.entity.{SearchResult, SearchResultCollection}
-import de.crazything.search.ext.MappingSearcher
+import de.crazything.search.ext.{FilteringSearcher, MappingSearcher}
 import de.crazything.search.{CommonIndexer, DirectoryContainer}
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
@@ -12,7 +12,7 @@ import play.core.server.NettyServer
 
 import scala.concurrent.Future
 
-class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer with FilterAsync{
+class RemoteFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer with FilterAsync{
 
   //private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RemoteMapperTest")
 
@@ -29,13 +29,13 @@ class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
-  def combineFacebookScored(skilledPerson: SearchResult[Int, SkilledPerson]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
+  def combineFacebookScored(skilledPerson: SearchResult[Int, SkilledPerson]): Future[Boolean] = {
     val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
       skilledPerson.obj.lastName.getOrElse("-"), "", "")
     val restResponse =
       RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"),
         searchedBasePerson)
-    restResponse.map(res => res.entries)
+    restResponse.map(res => res.entries.nonEmpty)
   }
 
   "Mapping" should "work completely remote" in {
@@ -43,8 +43,8 @@ class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
 
 
 
-    MappingSearcher.searchRemote(input = searchedSkilledPerson, url = urlFromUri("findSkilledPerson"),
-      mapperFn = combineFacebookScored).map(result => {
+    FilteringSearcher.searchRemote(input = searchedSkilledPerson, url = urlFromUri("findSkilledPerson"),
+      filterFn = combineFacebookScored).map(result => {
       println(result)
       assert(result.length == 1)
     })
@@ -60,7 +60,7 @@ class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
       restResponse.map(res => res.entries)
     }
 
-    MappingSearcher.searchFuture(initialFuture = getInitialData, mapperFn = combineFacebookScored).map(result => {
+    FilteringSearcher.searchFuture(initialFuture = getInitialData, filterFn = combineFacebookScored).map(result => {
       println(result)
       assert(result.length == 1)
     })

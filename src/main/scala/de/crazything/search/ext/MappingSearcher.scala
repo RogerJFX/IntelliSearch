@@ -55,7 +55,7 @@ object MappingSearcher extends MagicSettings {
     promise.future
   }
 
-  def searchMapping[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  def search[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (input: T1,
    factory: AbstractTypeFactory[I1, T1],
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
@@ -71,7 +71,7 @@ object MappingSearcher extends MagicSettings {
     processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
-  def searchMappingFromFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  def searchFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (initialFuture: Future[Seq[SearchResult[I1, T1]]],
    mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
    secondLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT)
@@ -81,7 +81,7 @@ object MappingSearcher extends MagicSettings {
     processFirstLevel(initialFuture, secondLevelClass, secondLevelTimeout)
   }
 
-  def searchMappingRemote[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  def searchRemote[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (input: T1,
    url: String,
    firstLevelTimeout: FiniteDuration = DEFAULT_TIMEOUT,

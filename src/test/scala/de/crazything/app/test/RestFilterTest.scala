@@ -57,7 +57,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   "Rest filter" should "get an empty result for missing facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Mayer", "street", "city")
-    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.isEmpty)
     })
@@ -65,7 +65,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   it should "get a non empty result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
@@ -73,7 +73,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   it should "get a non empty result - or write it like this (demo)." in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = (result: SearchResult[Int, Person]) => {
         RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
           .map(res => res.entries.exists(entry => entry.obj.facebookId.isDefined))
@@ -84,7 +84,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    FilteringSearcher.searchAsyncAsyncFuture(input = searchedPerson, factory = PersonFactoryDE,
+    FilteringSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })

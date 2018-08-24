@@ -57,7 +57,7 @@ object Main extends App with GermanLanguage with Network{
     case POST(p"/findBaseDataForWithSocial") => Action.async {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        MappingSearcher.searchMapping(input = person, factory = PersonFactoryDE,
+        MappingSearcher.search(input = person, factory = PersonFactoryDE,
           mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
           val sequence: Seq[PersonWithSocialResults] = searchResult.map(sr => PersonWithSocialResults(sr.target, sr.results))
           val strSearchResult: String = t2JsonString[PersonWithSocialPersonsCollection](PersonWithSocialPersonsCollection(sequence))
@@ -68,7 +68,7 @@ object Main extends App with GermanLanguage with Network{
     case POST(p"/mapSocial2Base") => Action.async {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
-        MappingSearcher.searchMapping(input = person, factory = PersonFactoryDE,
+        MappingSearcher.search(input = person, factory = PersonFactoryDE,
           mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map(searchResult => {
 
           val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))

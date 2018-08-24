@@ -9,22 +9,22 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 trait SimpleFiltering {
-  def search[I, T <: PkDataSet[I]](input: T,
-                                   factory: AbstractTypeFactory[I, T],
-                                   searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
-                                   queryCriteria: Option[QueryCriteria] = None,
-                                   maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-                                   filterFn: (SearchResult[I, T]) => Boolean): Seq[SearchResult[I, T]] = {
+  def simpleSearch[I, T <: PkDataSet[I]](input: T,
+                                         factory: AbstractTypeFactory[I, T],
+                                         searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
+                                         queryCriteria: Option[QueryCriteria] = None,
+                                         maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
+                                         filterFn: (SearchResult[I, T]) => Boolean): Seq[SearchResult[I, T]] = {
     val searchResult: Seq[SearchResult[I, T]] = CommonSearcher.search(input, factory, queryCriteria, maxHits, searcherOption)
     searchResult.filter((sr: SearchResult[I, T]) => filterFn(sr))
   }
 
-  def searchAsync[I, T <: PkDataSet[I]](input: T,
-                                        factory: AbstractTypeFactory[I, T],
-                                        searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
-                                        queryCriteria: Option[QueryCriteria] = None,
-                                        maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-                                        filterFn: (SearchResult[I, T]) => Boolean)(implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {
+  def simpleSearchAsync[I, T <: PkDataSet[I]](input: T,
+                                              factory: AbstractTypeFactory[I, T],
+                                              searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
+                                              queryCriteria: Option[QueryCriteria] = None,
+                                              maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
+                                              filterFn: (SearchResult[I, T]) => Boolean)(implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {
     val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {

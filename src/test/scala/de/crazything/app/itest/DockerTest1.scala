@@ -33,7 +33,7 @@ class DockerTest1 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
 
   "Scored remote docker" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    MappingSearcher.searchMapping(input = searchedPerson, factory = PersonFactoryDE,
+    MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((result: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
       println(result)
       assert(result.length == 1)

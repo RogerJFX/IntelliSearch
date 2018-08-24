@@ -43,7 +43,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
       })
     }
 
-    MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
+    MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, PersonWithSocialResults]]) => {
@@ -72,7 +72,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
     }
 
 
-    MappingSearcher.searchMapping(input = searchedSkilledPerson, factory = SkilledPersonFactory,
+    MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {

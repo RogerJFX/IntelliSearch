@@ -1,10 +1,9 @@
 package de.crazything.search.ext
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Future => _, TimeoutException => _, _}
+import java.util.concurrent.{ExecutorService, Executors}
 
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
-import de.crazything.search.ext.MappingSearcher.DEFAULT_TIMEOUT
 import de.crazything.search.ext.RunnableHandlers.FilterFutureHandler
 import de.crazything.search.utils.FutureUtil
 import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
@@ -12,8 +11,8 @@ import org.apache.lucene.search.IndexSearcher
 import play.api.libs.json.OFormat
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent._
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.util.{Failure, Success}
 
 /**

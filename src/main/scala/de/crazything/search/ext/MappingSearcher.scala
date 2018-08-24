@@ -98,7 +98,7 @@ object MappingSearcher extends MagicSettings {
 
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
-  trait Combine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
+  private trait Combine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
     // Yes, we can do this here. We take care of the pool in our createFuture methods.
     //val processors: Int
     val pool: ExecutorService = Executors.newFixedThreadPool(processors)

@@ -88,6 +88,17 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
     processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
+  /**
+    * Used for remote searches. Pass some initial future, and we will mal it done here.
+    *
+    * @param initialFuture So you give me some future search result and i am doing the rest for you, dude.
+    * @param filterFn The filtering function to pass.
+    * @param secondLevelTimeout Timeout for the probable remote request.
+    * @param fmt Should not bother you. It's implicit.
+    * @tparam I Type of primary key of type T
+    * @tparam T Type to search for
+    * @return Just the filtered sequence of results.
+    */
   def searchFuture[I, T <: PkDataSet[I]]
   (initialFuture: Future[Seq[SearchResult[I, T]]],
    filterFn: (SearchResult[I, T]) => Future[Boolean],
@@ -97,6 +108,20 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
     processFirstLevel(initialFuture, secondLevelClass, secondLevelTimeout)
   }
 
+  /**
+    * Used for remote searches. Pass some URL as String and an input case class inheriting PkDataSet and we should
+    * be fine.
+    *
+    * @param input not sufficient input to search similarities for.
+    * @param url URL to send the initial request to.
+    * @param firstLevelTimeout Time to wait for the first level response.
+    * @param filterFn The filtering function to pass.
+    * @param secondLevelTimeout Timeout for the probable remote request.
+    * @param fmt Should not bother you. It's implicit.
+    * @tparam I Type of primary key of type T
+    * @tparam T Type to search for
+    * @return Just the filtered sequence of results.
+    */
   def searchRemote[I, T <: PkDataSet[I]]
   (input: T,
    url: String,
@@ -112,7 +137,7 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
   // Do not make this private. We have to mock it in some tests.
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
-  trait Filter[I, T <: PkDataSet[I]] {
+  private trait Filter[I, T <: PkDataSet[I]] {
     // Yes, we can do this here. We take care of the pool in our createFuture methods.
     val pool: ExecutorService = Executors.newFixedThreadPool(processors)
     val ec: ExecutionContext = ExecutionContext.fromExecutorService(pool)

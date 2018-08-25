@@ -15,9 +15,15 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.util.{Failure, Success}
 
-/*
-  TODO: it cannot remain in this state.
- */
+/**
+  * What MappingSearcher does:
+  * 1. We have a initial search result.
+  * 2. Now we want to ask another searcher to associate his results to our initial result.
+  * 3. So we have a tree of results, all scored by Lucene.
+  * 3. We than may iterate over the those results to decide lately what to do with them.
+  *
+  * A MappedResult consists of one primary search result and a sequence of other results associated to the primary result.
+  */
 object MappingSearcher extends MagicSettings {
 
   import scala.concurrent.ExecutionContext.Implicits.global

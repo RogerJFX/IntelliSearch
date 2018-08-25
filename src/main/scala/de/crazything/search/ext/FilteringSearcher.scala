@@ -17,6 +17,7 @@ import scala.util.{Failure, Success}
 
 /**
   * Combine searches with other filters, maybe other searches.
+  * So the search results maybe even filtered by remote search results.
   */
 object FilteringSearcher extends SimpleFiltering with MagicSettings {
 
@@ -63,6 +64,7 @@ object FilteringSearcher extends SimpleFiltering with MagicSettings {
 
   /**
     * Common filtered search. First we search an input right here, so locally (we should have an index of our own then).
+    * Both, searching and filtering are async.
     *
     * @param input not sufficient input to search similarities for.
     * @param factory The factory

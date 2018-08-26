@@ -5,3 +5,5 @@
 /modules/**/target
 **/*/test/suites
 /nohup.out
+/src/test/scala/de/crazything/data
+/src/test/resources/ignored

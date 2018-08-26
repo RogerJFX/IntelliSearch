@@ -30,6 +30,7 @@ object CustomTasks extends AssemblyKeys {
     assemblyMergeStrategy in assembly := {
       //case PathList("META-INF/services/org.apache.lucene.codecs.Codec") => MergeStrategy.first
       case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+      case PathList("ignored", xs@_*) => MergeStrategy.discard
       //case PathList("META-INF", xs@_*) => MergeStrategy.discard
       case PathList("application.conf") => MergeStrategy.concat
       case PathList("reference.conf") => MergeStrategy.concat

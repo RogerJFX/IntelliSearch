@@ -52,7 +52,7 @@ object DataProvider {
 
   def readSocialPersons(): Seq[SocialPerson] = {
     import scala.collection.JavaConverters._
-    val url: URL = DataProvider.getClass.getResource("/personsSocial.txt")
+    val url: URL = DataProvider.getClass.getResource("/personsSocialVerySimple.txt")
     val path: Path = Paths.get(url.toURI)
     val lines: Seq[String] = Files.readAllLines(path).asScala
     val buffer: ListBuffer[SocialPerson] = new ListBuffer
@@ -66,7 +66,7 @@ object DataProvider {
   }
 
   def readSocialPersonsResource(): Seq[SocialPerson] = {
-    val input: InputStream = DataProvider.getClass.getResourceAsStream("/personsSocial.txt")
+    val input: InputStream = DataProvider.getClass.getResourceAsStream("/personsSocialVerySimple.txt")
     //val path: Path = Paths.get(url.toURI)
     val bin = new BufferedReader(new InputStreamReader(input))
     val lines: ListBuffer[String] = ListBuffer()
@@ -89,7 +89,7 @@ object DataProvider {
 
   def readSkilledPersons(): Seq[SkilledPerson] = {
     import scala.collection.JavaConverters._
-    val url: URL = DataProvider.getClass.getResource("/personsSkills.txt")
+    val url: URL = DataProvider.getClass.getResource("/personsSkillsVerySimple.txt")
     val path: Path = Paths.get(url.toURI)
     val lines: Seq[String] = Files.readAllLines(path).asScala
     val buffer: ListBuffer[SkilledPerson] = new ListBuffer
@@ -108,7 +108,7 @@ object DataProvider {
   }
 
   def readSkilledPersonsResource(): Seq[SkilledPerson] = {
-    val input: InputStream = DataProvider.getClass.getResourceAsStream("/personsSkills.txt")
+    val input: InputStream = DataProvider.getClass.getResourceAsStream("/personsSkillsVerySimple.txt")
     val bin = new BufferedReader(new InputStreamReader(input))
     val lines: ListBuffer[String] = ListBuffer()
     var line: String = null

@@ -59,7 +59,7 @@ object CustomTasks extends AssemblyKeys {
       new Dockerfile {
         from("openjdk:8-jre")
         add(artifact, artifactTargetPath)
-        copy(new File("src/test/resources/personsSocial.txt"), "/app1/data.txt", "daemon:daemon")
+        //copy(new File("src/test/resources/personsSocial.txt"), "/app1/data.txt", "daemon:daemon")
         expose(9001)
         cmd("java", "-jar", artifactTargetPath, intern1Port)
       }
@@ -74,7 +74,7 @@ object CustomTasks extends AssemblyKeys {
       new Dockerfile {
         from("openjdk:8-jre")
         add(artifact, artifactTargetPath)
-        copy(new File("src/test/resources/personsSocial.txt"), "/app2/data.txt", "daemon:daemon")
+        //copy(new File("src/test/resources/personsSocial.txt"), "/app2/data.txt", "daemon:daemon")
         expose(9002)
         cmd("java", "-jar", artifactTargetPath, intern2Port)
       }
@@ -88,7 +88,7 @@ object CustomTasks extends AssemblyKeys {
     new Dockerfile {
       from("openjdk:8-jre")
       add(artifact, artifactTargetPath)
-      copy(new File("src/test/resources/personsSocial.txt"), "/app/data.txt", "daemon:daemon")
+      //copy(new File("src/test/resources/personsSocial.txt"), "/app/data.txt", "daemon:daemon")
       entryPoint("java", "-jar", artifactTargetPath)
     }
   }

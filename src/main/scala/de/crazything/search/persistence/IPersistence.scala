@@ -13,8 +13,6 @@ trait IPersistence[P, T <: PkDataSet[P]]  {
   /**
     * Select * from Seq where id = ´id´ .
     *
-    * Note: this method should become slow when data becomes bigger. Read the comment above.
-    *
     * @param id Id of data set.
     * @return Found data set.
     */

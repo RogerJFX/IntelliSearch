@@ -1,15 +1,37 @@
 package de.crazything.app
 
-import java.util.concurrent.atomic.AtomicReference
-
+import de.crazything.search.CustomQuery.{data2Query, seq2Query}
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.persistence.InMemoryData
 import org.apache.lucene.document._
 import org.apache.lucene.search._
-import org.slf4j.LoggerFactory
-import de.crazything.search.CustomQuery.{data2Query, seq2Query}
 
-object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig with GermanLanguage with GermanRegexReplace{
+class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
+  with GermanLanguage with GermanRegexReplace with InMemoryData [Int, SocialPerson] {
+
+  import SocialPersonFactory.{populateDocument => populateDocumentS,
+    createQuery => createQueryS,
+    selectQueryCreator => selectQueryCreatorS}
+
+  override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
+    DataContainer.findById(doc.get(PersonFactoryDE.PK).toInt)
+  }
+
+  override def setDataPool(data: Seq[SocialPerson]): Unit = {
+    DataContainer.setData(data)
+  }
+
+  override def populateDocument(document: Document, dataSet: SocialPerson): Unit = populateDocumentS(document, dataSet)
+
+  override def createQuery(t: SocialPerson): Query = createQueryS(t)
+
+  override def selectQueryCreator: (QueryCriteria, SocialPerson) => Query = selectQueryCreatorS
+}
+
+
+object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
+  with GermanLanguage with GermanRegexReplace with InMemoryData [Int, SocialPerson] {
 
   // private val logger = LoggerFactory.getLogger(SocialPersonFactory.getClass)
 
@@ -50,34 +72,5 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
   )
 
   override val selectQueryCreator:(QueryCriteria, SocialPerson) => Query = (criteria, person) => createQuery(person)
-
-//  {
-//    criteria.queryName match {
-//      case `customEnabledQuery_Name` => createSuperCustomQuery(person, criteria.queryEnableOpt)
-//      case `customQuery_FirstAndLastName` => createFirstAndLastNameQuery(person)
-//      case _ =>
-//        logger.warn("No matching query name found. Falling back to standard `createQuery`")
-//        createQuery(person)
-//    }
-//
-//  }
-
-  object DataContainer {
-
-    case class Data(data: Seq[SocialPerson]) {
-      def findById(id: Int): Option[SocialPerson] = data.find(d => d.id == id)
-    }
-
-    private val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
-
-    def setData(data: Seq[SocialPerson]): Unit = {
-      dataRef.set(Data(data))
-    }
-
-    def findById(id: Int): SocialPerson = {
-      dataRef.get().findById(id).get
-    }
-
-  }
 
 }

@@ -1,14 +1,34 @@
 package de.crazything.app
 
-import java.util.concurrent.atomic.AtomicReference
-
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.persistence.InMemoryData
 import org.apache.lucene.document._
 import org.apache.lucene.search._
 import org.slf4j.LoggerFactory
 
-object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries {
+class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryData[Int, Person]{
+
+  import PersonFactoryDE.{populateDocument => populateDocumentS,
+    createQuery => createQueryS,
+    selectQueryCreator => selectQueryCreatorS}
+
+  override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
+    DataContainer.findById(doc.get(PersonFactoryDE.PK).toInt)
+  }
+
+  override def setDataPool(data: Seq[Person]): Unit = {
+    DataContainer.setData(data)
+  }
+
+  override def populateDocument(document: Document, dataSet: Person): Unit = populateDocumentS(document, dataSet)
+
+  override def createQuery(t: Person): Query = createQueryS(t)
+
+  override def selectQueryCreator: (QueryCriteria, Person) => Query = selectQueryCreatorS
+}
+
+object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryData[Int, Person]{
 
   private val logger = LoggerFactory.getLogger(PersonFactoryDE.getClass)
 
@@ -52,24 +72,6 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
       case _ =>
         logger.warn("No matching query name found. Falling back to standard `createQuery`")
         createQuery(person)
-    }
-
-  }
-
-  object DataContainer {
-
-    case class Data(data: Seq[Person]) {
-      def findById(id: Int): Option[Person] = data.find(d => d.id == id)
-    }
-
-    private val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
-
-    def setData(data: Seq[Person]): Unit = {
-      dataRef.set(Data(data))
-    }
-
-    def findById(id: Int): Person = {
-      dataRef.get().findById(id).get
     }
 
   }

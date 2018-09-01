@@ -76,4 +76,21 @@ object DataProvider {
   def readSkilledPersonsResource(): Seq[SkilledPerson] =
     doReadResource("/personsSkillsVerySimple.txt", wrapperFnSkilledPerson)
 
+
+  def readVerySimplePersonsBig(): Seq[Person] = doRead("/persons.txt", wrapperFnPerson)
+
+  def readVerySimplePersonsResourceBig(): Seq[Person] = doReadResource("/persons.txt", wrapperFnPerson)
+
+
+  def readSocialPersonsBig(): Seq[SocialPerson] = doRead("/personsSocials.txt", wrapperFnSocialPerson)
+
+  def readSocialPersonsResourceBig(): Seq[SocialPerson] =
+    doReadResource("/personsSocials.txt", wrapperFnSocialPerson)
+
+
+  def readSkilledPersonsBig(): Seq[SkilledPerson] = doRead("/personsSkills.txt", wrapperFnSkilledPerson)
+
+  def readSkilledPersonsResourceBig(): Seq[SkilledPerson] =
+    doReadResource("/personsSkills.txt", wrapperFnSkilledPerson)
+
 }

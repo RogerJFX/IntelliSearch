@@ -24,7 +24,7 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
 
     private case class Data(data: Seq[T]) {
       private[DataContainer] def findById(id: P): T = data.find(d => d.getId == id)
-        .getOrElse(throw new RuntimeException(s"Something completely impossible went wrong here. " +
+        .getOrElse(throw new RuntimeException(s"Something completely impossible happened here. " +
           s"Corrupted directory? Missing id was $id"))
     }
 

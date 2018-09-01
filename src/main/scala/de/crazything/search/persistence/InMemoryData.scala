@@ -20,7 +20,7 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
   /**
     * Just some namespace.
     */
-  object DataContainer {
+  object DataContainer extends IPersistence[P, T]{
 
     private case class Data(data: Seq[T]) {
       private[DataContainer] def findById(id: P): Option[T] = data.find(d => d.getId == id)
@@ -28,24 +28,11 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
 
     private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
 
-    /**
-      * Store the data that later is searched.
-      *
-      * @param data The data.
-      */
-    def setData(data: Seq[T]): Unit = {
+    override def setData(data: Seq[T]): Unit = {
       dataRef.set(Data(data))
     }
 
-    /**
-      * Select * from Seq where id = ´id´ .
-      *
-      * Note: this method should become slow when data becomes bigger. Read the comment above.
-      *
-      * @param id Id of data set.
-      * @return Found data set.
-      */
-    def findById(id: P): PkDataSet[P] = {
+    override def findById(id: P): PkDataSet[P] = {
       dataRef.get().findById(id).get
     }
 

@@ -23,7 +23,9 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
   object DataContainer extends IPersistence[P, T]{
 
     private case class Data(data: Seq[T]) {
-      private[DataContainer] def findById(id: P): Option[T] = data.find(d => d.getId == id)
+      private[DataContainer] def findById(id: P): T = data.find(d => d.getId == id)
+        .getOrElse(throw new RuntimeException(s"Something completely impossible went wrong here. " +
+          s"Corrupted directory? Missing id was $id"))
     }
 
     private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
@@ -33,7 +35,7 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
     }
 
     override def findById(id: P): PkDataSet[P] = {
-      dataRef.get().findById(id).get
+      dataRef.get().findById(id)
     }
 
   }

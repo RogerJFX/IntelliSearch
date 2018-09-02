@@ -29,6 +29,8 @@ object Main extends App {
     case POST(p"/findBaseDataFor") => LittleDataController.findBaseData
     case POST(p"/findBaseDataForWithSocial") => LittleDataController.findBaseDataForWithSocial
     case POST(p"/mapSocial2Base") => LittleDataController.mapSocial2Base
+    case POST(p"/findBaseDataForWithSocialBig") => MediumDataController.findBaseDataForWithSocial
+    case POST(p"/mapSocial2BaseBig") => MediumDataController.mapSocial2Base
     case _ => Action {
       Results.NotFound
     }

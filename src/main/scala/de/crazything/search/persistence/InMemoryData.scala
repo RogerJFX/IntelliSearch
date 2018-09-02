@@ -3,6 +3,7 @@ package de.crazything.search.persistence
 import java.util.concurrent.atomic.AtomicReference
 
 import de.crazything.search.entity.PkDataSet
+import org.slf4j.LoggerFactory
 
 /**
   * If we do not want to store data in lucene index, but only the id, we have to store data somewhere else.
@@ -20,7 +21,7 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
   /**
     * Just some namespace.
     */
-  object DataContainer extends IPersistence[P, T]{
+  class DataContainer extends IPersistence[P, T]{
 
     private case class Data(data: Seq[T]) {
       private[DataContainer] def findById(id: P): T = data.find(d => d.getId == id)
@@ -39,5 +40,7 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
     }
 
   }
+
+  lazy val dataContainer = new DataContainer
 
 }

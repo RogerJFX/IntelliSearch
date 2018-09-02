@@ -15,11 +15,11 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
     selectQueryCreator => selectQueryCreatorS}
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
-    DataContainer.findById(doc.get(PersonFactoryDE.PK).toInt)
+    dataContainer.findById(doc.get(SocialPersonFactory.PK).toInt)
   }
 
   override def setDataPool(data: Seq[SocialPerson]): Unit = {
-    DataContainer.setData(data)
+    dataContainer.setData(data)
   }
 
   override def populateDocument(document: Document, dataSet: SocialPerson): Unit = populateDocumentS(document, dataSet)
@@ -44,11 +44,11 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
   private[app] val TWITTER_ID = "twitterId"
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
-    DataContainer.findById(doc.get(PK).toInt)
+    dataContainer.findById(doc.get(PK).toInt)
   }
 
   override def setDataPool(data: Seq[SocialPerson]): Unit = {
-    DataContainer.setData(data)
+    dataContainer.setData(data)
   }
 
   override def populateDocument(document: Document, person: SocialPerson): Unit = {

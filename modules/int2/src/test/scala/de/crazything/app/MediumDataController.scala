@@ -7,6 +7,8 @@ object MediumDataController extends AbstractDataController with GermanLanguage {
 
   override protected def socialPersonFactory: AbstractTypeFactory[Int, SocialPerson] = new SocialPersonFactory()
 
-  CommonIndexer.index(DataProvider.readSocialPersonsResourceBig(), socialPersonFactory, "bigData")
+  override protected val searchDirectoryName = "bigData"
+
+  CommonIndexer.index(DataProvider.readSocialPersonsResourceBig(), socialPersonFactory, searchDirectoryName)
 
 }

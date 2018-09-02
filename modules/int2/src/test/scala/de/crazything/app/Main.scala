@@ -28,6 +28,7 @@ object Main extends App {
     case GET(p"/test") => LittleDataController.test
 
     case POST(p"/findSocialForScored") => LittleDataController.findSocialForScored
+    case POST(p"/findSocialForScoredBig") => MediumDataController.findSocialForScored
 
     case _ => Action {
       Results.NotFound

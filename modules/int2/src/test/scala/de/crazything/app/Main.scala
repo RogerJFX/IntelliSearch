@@ -26,7 +26,6 @@ object Main extends App {
 
   val router: Router = Router.from { // No, Router.from is not deprecated, but Tags above "from".
     case GET(p"/test") => LittleDataController.test
-    case GET(p"/testBig") => MediumDataController.testBig
 
     case POST(p"/findSocialForScored") => LittleDataController.findSocialForScored
     case POST(p"/findSocialForScoredBig") => MediumDataController.findSocialForScored

@@ -12,7 +12,4 @@ object MediumDataController extends AbstractDataController with GermanLanguage {
 
   CommonIndexer.index(DataProvider.readSocialPersonsResourceBig(), socialPersonFactory, searchDirectoryName)
 
-  def testBig = Action {
-    Results.Ok("It works! I got social data 4u. :: " + socialPersonFactory.getDataPoolSize())
-  }
 }

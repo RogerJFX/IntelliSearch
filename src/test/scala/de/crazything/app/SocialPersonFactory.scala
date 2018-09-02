@@ -28,7 +28,6 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
 
   override def selectQueryCreator: (QueryCriteria, SocialPerson) => Query = selectQueryCreatorS
 
-  override def getDataPoolSize(): Int = dataContainer.getSize()
 }
 
 
@@ -74,7 +73,5 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
   )
 
   override val selectQueryCreator:(QueryCriteria, SocialPerson) => Query = (criteria, person) => createQuery(person)
-
-  override def getDataPoolSize(): Int = dataContainer.getSize()
 
 }

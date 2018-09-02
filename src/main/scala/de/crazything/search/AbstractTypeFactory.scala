@@ -25,8 +25,6 @@ abstract class AbstractTypeFactory[I, -T <: PkDataSet[I]] extends QueryConfig{
 
   def setDataPool(data: Seq[T]): Unit
 
-  def getDataPoolSize() : Int
-
   def populateDocument(document: Document, dataSet: T): Unit
 
   def createQuery(t: T): Query

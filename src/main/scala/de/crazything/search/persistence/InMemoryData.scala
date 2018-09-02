@@ -30,16 +30,6 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
 
     private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
 
-    def getSize() : Int = {
-      val data = dataRef.get()
-      if(data == null) {
-        -1
-      } else {
-        data.data.length
-      }
-
-    }
-
     override def setData(data: Seq[T]): Unit = {
       dataRef.set(Data(data))
     }

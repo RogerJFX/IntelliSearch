@@ -27,7 +27,6 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
 
   override def selectQueryCreator: (QueryCriteria, Person) => Query = selectQueryCreatorS
 
-  override def getDataPoolSize(): Int = dataContainer.getSize()
 }
 
 object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryData[Int, Person]{
@@ -77,7 +76,5 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
     }
 
   }
-
-  override def getDataPoolSize(): Int = dataContainer.getSize()
 
 }

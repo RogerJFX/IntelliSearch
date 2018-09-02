@@ -27,6 +27,9 @@ class SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with 
 
   override def selectQueryCreator: (QueryCriteria, SkilledPerson) => Query = selectQueryCreatorS
 
+  override def getDataPoolSize(): Int = dataContainer.getSize()
+
+
 }
 
 object SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with QueryConfig
@@ -72,5 +75,7 @@ object SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with
   }
 
   override def selectQueryCreator: (QueryCriteria, SkilledPerson) => Query = (_, person) => createQuery(person)
+
+  override def getDataPoolSize(): Int = dataContainer.getSize()
 
 }

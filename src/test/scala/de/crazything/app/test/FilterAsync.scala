@@ -122,5 +122,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
         )
       } else createQuery(person)
     }
+
+    override def getDataPoolSize(): Int = 0
   }
 }

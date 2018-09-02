@@ -20,6 +20,7 @@ class DockerTestBigger extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
     CommonIndexer.index(DataProvider.readSkilledPersonsBig(), dataFactory)
   }
 
+  // Does not work so far. So tmp. ignored.
   "BiggerData test" should "even work with generic DTO class" ignore {
 
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala")))

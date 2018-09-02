@@ -3,7 +3,6 @@ package de.crazything.search.persistence
 import java.util.concurrent.atomic.AtomicReference
 
 import de.crazything.search.entity.PkDataSet
-import org.slf4j.LoggerFactory
 
 /**
   * If we do not want to store data in lucene index, but only the id, we have to store data somewhere else.
@@ -30,6 +29,16 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
     }
 
     private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
+
+    def getSize() : Int = {
+      val data = dataRef.get()
+      if(data == null) {
+        -1
+      } else {
+        data.data.length
+      }
+
+    }
 
     override def setData(data: Seq[T]): Unit = {
       dataRef.set(Data(data))

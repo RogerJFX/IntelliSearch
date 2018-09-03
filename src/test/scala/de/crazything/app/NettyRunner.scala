@@ -4,7 +4,7 @@ import java.io.File
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 import de.crazything.search.{CommonSearcher, DirectoryContainer}
-import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
+import de.crazything.search.entity._
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.service.{EmbeddedRestServer, QuickJsonParser, RestClient}
 import play.api.Mode
@@ -68,7 +68,20 @@ object NettyRunner extends QuickJsonParser{
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         MappingSearcher.search(input = person, factory = PersonFactoryDE,
-          mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
+          mapperFn = combineFacebookScored, secondLevelTimeout = 5.minutes).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
+          val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))
+          Results.Created(strSearchResult).as("application/json")
+        })
+      }
+    }
+    case POST(p"/mapSocial2BaseBig") => Action.async {
+      request => {
+        val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
+        MappingSearcher.search(input = person, factory = PersonFactoryDE,
+          mapperFn = combineFacebookScored,
+          secondLevelTimeout = 5.minutes,
+          queryCriteria = Some(QueryCriteria(PersonFactoryDE.customQuery_FirstAndLastName, None)),
+          maxHits = 20).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
           val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))
           Results.Created(strSearchResult).as("application/json")
         })

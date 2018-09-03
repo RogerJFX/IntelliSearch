@@ -39,7 +39,12 @@ object MappingSearcher extends MagicSettings {
 
     finalResultFuture.onComplete {
       case Success(finalResult) =>
-        promise.success(finalResult.sortBy(res => res.target.score))
+        if(finalResult.isEmpty) { //TODO: this never should happen. We tmp. did it because some NullPointer. See below.
+          promise.success(Seq.empty)
+        } else {
+          //TODO: we got a NullPointerException here with bigger data. What should become null here?
+          promise.success(finalResult.sortBy(res => res.target.score))
+        }
       case Failure(t: TimeoutException) =>
         mappingClass.onTimeoutException(t)
         promise.failure(t)
@@ -140,14 +145,16 @@ object MappingSearcher extends MagicSettings {
     extends Combine[I1, I2, T1, T2] {
     override def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
       doCreateFuture(raw, (len: Int) => {
-        def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
-          promise.success(buffer)
-          pool.shutdown()
-        } else if (procCount.get() < len) {
-          pool.execute(new MapperFutureHandler(mappingFn, raw(procCount.getAndIncrement()),
-            buffer, () => checkLenInc(), onCombineException)(ec))
-        }
-
+        def checkLenInc(): Unit =
+          this.synchronized { //TODO: really?
+            if (counter.incrementAndGet() == len) {
+              promise.success(buffer)
+              pool.shutdown()
+            } else if (procCount.get() < len) {
+              pool.execute(new MapperFutureHandler(mappingFn, raw(procCount.getAndIncrement()),
+                buffer, () => checkLenInc(), onCombineException)(ec))
+            }
+          }
         val shorter = if (processors < len) processors else len
         for (i <- 0 until shorter) {
           procCount.incrementAndGet()

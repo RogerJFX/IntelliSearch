@@ -1,7 +1,7 @@
 package de.crazything.app
 
 import de.crazything.app.test.helpers.DataProvider
-import de.crazything.search.entity.{SearchResult, SearchResultCollection}
+import de.crazything.search.entity.{QueryCriteria, SearchResult, SearchResultCollection}
 import de.crazything.search.{AbstractTypeFactory, CommonIndexer}
 import de.crazything.service.RestClient
 
@@ -20,6 +20,9 @@ object MediumDataController extends AbstractDataController with Network with Ger
   override protected val personFactory: AbstractTypeFactory[Int, Person] = new PersonFactoryDE()
 
   override protected val searchDirectoryName = "bigData"
+
+  override protected val queryCriteria: Option[QueryCriteria] =
+    Some(QueryCriteria(PersonFactoryDE.customQuery_FirstAndLastName, None))
 
   CommonIndexer.index(DataProvider.readVerySimplePersonsResourceBig(), personFactory, searchDirectoryName)
 }

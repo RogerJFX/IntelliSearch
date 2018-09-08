@@ -6,7 +6,9 @@ trait GermanRegexReplace extends FieldRegexReplace {
 
   override val regexTerms = Seq(
     "(a|e)(i|j|y)e?",
-    "(ss|ß)"
+    "(ss|ß)",
+    "(oe|ö)",
+    "(c|k)"
   )
 
 }

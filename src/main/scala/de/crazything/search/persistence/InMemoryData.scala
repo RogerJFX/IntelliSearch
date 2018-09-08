@@ -20,7 +20,7 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
   /**
     * Just some namespace.
     */
-  class DataContainer extends IPersistence[P, T]{
+  protected class DataContainer extends IPersistence[P, T]{
 
     private case class Data(data: Seq[T]) {
       private[DataContainer] def findById(id: P): T = data.find(d => d.getId == id)
@@ -40,6 +40,6 @@ trait InMemoryData[P, T <: PkDataSet[P]] {
 
   }
 
-  lazy val dataContainer = new DataContainer
+  protected lazy val dataContainer = new DataContainer
 
 }

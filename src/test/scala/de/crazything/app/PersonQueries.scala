@@ -29,16 +29,18 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
   }
 
   def createFirstAndLastNameQuery(person: Person): Query = {
+    val result =
     Seq(
       (LAST_NAME, person.lastName).exact,
-      (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
+      (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT*20).regex,
       (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
 
-      (FIRST_NAME, person.firstName, Boost.EXACT / 1.2F).exact,
-      (FIRST_NAME, createWildCardTerm(person.firstName), Boost.WILDCARD / 1.5F).wildcard,
-      (FIRST_NAME, createRegexTerm(person.firstName), Boost.REGEX / 2F).regex,
+      (FIRST_NAME, person.firstName).exact,
+  //    (FIRST_NAME, createWildCardTerm(person.firstName), Boost.WILDCARD / 1.5F).wildcard,
+      (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT*2).regex,
       (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
     )
+    result
   }
 
   /**

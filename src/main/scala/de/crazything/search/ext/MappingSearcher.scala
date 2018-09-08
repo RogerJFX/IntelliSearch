@@ -43,7 +43,7 @@ object MappingSearcher extends MagicSettings {
           promise.success(Seq.empty)
         } else {
           //TODO: we got a NullPointerException here with bigger data. What should become null here?
-          promise.success(finalResult.sortBy(res => res.target.score))
+          promise.success(finalResult.sortBy(res => -res.target.score))
         }
       case Failure(t: TimeoutException) =>
         mappingClass.onTimeoutException(t)

@@ -21,9 +21,9 @@ class DockerTestBigger extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
   }
 
   // Does not work so far. So tmp. ignored.
-  "BiggerData test" should "even work with generic DTO class" ignore {
+  "BiggerData test" should "even work with generic DTO class" in {
 
-    val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala")))
+    val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Ecmascript", "Postgres", "Scala", "Linux", "Java")))
 
     def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
     Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
@@ -40,12 +40,21 @@ class DockerTestBigger extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
     }
 
 
-    MappingSearcher.search(input = searchedSkilledPerson, factory = dataFactory,
-      mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
+    MappingSearcher.search(input = searchedSkilledPerson, factory = dataFactory, maxHits = 10,
+      mapperFn = combineBaseAndSocialData, secondLevelTimeout = 4.minutes)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
-        println(result)
-        assert(result.head.results.head.obj.results.length == 2)
-        assert(result.length == 1)
+        val firstSkilledPerson: SkilledPerson = result.head.target.obj
+        val firstHitMappings: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = result.head.results
+        val firstPerson: Person = firstHitMappings.head.obj.target.obj
+        val firstPersonSocialHits: Seq[SearchResult[Int, SocialPerson]] = firstHitMappings.head.obj.results
+        result.foreach(sp => println(sp.target))
+        println(firstSkilledPerson)
+        println(firstPerson)
+        println(firstPersonSocialHits.head.obj)
+        assert(firstSkilledPerson.firstName.get == "Burchard")
+        assert(firstSkilledPerson.lastName.get == "Stoeckl")
+        assert(firstPersonSocialHits.length == 100)
+        assert(result.length == 10)
       })
   }
 

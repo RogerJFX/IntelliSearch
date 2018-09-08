@@ -58,7 +58,9 @@ object NettyRunner extends QuickJsonParser{
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         val socialPerson: SocialPerson = SocialPerson(-1, person.firstName, person.lastName)
         val searchResult: Seq[SearchResult[Int, SocialPerson]] =
-          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory, searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
+          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory,
+            queryCriteria = Some(QueryCriteria(SocialPersonFactory.customQuery_FirstAndLastName, None)),
+            searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
 
         val strSearchResult: String = t2JsonString[SearchResultCollection[Int, SocialPerson]](SearchResultCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
@@ -68,7 +70,9 @@ object NettyRunner extends QuickJsonParser{
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
         MappingSearcher.search(input = person, factory = PersonFactoryDE,
-          mapperFn = combineFacebookScored, secondLevelTimeout = 5.minutes).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
+          mapperFn = combineFacebookScored,
+          queryCriteria = Some(QueryCriteria(SocialPersonFactory.customQuery_FirstAndLastName, None)),
+          secondLevelTimeout = 5.minutes).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
           val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))
           Results.Created(strSearchResult).as("application/json")
         })
@@ -81,7 +85,7 @@ object NettyRunner extends QuickJsonParser{
           mapperFn = combineFacebookScored,
           secondLevelTimeout = 5.minutes,
           queryCriteria = Some(QueryCriteria(PersonFactoryDE.customQuery_FirstAndLastName, None)),
-          maxHits = 20).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
+          maxHits = 5).map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
           val strSearchResult: String = t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))
           Results.Created(strSearchResult).as("application/json")
         })

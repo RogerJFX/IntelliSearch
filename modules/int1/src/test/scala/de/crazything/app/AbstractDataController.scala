@@ -49,7 +49,7 @@ abstract class AbstractDataController extends MagicSettings with DirectoryContai
       val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
       MappingSearcher.search(input = person, factory = personFactory, queryCriteria = queryCriteria,
         searcherOption = searchDirectoryName,
-        mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds)
+        mapperFn = combineFacebookScored, secondLevelTimeout = 5.minutes)
         .map((searchResult: Seq[MappedResults[Int, Int, Person, SocialPerson]]) => {
           val sequence: Seq[PersonWithSocialResults] =
             searchResult.map(sr => PersonWithSocialResults(sr.target, sr.results))
@@ -65,7 +65,7 @@ abstract class AbstractDataController extends MagicSettings with DirectoryContai
       val person: Person = jsonString2T[Person](request.body.asJson.get.toString())
       MappingSearcher.search(input = person, factory = personFactory, queryCriteria = queryCriteria,
         searcherOption = searchDirectoryName,
-        mapperFn = combineFacebookScored, secondLevelTimeout = 5.seconds).map(searchResult => {
+        mapperFn = combineFacebookScored, secondLevelTimeout = 5.minutes, maxHits = 20).map(searchResult => {
 
         val strSearchResult: String =
           t2JsonString[MappedResultsCollection[Int, Int, Person, SocialPerson]](MappedResultsCollection(searchResult))

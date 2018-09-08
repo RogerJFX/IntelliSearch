@@ -15,7 +15,9 @@ import scala.concurrent.duration._
 import scala.concurrent.{Future, TimeoutException}
 import scala.util.{Failure, Success}
 
-class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer with FilterAsync{
+
+class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage
+  with DirectoryContainer with FilterAsync{
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RestCombineTest")
 

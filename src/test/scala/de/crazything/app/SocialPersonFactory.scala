@@ -6,6 +6,7 @@ import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import de.crazything.search.persistence.InMemoryData
 import org.apache.lucene.document._
 import org.apache.lucene.search._
+import org.slf4j.LoggerFactory
 
 class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
   with GermanLanguage with GermanRegexReplace with InMemoryData [Int, SocialPerson] {
@@ -34,7 +35,7 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
 object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
   with GermanLanguage with GermanRegexReplace with InMemoryData [Int, SocialPerson] {
 
-  // private val logger = LoggerFactory.getLogger(SocialPersonFactory.getClass)
+  private val logger = LoggerFactory.getLogger(SocialPersonFactory.getClass)
 
   private[app] val PK = "id"
 
@@ -43,6 +44,8 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
   private[app] val LAST_NAME = "lastName"
   private[app] val FACEBOOK_ID = "facebookId"
   private[app] val TWITTER_ID = "twitterId"
+
+  val customQuery_FirstAndLastName = "customQuery_FirstAndLastName"
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
     dataContainer.findById(doc.get(PK).toInt)
@@ -72,6 +75,24 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
     (LAST_NAME, person.lastName, Boost.FUZZY, FUZZY_MAX_EDITS).fuzzy
   )
 
-  override val selectQueryCreator:(QueryCriteria, SocialPerson) => Query = (criteria, person) => createQuery(person)
+  override val selectQueryCreator:(QueryCriteria, SocialPerson) => Query = (criteria, person) => {
+    criteria.queryName match {
+      case `customQuery_FirstAndLastName` =>
+        Seq(
+          (LAST_NAME, person.lastName).exact,
+          (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT*20).regex,
+          (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
+
+          (FIRST_NAME, person.firstName).exact,
+          (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT*2).regex,
+          (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
+        )
+
+      case _ =>
+        logger.warn("No matching query name found. Falling back to standard `createQuery`")
+        createQuery(person)
+    }
+
+  }
 
 }

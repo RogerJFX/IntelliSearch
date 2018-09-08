@@ -1,12 +1,27 @@
-ReliableSearch
+MicroSearch
 -
 
 [![Build Status](https://travis-ci.com/RogerJFX/ReliableSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/ReliableSearch)
 [![Coverage Status](https://codecov.io/gh/rogerjfx/reliablesearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/ReliableSearch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-
 **Another attempt to make search results most reliable.**
+
+History of naming of this project is:
+
+- Phonetic Search
+- Reliable Search
+- Micro Search
+
+There is a particular hierarchy here. 
+
+- Phonetic makes simple searches more reliable in most cases. 
+- A reliable search only should be reliable after passing some search processes. Filtering, mapping, whatever.
+- Making search processes micro services has its own particular charm. So we can divide Lucene indices up and 
+combine or filter results in the end.
+
+We decided to rename our project to MicroSearch, because we strongly believe even search indices might 
+go to micro services.
 
 There are many use cases for a reliable search:
 

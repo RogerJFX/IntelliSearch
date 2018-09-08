@@ -29,8 +29,8 @@ class CommonSearchTest extends FlatSpec with Matchers with QueryConfig with Germ
     ("Müller-Lüdenscheidt", 57.003563F), // => Müller-Lüdenscheidt
     ("Muller-Ludenscheid", 13.08847F),
     ("Filosof", 8.041645F), // => Philosoph
-    ("Theodor Wiesengrund Philosoph", 92.571594F),// => Theodor Wiesengrund Philosoph (Full match first and last name!)
-    ("Theodor Wiesengrund Adorno", 44.66786F) // full match first name
+    ("Theodor Wiesengrund Philosoph", 520.53973F),// => Theodor Wiesengrund Philosoph (Full match first and last name!)
+    ("Theodor Wiesengrund Adorno", 79.63601F) // full match first name
   )
 
   private[this] def checkScore(name: String, score: Float) = assert(expectedScores(name) == score)

@@ -58,7 +58,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     })
   }
 
-  it should "get a non mixed score result for person having facebook account" in {
+  it should "get a non mixed score result for person having facebook account" ignore {
     val searchedPerson = Person(-1, "Herr", "Franz", "Rayßer", "street", "city")
     MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       mapperFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {

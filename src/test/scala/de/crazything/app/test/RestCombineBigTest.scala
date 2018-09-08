@@ -31,7 +31,7 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
-  "Mapping" should "run locally" in {
+  "Mapping" should "run locally" ignore {
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Ecmascript", "Postgres", "Scala", "Linux", "Java")))
 
     def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
@@ -66,6 +66,7 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
         println(s"Social person is: ${firstPersonSocialHits.head.obj}")
         assert(firstSkilledPerson.firstName.get == "Burchard")
         assert(firstSkilledPerson.lastName.get == "Stoeckl")
+        assert(firstPerson.firstName == "Burkhard")
         assert(firstPerson.lastName == "Stöckl")
         assert(firstPersonSocialHits.length == 100)
         assert(result.length == 2)

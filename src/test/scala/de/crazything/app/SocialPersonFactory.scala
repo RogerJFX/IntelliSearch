@@ -79,12 +79,13 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
     criteria.queryName match {
       case `customQuery_FirstAndLastName` =>
         Seq(
-          (LAST_NAME, person.lastName).exact,
-          (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT*20).regex,
-          (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
+//          (LAST_NAME, person.lastName).exact,
+//          (FIRST_NAME, person.firstName).exact,
 
-          (FIRST_NAME, person.firstName).exact,
+          (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT*2).regex,
           (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT*2).regex,
+
+          (LAST_NAME, person.lastName, Boost.PHONETIC / 2F).phonetic,
           (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
         )
 

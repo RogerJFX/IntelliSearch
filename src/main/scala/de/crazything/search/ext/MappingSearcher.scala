@@ -39,12 +39,7 @@ object MappingSearcher extends MagicSettings {
 
     finalResultFuture.onComplete {
       case Success(finalResult) =>
-        if(finalResult.isEmpty) { //TODO: this never should happen. We tmp. did it because some NullPointer. See below.
-          promise.success(Seq.empty)
-        } else {
-          //TODO: we got a NullPointerException here with bigger data. What should become null here?
-          promise.success(finalResult.sortBy(res => -res.target.score))
-        }
+        promise.success(finalResult.sortBy(res => -res.target.score))
       case Failure(t: TimeoutException) =>
         mappingClass.onTimeoutException(t)
         promise.failure(t)

@@ -31,6 +31,7 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
+  // Ignored. Only tested in single mode.
   "Mapping" should "run locally" ignore {
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Ecmascript", "Postgres", "Scala", "Linux", "Java")))
 
@@ -48,7 +49,6 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
       result
     }
 
-
     MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData,
@@ -59,16 +59,22 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
         val firstHitMappings: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = result.head.results
         val firstPerson: Person = firstHitMappings.head.obj.target.obj
         val firstPersonSocialHits: Seq[SearchResult[Int, SocialPerson]] = firstHitMappings.head.obj.results
+        val firstSocialPerson: SocialPerson = firstPersonSocialHits.head.obj
         result.foreach(sp => println(sp.target))
         result.head.results.foreach(sp => println(sp.obj.target))
-        println(s"Skilled person is: $firstSkilledPerson")
+        println(s"Found skilled person is: $firstSkilledPerson")
         println(s"Found base person is: $firstPerson")
-        println(s"Social person is: ${firstPersonSocialHits.head.obj}")
+
+
+        println(s"Found social person is: $firstSocialPerson")
+
         assert(firstSkilledPerson.firstName.get == "Burchard")
         assert(firstSkilledPerson.lastName.get == "Stoeckl")
         assert(firstPerson.firstName == "Burkhard")
         assert(firstPerson.lastName == "Stöckl")
         assert(firstPersonSocialHits.length == 100)
+        assert(firstSocialPerson.firstName == "Burchard")
+        assert(firstSocialPerson.lastName == "Stoeckl")
         assert(result.length == 2)
       })
   }

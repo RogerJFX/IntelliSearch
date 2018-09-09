@@ -43,6 +43,8 @@ class DockerTestBigger extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
     MappingSearcher.search(input = searchedSkilledPerson, factory = dataFactory, maxHits = 4,
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 4.minutes)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
+        println(result)
+        println("------------")
         val firstSkilledPerson: SkilledPerson = result.head.target.obj
         val firstHitMappings: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = result.head.results
         val firstPerson: Person = firstHitMappings.head.obj.target.obj

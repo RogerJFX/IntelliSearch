@@ -1,8 +1,8 @@
 MicroSearch
 -
 
-[![Build Status](https://travis-ci.com/RogerJFX/ReliableSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/ReliableSearch)
-[![Coverage Status](https://codecov.io/gh/rogerjfx/reliablesearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/ReliableSearch)
+[![Build Status](https://travis-ci.com/RogerJFX/MicroSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/MicroSearch)
+[![Coverage Status](https://codecov.io/gh/rogerjfx/microsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/MicroSearch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Another attempt to make search results most reliable.**

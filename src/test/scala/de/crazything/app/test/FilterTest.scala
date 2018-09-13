@@ -9,7 +9,7 @@ import org.scalatest.FlatSpec
 
 class FilterTest extends FlatSpec with QueryConfig with GermanLanguage {
 
-  private def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.obj.city.contains("Frankfurt")
+  private def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.found.city.contains("Frankfurt")
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 

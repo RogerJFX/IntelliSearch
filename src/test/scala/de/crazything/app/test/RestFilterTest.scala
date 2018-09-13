@@ -30,11 +30,11 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   def filterHasFacebookScored(result: SearchResult[Int, Person]): Future[Boolean] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
-      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.found)
     restResponse.andThen {
       case Success(res) => println(res)
     }
-    restResponse.map(res => res.entries.exists(entry => entry.obj.facebookId.isDefined && entry.score > 20F))
+    restResponse.map(res => res.entries.exists(entry => entry.found.facebookId.isDefined && entry.score > 20F))
   }
 
   "Rest filter" should "get an empty result for missing facebook account" ignore {
@@ -57,8 +57,8 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     FilteringSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = (result: SearchResult[Int, Person]) => {
-        RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
-          .map(res => res.entries.exists(entry => entry.obj.facebookId.isDefined))
+        RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.found)
+          .map(res => res.entries.exists(entry => entry.found.facebookId.isDefined))
       }, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })

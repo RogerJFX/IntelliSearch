@@ -132,7 +132,7 @@ object NettyRunner extends QuickJsonParser{
 
   def combineFacebookScored(basePerson: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
-      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), basePerson.obj)
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), basePerson.found)
     restResponse.map(res => res.entries)
   }
 }

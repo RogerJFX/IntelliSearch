@@ -11,7 +11,8 @@ object Build extends AssemblyKeys {
       "-deprecation",
       "-feature",
       "-unchecked",
-      "-language:implicitConversions"
+      "-language:implicitConversions",
+      "-language:postfixOps"
     ),
     resolvers ++= Seq(
       "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",

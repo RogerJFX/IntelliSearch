@@ -13,7 +13,7 @@ object MediumDataController extends AbstractDataController with Network with Ger
   override protected def combineFacebookScored(basePerson: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
       RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUriSocial("findSocialForScoredBig"),
-        basePerson.obj)
+        basePerson.found)
     restResponse.map(res => res.entries)
   }
 

@@ -148,8 +148,8 @@ class CommonSearchTest extends FlatSpec with Matchers with QueryConfig with Germ
   "Results" should "be reasonably sorted" in {
     assert(results.length == 10)
     val sorted: Seq[SearchResult[Int, Person]] = results.sortBy(r => -r.score)
-    assert(sorted.head.obj.lastName == "Philosoph" && sorted.head.obj.firstName == "Theodor Wiesengrund") // Better than Raißer due to more characters.
-    assert(sorted.last.obj.lastName == "Mayer") // we never searched for Mayer, so this is a weak guess (fuzzy)
+    assert(sorted.head.found.lastName == "Philosoph" && sorted.head.found.firstName == "Theodor Wiesengrund") // Better than Raißer due to more characters.
+    assert(sorted.last.found.lastName == "Mayer") // we never searched for Mayer, so this is a weak guess (fuzzy)
   }
 
 }

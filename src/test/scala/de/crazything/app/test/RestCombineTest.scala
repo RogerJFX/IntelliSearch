@@ -36,8 +36,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
   def combineFacebookScored(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
-      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.obj)
-    println(result.obj)
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"), result.found)
+    println(result.found)
     restResponse.andThen {
       case Success(res) => println(res)
       case Failure(t) => println(t.getMessage)
@@ -66,7 +66,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
       assert(result.length == 2)
       // Mayer was found, but hasn't got a facebook account
       assert(result.head.results.nonEmpty)
-      assert(result.head.results.head.obj.facebookId.isEmpty)
+      assert(result.head.results.head.found.facebookId.isEmpty)
     })
   }
 
@@ -113,25 +113,25 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
     def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
     Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
-      val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
-        skilledPerson.obj.lastName.getOrElse("-"), "", "")
+      val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
+        skilledPerson.found.lastName.getOrElse("-"), "", "")
       val restResponse: Future[MappedResultsCollection[Int, Int, Person, SocialPerson]] =
         RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
           urlFromUri("mapSocial2Base"), searchedBasePerson)
-      val result: Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] =
-        restResponse.map(res => {
-          res.entries.map(rr => SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]](rr, rr.target.score))
-        })
-      result
+      restResponse
+//      val result: Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] =
+//        restResponse.map(res => {
+//          res.entries.map(rr => SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]](rr, rr.target.score))
+//        })
+//      result
     }
-
 
     MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
         println(result)
-        assert(result.head.results.head.obj.results.length == 2)
+        assert(result.head.results.head.found.results.length == 2)
         assert(result.length == 1)
       })
   }
@@ -143,7 +143,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
         mapperFn = null, secondLevelTimeout = 15.seconds)
         .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
           println(result)
-          assert(result.head.results.head.obj.results.length == 2)
+          assert(result.head.results.head.found.results.length == 2)
           assert(result.length == 1)
         })
 

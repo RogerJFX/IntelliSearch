@@ -19,7 +19,7 @@ object CommonSearcher extends MagicSettings{
                                    maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
                                    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher): Seq[SearchResult[I, T]] = {
     searcherOption match {
-      case Some(searcher) => {
+      case Some(searcher) =>
         val query: Query =
           queryCriteria match {
             case None => factory.createQuery(input)
@@ -32,7 +32,6 @@ object CommonSearcher extends MagicSettings{
           val hitDoc = searcher.doc(hit.doc)
           SearchResult[I, T](factory.createInstanceFromDocument(hitDoc).asInstanceOf[T], hit.score)
         })
-      }
       case None => throw new IllegalStateException("Nobody told us to have a directory reference. No yet finished? " +
         "Anything async? We should fix this then")
     }

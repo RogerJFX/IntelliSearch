@@ -30,8 +30,8 @@ class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
   def combineFacebookScored(skilledPerson: SearchResult[Int, SkilledPerson]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
-    val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
-      skilledPerson.obj.lastName.getOrElse("-"), "", "")
+    val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
+      skilledPerson.found.lastName.getOrElse("-"), "", "")
     val restResponse =
       RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUri("findSocialForScored"),
         searchedBasePerson)

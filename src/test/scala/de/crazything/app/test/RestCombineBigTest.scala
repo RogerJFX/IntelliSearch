@@ -14,7 +14,8 @@ import play.core.server.NettyServer
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer with FilterAsync{
+class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage
+  with DirectoryContainer with FilterAsync{
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RestCombineBigTest")
 
@@ -37,8 +38,8 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
 
     def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
     Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
-      val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
-        skilledPerson.obj.lastName.getOrElse("-"), "", "")
+      val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
+        skilledPerson.found.lastName.getOrElse("-"), "", "")
       val restResponse: Future[MappedResultsCollection[Int, Int, Person, SocialPerson]] =
         RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
           urlFromUri("mapSocial2BaseBig"), searchedBasePerson)
@@ -55,13 +56,13 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
       secondLevelTimeout = 4.minutes,
       maxHits = 2)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
-        val firstSkilledPerson: SkilledPerson = result.head.target.obj
+        val firstSkilledPerson: SkilledPerson = result.head.target.found
         val firstHitMappings: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = result.head.results
-        val firstPerson: Person = firstHitMappings.head.obj.target.obj
-        val firstPersonSocialHits: Seq[SearchResult[Int, SocialPerson]] = firstHitMappings.head.obj.results
-        val firstSocialPerson: SocialPerson = firstPersonSocialHits.head.obj
+        val firstPerson: Person = firstHitMappings.head.found.target.found
+        val firstPersonSocialHits: Seq[SearchResult[Int, SocialPerson]] = firstHitMappings.head.found.results
+        val firstSocialPerson: SocialPerson = firstPersonSocialHits.head.found
         result.foreach(sp => println(sp.target))
-        result.head.results.foreach(sp => println(sp.obj.target))
+        result.head.results.foreach(sp => println(sp.found.target))
         println(s"Found skilled person is: $firstSkilledPerson")
         println(s"Found base person is: $firstPerson")
 

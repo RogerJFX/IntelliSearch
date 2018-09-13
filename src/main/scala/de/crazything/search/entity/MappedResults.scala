@@ -15,7 +15,7 @@ import play.api.libs.json._
   */
 case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](target: SearchResult[I1, T1],
                                                                              results: Seq[SearchResult[I2, T2]])
-  extends PkDataSet[I1](target.obj.getId)
+  extends PkDataSet[I1](target.found.getId)
 
 /**
   * JSON formatting hints.

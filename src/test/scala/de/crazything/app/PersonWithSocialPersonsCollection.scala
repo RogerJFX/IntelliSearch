@@ -4,7 +4,7 @@ import de.crazything.search.entity.{PkDataSet, SearchResult}
 import play.api.libs.json.{Json, OFormat}
 
 case class PersonWithSocialResults(person: SearchResult[Int, Person], socialResults: Seq[SearchResult[Int, SocialPerson]])
-  extends PkDataSet[Int](person.obj.id)
+  extends PkDataSet[Int](person.found.id)
 
 object PersonWithSocialResults {
 

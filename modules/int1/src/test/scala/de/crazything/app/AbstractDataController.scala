@@ -24,7 +24,7 @@ abstract class AbstractDataController extends MagicSettings with DirectoryContai
   protected def combineFacebookScored(basePerson: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
       RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUriSocial("findSocialForScored"),
-        basePerson.obj)
+        basePerson.found)
     restResponse.map(res => res.entries)
   }
 

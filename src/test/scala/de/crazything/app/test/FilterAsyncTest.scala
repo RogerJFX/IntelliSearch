@@ -50,7 +50,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
 
     def filterRoger(result: SearchResult[Int, Person]): Future[Boolean] = {
       // normally another Factory/Directory - just a check on some other data source
-      CommonSearcher.searchAsync(input = standardPerson.copy(lastName = result.obj.lastName, firstName = "Roger"),
+      CommonSearcher.searchAsync(input = standardPerson.copy(lastName = result.found.lastName, firstName = "Roger"),
         factory = PersonFactoryAll, queryCriteria = Some(QueryCriteria("dummy"))).map(res => res.nonEmpty)
     }
     FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,

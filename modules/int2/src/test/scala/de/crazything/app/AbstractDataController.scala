@@ -25,7 +25,9 @@ abstract class AbstractDataController extends MagicSettings with DirectoryContai
       val searchResult: Seq[SearchResult[Int, SocialPerson]] =
         CommonSearcher.search(input = socialPerson, factory = socialPersonFactory,
           queryCriteria = queryCriteria,
-          searcherOption = searchDirectoryName)
+          searcherOption = searchDirectoryName,
+          maxHits = 20
+        )
 
       val strSearchResult: String =
         t2JsonString[SearchResultCollection[Int, SocialPerson]](SearchResultCollection(searchResult))

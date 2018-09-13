@@ -23,7 +23,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
 
   def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
 
-  def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.obj.city.contains("Frankfurt")
+  def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.found.city.contains("Frankfurt")
 
   def filterFrankfurtAsync(result: SearchResult[Int, Person]): Boolean = {
     Thread.sleep(500) // Come on! Just half a second...

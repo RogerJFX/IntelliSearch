@@ -25,7 +25,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
     CommonSearcher.searchAsync(searchedSkilledPerson, SkilledPersonFactory, searcherOption = "skilledIndex").map(result => {
       println(result)
       assert(result.length == 1)
-      assert(result.head.obj.firstName.get == "Roger")
+      assert(result.head.found.firstName.get == "Roger")
     })
   }
 
@@ -34,8 +34,8 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
 
     def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]): Future[Seq[SearchResult[Int, PersonWithSocialResults]]] = {
-      val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
-        skilledPerson.obj.lastName.getOrElse("-"), "", "")
+      val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
+        skilledPerson.found.lastName.getOrElse("-"), "", "")
       val restResponse: Future[PersonWithSocialPersonsCollection] =
         RestClient.post[Person, PersonWithSocialPersonsCollection](urlFromUriBase("findBaseDataForWithSocial"), searchedBasePerson)
       restResponse.map(res => {
@@ -48,7 +48,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, PersonWithSocialResults]]) => {
         println(result)
-        assert(result.head.results.head.obj.socialResults.length == 2)
+        assert(result.head.results.head.found.socialResults.length == 2)
         assert(result.length == 1)
       })
   }
@@ -59,8 +59,8 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
 
     def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
     Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
-      val searchedBasePerson: Person = Person(-1, "", skilledPerson.obj.firstName.getOrElse("-"),
-        skilledPerson.obj.lastName.getOrElse("-"), "", "")
+      val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
+        skilledPerson.found.lastName.getOrElse("-"), "", "")
       val restResponse: Future[MappedResultsCollection[Int, Int, Person, SocialPerson]] =
         RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
           urlFromUriBase("mapSocial2Base"), searchedBasePerson)
@@ -77,7 +77,7 @@ class DockerTest2 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
         println(result)
-        assert(result.head.results.head.obj.results.length == 2)
+        assert(result.head.results.head.found.results.length == 2)
         assert(result.length == 1)
       })
   }

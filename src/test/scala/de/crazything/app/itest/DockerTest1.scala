@@ -22,8 +22,8 @@ class DockerTest1 extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonPar
 
   def combineFacebookScored(result: SearchResult[Int, Person]): Future[Seq[SearchResult[Int, SocialPerson]]] = {
     val restResponse: Future[SearchResultCollection[Int, SocialPerson]] =
-      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUriSocial("findSocialForScored"), result.obj)
-    println(result.obj)
+      RestClient.post[Person, SearchResultCollection[Int, SocialPerson]](urlFromUriSocial("findSocialForScored"), result.found)
+    println(result.found)
     restResponse.andThen {
       case Success(res) => println(res)
       case Failure(t) => println(t.getMessage)

@@ -15,12 +15,18 @@ import play.api.libs.json._
   */
 case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](target: SearchResult[I1, T1],
                                                                              results: Seq[SearchResult[I2, T2]])
-  extends PkDataSet[I1](target.found.getId)
+  extends PkDataSet[I1](target.found.getId) {
+
+  def :<() : SearchResult[I1, T1] = target
+
+  def !!() : Seq[SearchResult[I2, T2]] = results
+}
 
 /**
   * JSON formatting hints.
   */
 object MappedResults {
+
   implicit def format[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (implicit fmt1: Format[T1], fmt2: Format[T2]): OFormat[MappedResults[I1, I2, T1, T2]] =
     new OFormat[MappedResults[I1, I2, T1, T2]] {

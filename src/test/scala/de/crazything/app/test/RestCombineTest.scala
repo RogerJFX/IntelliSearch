@@ -109,29 +109,44 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
   }
 
   "Mapping" should "run locally" in {
+
+    type CombineResult = MappedResultsCollection[Int, Int, Person, SocialPerson]
+
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
 
-    def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]):
-    Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
-      val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
-        skilledPerson.found.lastName.getOrElse("-"), "", "")
-      val restResponse: Future[MappedResultsCollection[Int, Int, Person, SocialPerson]] =
-        RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
-          urlFromUri("mapSocial2Base"), searchedBasePerson)
-      restResponse
-//      val result: Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] =
-//        restResponse.map(res => {
-//          res.entries.map(rr => SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]](rr, rr.target.score))
-//        })
-//      result
-    }
+    implicit def skill2Base(skilledPerson: SearchResult[Int, SkilledPerson]): Person =
+      Person(-1, "", skilledPerson.found.firstName.getOrElse("-"), skilledPerson.found.lastName.getOrElse("-"), "", "")
+
+
+    def combineBaseAndSocialData(skilledPerson: SearchResult[Int, SkilledPerson]): Future[CombineResult] =
+      RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
+        urlFromUri("mapSocial2BaseBig"), skilledPerson)
+
+
 
     MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
-        println(result)
-        assert(result.head.results.head.found.results.length == 2)
+
+        val firstSkilledPerson: SkilledPerson = result.head :< () found
+        val firstHitMappings: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = result.head !! ()
+        val firstPerson: Person = firstHitMappings.head.found.target.found
+
+        val firstPersonSocialHits: Seq[SearchResult[Int, SocialPerson]] = firstHitMappings.head ! () results
+
+        val firstPersonSocialHitScore: Float = firstHitMappings.head $()
+
+        val firstSocialPerson: SocialPerson = firstPersonSocialHits.head ! ()
+
+        assert(firstPersonSocialHitScore == 516.7601F)
+        assert(firstSkilledPerson.firstName.get == "Roger")
+        assert(firstSkilledPerson.lastName.get == "Hösl")
+        assert(firstPerson.firstName == "Roger")
+        assert(firstPerson.lastName == "Hösl")
+        assert(firstPersonSocialHits.length == 2)
+        assert(firstSocialPerson.firstName == "Roger")
+        assert(firstSocialPerson.lastName == "Hösl")
         assert(result.length == 1)
       })
   }

@@ -17,14 +17,9 @@ import play.api.libs.json._
   */
 case class SearchResult[I, +T <: PkDataSet[I]](found: T, score: Float) {
 
-//  def origin[I2, T2]: SearchResult[I, T] = found match {
-//    case mr: MappedResults[I, I2, T, T2] => mr.target
-//    case _ => this
-//  }
+  def $() : Float = score
 
-  def $ : Float = score
-
-  def ! : T = found
+  def !() : T = found
 
 }
 

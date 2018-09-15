@@ -140,6 +140,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
 
         val firstSocialPerson: SocialPerson = firstPersonSocialHits.head ! ()
 
+        val firstSocialPersonOrigin: SocialPerson = firstPersonSocialHits.head.origin() !()
+
         assert(firstPersonSocialHitScore == 516.7601F)
         assert(firstSkilledPerson.firstName.get == "Roger")
         assert(firstSkilledPerson.lastName.get == "Hösl")
@@ -148,6 +150,8 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
         assert(firstPersonSocialHits.length == 2)
         assert(firstSocialPerson.firstName == "Roger")
         assert(firstSocialPerson.lastName == "Hösl")
+        assert(firstSocialPerson == firstSocialPersonOrigin, "should equal")
+        assert(firstSocialPerson eq firstSocialPersonOrigin, "Should be the same reference")
         assert(result.length == 1)
       })
   }

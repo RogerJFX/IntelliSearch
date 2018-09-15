@@ -40,14 +40,8 @@ class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with Quick
     Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] = {
       val searchedBasePerson: Person = Person(-1, "", skilledPerson.found.firstName.getOrElse("-"),
         skilledPerson.found.lastName.getOrElse("-"), "", "")
-      val restResponse: Future[MappedResultsCollection[Int, Int, Person, SocialPerson]] =
         RestClient.post[Person, MappedResultsCollection[Int, Int, Person, SocialPerson]](
           urlFromUri("mapSocial2BaseBig"), searchedBasePerson)
-      val result: Future[Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]]] =
-        restResponse.map(res => {
-          res.entries.map(rr => SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]](rr, rr.target.score))
-        })
-      result
     }
 
     MappingSearcher.search(input = searchedSkilledPerson, factory = SkilledPersonFactory,

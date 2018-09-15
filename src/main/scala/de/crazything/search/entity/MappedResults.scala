@@ -17,7 +17,7 @@ case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](tar
                                                                              results: Seq[SearchResult[I2, T2]])
   extends PkDataSet[I1](target.found.getId) {
 
-  def :<() : SearchResult[I1, T1] = target
+  def :< (): SearchResult[I1, T1] = target
 
   def !!() : Seq[SearchResult[I2, T2]] = results
 }

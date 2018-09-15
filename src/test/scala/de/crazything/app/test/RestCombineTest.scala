@@ -128,10 +128,11 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
       searcherOption = "skilledIndex",
       mapperFn = combineBaseAndSocialData, secondLevelTimeout = 15.seconds)
       .map((result: Seq[MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]]]) => {
-
+        println(s"$result")
         val firstSkilledPerson: SkilledPerson = result.head :< () found
         val firstHitMappings: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = result.head !! ()
-        val firstPerson: Person = firstHitMappings.head.found.target.found
+
+        val firstPerson: Person = firstHitMappings.head.origin().found
 
         val firstPersonSocialHits: Seq[SearchResult[Int, SocialPerson]] = firstHitMappings.head ! () results
 

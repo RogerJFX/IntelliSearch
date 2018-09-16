@@ -144,15 +144,19 @@ In the end a user might write something like
   }
 ~~~
 
-Or even
+Or even (which, agreed, in this particular example is not that reasonable)
 
 ~~~
   def createQuery(person: Person): Query = {
     Seq(
-      (LAST_NAME, person.lastName).exact.should,
-      (LAST_NAME, createRegexTerm(person.lastName)).regex.must,
-      (LAST_NAME, person.lastName).phonetic.must,
-      (LAST_NAME, "Trump").exact.mustNot
+      Seq(
+        (LAST_NAME, person.lastName).exact,
+        (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex
+      ).must,
+      Seq(
+        (FIRST_NAME, person.firstName).exact.must,
+        (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT * 2).regex.should
+      ).must
     )
   }
 ~~~

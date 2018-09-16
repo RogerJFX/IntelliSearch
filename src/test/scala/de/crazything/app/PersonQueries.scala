@@ -1,12 +1,12 @@
 package de.crazything.app
 
-import de.crazything.app.PersonFactoryDE.{LAST_NAME, FIRST_NAME}
-import de.crazything.search.CustomQuery.{data2Query, seq2Query}
+import de.crazything.app.PersonFactoryDE.{FIRST_NAME, LAST_NAME}
+import de.crazything.search.CustomQuery._
 import de.crazything.search.QueryConfig
 import org.apache.lucene.search.{BooleanClause, BooleanQuery, Query}
 
 // We need GermanLanguage here, since it declares an implicit phonetic analyzer.
-trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexReplace{
+trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexReplace {
   /**
     * The normal method.
     *
@@ -18,7 +18,7 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
     * @param person Our search object
     * @return The desired BooleanQuery
     */
-   def doCreateStandardQuery(person: Person): Query = {
+  def doCreateStandardQuery(person: Person): Query = {
     Seq(
       (LAST_NAME, person.lastName).exact,
       (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
@@ -28,18 +28,31 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
 
   }
 
-  def createFirstAndLastNameQuery(person: Person): Query = {
-    val result =
+  def doCreateCascadedStandardQuery(person: Person): Query = {
     Seq(
-      (LAST_NAME, person.lastName).exact,
-      (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT*20).regex,
-      (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
-
-      (FIRST_NAME, person.firstName).exact,
-  //    (FIRST_NAME, createWildCardTerm(person.firstName), Boost.WILDCARD / 1.5F).wildcard,
-      (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT*2).regex,
-      (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
+      Seq(
+        (LAST_NAME, person.lastName).exact,
+        (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex
+      ).must,
+      Seq(
+        (FIRST_NAME, person.firstName).exact.must,
+        (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT * 2).regex.should
+      ).must
     )
+  }
+
+  def createFirstAndLastNameQuery(person: Person): Query = {
+    val result: Seq[Query] =
+      Seq(
+        (LAST_NAME, person.lastName).exact,
+        (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT * 20).regex,
+        (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
+
+        (FIRST_NAME, person.firstName).exact,
+        //    (FIRST_NAME, createWildCardTerm(person.firstName), Boost.WILDCARD / 1.5F).wildcard,
+        (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT * 2).regex,
+        (FIRST_NAME, person.firstName, Boost.PHONETIC / 2F).phonetic
+      )
     result
   }
 
@@ -49,7 +62,7 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
     *
     * Maybe deprecated in some later version.
     *
-    * @param person Our search object
+    * @param person         Our search object
     * @param queryEnableOpt Selection of enabled types of Query.
     * @return Normally a BooleanQuery
     */
@@ -81,11 +94,12 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
     queryBuilder.build()
 
   }
+
   // "Hans-Peter", "Hans Peter" will become "Hans*"
   // "Hans" remains "Hans"
   private def createWildCardTerm(in: String): String = {
     val tokens = in.split("[ -]*?")
-    if(tokens.length > 1) {
+    if (tokens.length > 1) {
       s"${tokens.head}*"
     } else {
       in

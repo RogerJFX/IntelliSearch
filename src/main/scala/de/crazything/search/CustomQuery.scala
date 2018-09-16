@@ -8,6 +8,7 @@ import org.apache.lucene.search._
 import scala.language.implicitConversions
 
 case object CustomQuery extends QueryConfig {
+
   /**
     * Query creator.
     *
@@ -40,6 +41,10 @@ case object CustomQuery extends QueryConfig {
   }
 
   implicit def query2ConditionalQuery(q: Query): ConditionQuery = ConditionQuery(q)
+
+  implicit def querySeq2ConditionalQuery(q: Seq[Query]): ConditionQuery = ConditionQuery(q)
+
+  implicit def queryConditionalSeq2ConditionalQuery(q: Seq[(Query, BooleanClause.Occur)]): ConditionQuery = ConditionQuery(q)
 
   /**
     * Tuple2 to Query.

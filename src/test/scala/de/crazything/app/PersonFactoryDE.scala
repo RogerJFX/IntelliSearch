@@ -43,6 +43,7 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
 
   val customEnabledQuery_Name = "customEnabledQuery_lastName"
   val customQuery_FirstAndLastName = "customQuery_FirstAndLastName"
+  val cascadedQuery_FirstAndLastName = "cascadedQuery_FirstAndLastName"
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
     dataContainer.findById(doc.get(PK).toInt)
@@ -70,6 +71,7 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
     criteria.queryName match {
       case `customEnabledQuery_Name` => createSuperCustomQuery(person, criteria.queryEnableOpt)
       case `customQuery_FirstAndLastName` => createFirstAndLastNameQuery(person)
+      case `cascadedQuery_FirstAndLastName` => doCreateCascadedStandardQuery(person)
       case _ =>
         logger.warn("No matching query name found. Falling back to standard `createQuery`")
         createQuery(person)

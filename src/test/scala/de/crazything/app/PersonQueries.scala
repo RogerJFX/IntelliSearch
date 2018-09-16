@@ -20,15 +20,15 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
     */
   def doCreateStandardQuery(person: Person): Query = {
     Seq(
-      (LAST_NAME, person.lastName).exact,
-      (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex,
-      (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic,
-      (LAST_NAME, person.lastName, Boost.FUZZY, FUZZY_MAX_EDITS).fuzzy
+      (LAST_NAME, person.lastName).exact.should,
+      (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex.should,
+      (LAST_NAME, person.lastName, Boost.PHONETIC).phonetic.should,
+      (LAST_NAME, person.lastName, Boost.FUZZY, FUZZY_MAX_EDITS).fuzzy.should
     )
 
   }
 
-  def doCreateCascadedStandardQuery(person: Person): Query = {
+  def doCreateCascadedStandardQuery(person: Person): Query =
     Seq(
       Seq(
         (LAST_NAME, person.lastName).exact,
@@ -39,7 +39,7 @@ trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexRepl
         (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT * 2).regex.should
       ).must
     )
-  }
+
 
   def createFirstAndLastNameQuery(person: Person): Query = {
     val result: Seq[Query] =

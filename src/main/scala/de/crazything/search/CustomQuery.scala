@@ -7,6 +7,18 @@ import org.apache.lucene.search._
 
 import scala.language.implicitConversions
 
+/**
+  * Collection of implicit conversions for creating queries and their accumulations most conveniently.
+  *
+  * Experience of the past let us decide some strange looking things here. Ok, we have a proof of concept here,
+  * so stay in touch.
+  *
+  * E.g. we only have Queries embedded as BoostQueries. This seems odd, and maybe it really is. Falling back to default
+  * boost values should once become deprecated. Instead we could simply leave out the boost.
+  *
+  * Probably we will decide to make phonetic analyzers no more implicit. So this approach might become
+  * deprecated very soon.
+  */
 case object CustomQuery extends QueryConfig {
 
   /**
@@ -19,7 +31,9 @@ case object CustomQuery extends QueryConfig {
     *                    to default value, if empty (see QueryConfig).
     * @param phoneticAnalyzer The phonetic analyzer.
     */
-  case class CQuery(fieldName: String, value: String, boostOption: Option[Float] = None,
+  private[CustomQuery] case class CQuery(fieldName: String,
+                                         value: String,
+                                         boostOption: Option[Float] = None,
                                          fuzzyOption: Option[Int] = None)
                    (phoneticAnalyzer: Analyzer) {
     def exact: Query = new BoostQuery(new TermQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.EXACT))
@@ -34,16 +48,72 @@ case object CustomQuery extends QueryConfig {
       boostOption.getOrElse(Boost.FUZZY))
   }
 
-  case class ConditionQuery(query: Query) {
+  /**
+    * Normally takes a Query from CQuery. All internal methods produce a tuple2. The tuples will be assembled in
+    * method seq2QueryCondition.
+    *
+    * @param query Query normally obtained from some CQuery method.
+    */
+  private[CustomQuery] case class ConditionQuery(query: Query) {
     def must:(Query, BooleanClause.Occur) = (query, BooleanClause.Occur.MUST)
     def mustNot:(Query, BooleanClause.Occur) = (query, BooleanClause.Occur.MUST_NOT)
     def should:(Query, BooleanClause.Occur) = (query, BooleanClause.Occur.SHOULD)
   }
 
+  /**
+    * Needed internal implicit conversion.
+    *
+    * @param q A query.
+    * @return A ConditionQuery
+    */
   implicit def query2ConditionalQuery(q: Query): ConditionQuery = ConditionQuery(q)
 
+  /**
+    * Needed internal implicit conversion. Implicitly uses method seq2Query.
+    *
+    * Grants the option of cascaded query terms like:
+    *
+    * {{{
+    *    Seq(
+    *      Seq(
+    *        (LAST_NAME, person.lastName).exact,
+    *        (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex
+    *      ).must,
+    *      Seq(
+    *        (FIRST_NAME, person.firstName).exact,
+    *        (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT * 2).regex
+    *      ).must
+    *    )
+    * }}}
+    *
+    * @param q A sequence of queries.
+    * @return A ConditionQuery
+    */
   implicit def querySeq2ConditionalQuery(q: Seq[Query]): ConditionQuery = ConditionQuery(q)
 
+  /**
+    * Needed internal implicit conversion. Implicitly uses method seq2QueryCondition.
+    *
+    * Grants the option like method query2ConditionalQuery,
+    * but with conditions like must, mustNot, should included. So something like (have a look at the
+    * FIRST_NAME section):
+    *
+    * {{{
+    *    Seq(
+    *      Seq(
+    *        (LAST_NAME, person.lastName).exact,
+    *        (LAST_NAME, createRegexTerm(person.lastName), Boost.REGEX).regex
+    *      ).must,
+    *      Seq(
+    *        (FIRST_NAME, person.firstName).exact.must,
+    *        (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT * 2).regex.should
+    *      ).must
+    *    )
+    * }}}
+    *
+    * @param q A sequence of queries ConditionQuery tuples.
+    * @return A ConditionQuery
+    */
   implicit def queryConditionalSeq2ConditionalQuery(q: Seq[(Query, BooleanClause.Occur)]): ConditionQuery = ConditionQuery(q)
 
   /**

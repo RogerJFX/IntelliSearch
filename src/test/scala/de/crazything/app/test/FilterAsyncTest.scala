@@ -40,7 +40,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
     DirectoryContainer.setDirectory(nullSearcherName, null)
     recoverToSucceededIf[Exception](
       FilteringSearcher.simpleSearchAsync(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
-        filterFn = filterFrankfurt, searcherOption = DirectoryContainer.pickSearcher(nullSearcherName)).map(result => {
+        filterFn = filterFrankfurt, searcherOption = DirectoryContainer.pickSearcherForName(nullSearcherName)).map(result => {
         assert(result.length == 1)
       })
     )
@@ -139,7 +139,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
     recoverToSucceededIf[Exception](
       FilteringSearcher.search(input = standardPerson.copy(lastName = "Hösl"), factory = PersonFactoryDE,
         filterFn = filterTrueFuture, searcherOption =
-          DirectoryContainer.pickSearcher("I bet there is no searcher for this string")).map(result => {
+          DirectoryContainer.pickSearcherForName("I bet there is no searcher for this string")).map(result => {
         assert(result.length == 1)
       })
     )

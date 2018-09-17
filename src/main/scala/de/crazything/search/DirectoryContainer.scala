@@ -28,7 +28,7 @@ object DirectoryContainer extends MagicSettings {
     }
   }
 
-  def pickSearcher(name: String): Option[IndexSearcher] = {
+  def pickSearcherForName(name: String): Option[IndexSearcher] = {
     val sOpt: Option[Option[IndexProps]] = searcherMap.get(name)
     if(sOpt.isEmpty || sOpt.get.isEmpty) {
       None
@@ -37,12 +37,13 @@ object DirectoryContainer extends MagicSettings {
     }
   }
 
-  def pickDirectory(name: String): Directory = {
-    searcherMap.get(name) match {
-      case Some(res) => res.get.directory
-      case _ => throw new RuntimeException("No directory for this name.")
-    }
-  }
+  // Later...
+//  def pickDirectoryForName(name: String): Directory = {
+//    searcherMap.get(name) match {
+//      case Some(res) => res.get.directory
+//      case _ => throw new RuntimeException("No directory for this name.")
+//    }
+//  }
 
   def defaultSearcher: Option[IndexSearcher] = _defaultSearcher.get()
 
@@ -50,5 +51,5 @@ object DirectoryContainer extends MagicSettings {
 }
 
 trait DirectoryContainer {
-  implicit def stringToSearcher(name: String): Option[IndexSearcher] = DirectoryContainer.pickSearcher(name)
+  implicit def stringToSearcher(name: String): Option[IndexSearcher] = DirectoryContainer.pickSearcherForName(name)
 }

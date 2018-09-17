@@ -42,7 +42,7 @@ class CommonSearchTest extends FlatSpec with Matchers with QueryConfig with Germ
     DirectoryContainer.setDirectory(nullSearcherName, null)
     an [IllegalStateException] should be thrownBy {
       val searchResult: Seq[SearchResult[Int, Person]] = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE,
-        searcherOption = DirectoryContainer.pickSearcher(nullSearcherName))
+        searcherOption = DirectoryContainer.pickSearcherForName(nullSearcherName))
       assert(searchResult.length == 1)
     }
   }
@@ -51,7 +51,7 @@ class CommonSearchTest extends FlatSpec with Matchers with QueryConfig with Germ
     val nullSearcherName = "SimpleTest-UnknownSearcher"
     an [IllegalStateException] should be thrownBy {
       val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Reißer"), PersonFactoryDE,
-        searcherOption = DirectoryContainer.pickSearcher(nullSearcherName))
+        searcherOption = DirectoryContainer.pickSearcherForName(nullSearcherName))
       assert(searchResult.length == 1)
     }
   }

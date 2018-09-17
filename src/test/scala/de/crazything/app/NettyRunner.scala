@@ -60,7 +60,7 @@ object NettyRunner extends QuickJsonParser{
         val searchResult: Seq[SearchResult[Int, SocialPerson]] =
           CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory,
             queryCriteria = Some(QueryCriteria(SocialPersonFactory.customQuery_FirstAndLastName, None)),
-            searcherOption = DirectoryContainer.pickSearcher("remoteIndex"))
+            searcherOption = DirectoryContainer.pickSearcherForName("remoteIndex"))
 
         val strSearchResult: String = t2JsonString[SearchResultCollection[Int, SocialPerson]](SearchResultCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
@@ -95,7 +95,7 @@ object NettyRunner extends QuickJsonParser{
       request => {
         val person: SkilledPerson = jsonString2T[SkilledPerson](request.body.asJson.get.toString())
         val searchResult: Seq[SearchResult[Int, SkilledPerson]] =
-          CommonSearcher.search(input = person, factory = SkilledPersonFactory, searcherOption = DirectoryContainer.pickSearcher("skilledIndex"))
+          CommonSearcher.search(input = person, factory = SkilledPersonFactory, searcherOption = DirectoryContainer.pickSearcherForName("skilledIndex"))
         val strSearchResult: String = t2JsonString[SearchResultCollection[Int, SkilledPerson]](SearchResultCollection(searchResult))
         Results.Created(strSearchResult).as("application/json")
       }

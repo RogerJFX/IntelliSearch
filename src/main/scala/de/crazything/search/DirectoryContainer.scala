@@ -8,35 +8,45 @@ import org.apache.lucene.store.Directory
 
 import scala.collection.concurrent
 
+// TODO: fix this crap!
 object DirectoryContainer extends MagicSettings {
 
   private val _defaultSearcher: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]](None)
 
-  val searcherMap: concurrent.Map[String, Option[IndexSearcher]] = concurrent.TrieMap()
+  private val searcherMap: concurrent.Map[String, Option[IndexProps]] = concurrent.TrieMap()
 
   def setDirectory(name: String, dir: Directory): Unit = {
-    val searcher: Option[IndexSearcher] = if(dir == null) {
+    val searcher: Option[IndexProps] = if(dir == null) {
       None
     } else {
       val reader: DirectoryReader = DirectoryReader.open(dir)
-      Some(new IndexSearcher(reader))
+      Some(IndexProps(dir, new IndexSearcher(reader)))
     }
     searcherMap.put(name, searcher)
-    if(name == DEFAULT_DIRECTORY_NAME) {
-      _defaultSearcher.set(searcher)
+    if(name == DEFAULT_DIRECTORY_NAME && searcher.nonEmpty) {
+      _defaultSearcher.set(Some(searcher.get.searcher))
     }
   }
 
   def pickSearcher(name: String): Option[IndexSearcher] = {
-    val sOpt: Option[Option[IndexSearcher]] = searcherMap.get(name)
-    if(sOpt.isEmpty) {
+    val sOpt: Option[Option[IndexProps]] = searcherMap.get(name)
+    if(sOpt.isEmpty || sOpt.get.isEmpty) {
       None
     } else {
-      sOpt.get // may still be None
+      Some(sOpt.get.get.searcher) // Oh no! Is it a dog's fart? Change this, dude!
+    }
+  }
+
+  def pickDirectory(name: String): Directory = {
+    searcherMap.get(name) match {
+      case Some(res) => res.get.directory
+      case _ => throw new RuntimeException("No directory for this name.")
     }
   }
 
   def defaultSearcher: Option[IndexSearcher] = _defaultSearcher.get()
+
+  case class IndexProps(directory: Directory, searcher: IndexSearcher)
 }
 
 trait DirectoryContainer {

@@ -37,13 +37,12 @@ object DirectoryContainer extends MagicSettings {
     }
   }
 
-  // Later...
-//  def pickDirectoryForName(name: String): Directory = {
-//    searcherMap.get(name) match {
-//      case Some(res) => res.get.directory
-//      case _ => throw new RuntimeException("No directory for this name.")
-//    }
-//  }
+  def pickDirectoryForName(name: String): Directory = {
+    searcherMap.get(name) match {
+      case Some(res) => res.get.directory
+      case _ => throw new RuntimeException("No directory for this name.")
+    }
+  }
 
   def defaultSearcher: Option[IndexSearcher] = _defaultSearcher.get()
 

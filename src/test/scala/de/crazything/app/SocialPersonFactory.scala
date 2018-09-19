@@ -16,11 +16,11 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
     selectQueryCreator => selectQueryCreatorS}
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
-    dataContainer.findById(doc.get(SocialPersonFactory.PK).toInt)
+    findById(doc.get(SocialPersonFactory.PK).toInt)
   }
 
   override def setDataPool(data: Seq[SocialPerson]): Unit = {
-    dataContainer.setData(data)
+    setData(data)
   }
 
   override def populateDocument(document: Document, dataSet: SocialPerson): Unit = populateDocumentS(document, dataSet)
@@ -48,11 +48,11 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
   val customQuery_FirstAndLastName = "customQuery_FirstAndLastName"
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
-    dataContainer.findById(doc.get(PK).toInt)
+    findById(doc.get(PK).toInt)
   }
 
   override def setDataPool(data: Seq[SocialPerson]): Unit = {
-    dataContainer.setData(data)
+    setData(data)
   }
 
   override def populateDocument(document: Document, person: SocialPerson): Unit = {
@@ -79,9 +79,6 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
     criteria.queryName match {
       case `customQuery_FirstAndLastName` =>
         Seq(
-//          (LAST_NAME, person.lastName).exact,
-//          (FIRST_NAME, person.firstName).exact,
-
           (LAST_NAME, createRegexTerm(person.lastName), Boost.EXACT*2).regex,
           (FIRST_NAME, createRegexTerm(person.firstName), Boost.EXACT*2).regex,
 

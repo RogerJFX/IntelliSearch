@@ -7,7 +7,6 @@ import org.apache.lucene.store.Directory
 object CommonIndexer extends AbstractIndexer {
 
   override protected def putDirectoryReference(directory: Directory, name: String): Unit = {
-    //CommonSearcher.setDirectory(directory)
     DirectoryContainer.setDirectory(name, directory)
   }
 

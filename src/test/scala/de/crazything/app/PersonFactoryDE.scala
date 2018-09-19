@@ -14,11 +14,11 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
     selectQueryCreator => selectQueryCreatorS}
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
-    dataContainer.findById(doc.get(PersonFactoryDE.PK).toInt)
+    findById(doc.get(PersonFactoryDE.PK).toInt)
   }
 
   override def setDataPool(data: Seq[Person]): Unit = {
-    dataContainer.setData(data)
+    setData(data)
   }
 
   override def populateDocument(document: Document, dataSet: Person): Unit = populateDocumentS(document, dataSet)
@@ -46,11 +46,11 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
   val cascadedQuery_FirstAndLastName = "cascadedQuery_FirstAndLastName"
 
   override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
-    dataContainer.findById(doc.get(PK).toInt)
+    findById(doc.get(PK).toInt)
   }
 
   override def setDataPool(data: Seq[Person]): Unit = {
-    dataContainer.setData(data)
+    setData(data)
   }
 
   override def populateDocument(document: Document, person: Person): Unit = {

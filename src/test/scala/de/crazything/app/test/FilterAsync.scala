@@ -123,5 +123,19 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       } else createQuery(person)
     }
 
+    /**
+      * Store the data that later is searched.
+      *
+      * @param data The data.
+      */
+    override def setData(data: Seq[Person]): Unit = ???
+
+    /**
+      * Select * from Seq where id = ´id´ .
+      *
+      * @param id Id of data set.
+      * @return Found data set.
+      */
+    override def findById(id: Int): PkDataSet[Int] = ???
   }
 }

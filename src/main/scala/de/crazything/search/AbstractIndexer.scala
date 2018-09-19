@@ -9,7 +9,8 @@ import org.apache.lucene.store._
 abstract class AbstractIndexer extends MagicSettings {
 
   protected def createIndex[I, T <: PkDataSet[I]](analyzer: Analyzer,
-                                                  data: Seq[T], factory: AbstractTypeFactory[I, T],
+                                                  data: Seq[T],
+                                                  factory: AbstractTypeFactory[I, T],
                                                   name: String): Unit = {
     val config = new IndexWriterConfig(analyzer)
     val directory = new RAMDirectory

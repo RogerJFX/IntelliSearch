@@ -15,31 +15,22 @@ import de.crazything.search.entity.PkDataSet
   * @tparam P Type of Primary Key.
   * @tparam T Type of entity to store.
   */
-trait InMemoryData[P, T <: PkDataSet[P]] {
+trait InMemoryData[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
 
-  /**
-    * Just some namespace.
-    */
-  protected class DataContainer extends IPersistence[P, T]{
-
-    private case class Data(data: Seq[T]) {
-      private[DataContainer] def findById(id: P): T = data.find(d => d.getId == id)
-        .getOrElse(throw new RuntimeException(s"Something completely impossible happened here. " +
-          s"Corrupted directory? Missing id was $id"))
-    }
-
-    private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
-
-    override def setData(data: Seq[T]): Unit = {
-      dataRef.set(Data(data))
-    }
-
-    override def findById(id: P): PkDataSet[P] = {
-      dataRef.get().findById(id)
-    }
-
+  private case class Data(data: Seq[T]) {
+    private[InMemoryData] def findById(id: P): T = data.find(d => d.getId == id)
+      .getOrElse(throw new RuntimeException(s"Something completely impossible happened here. " +
+        s"Corrupted directory? Missing id was $id"))
   }
 
-  protected lazy val dataContainer = new DataContainer
+  private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
+
+  override def setData(data: Seq[T]): Unit = {
+    dataRef.set(Data(data))
+  }
+
+  override def findById(id: P): PkDataSet[P] = {
+    dataRef.get().findById(id)
+  }
 
 }

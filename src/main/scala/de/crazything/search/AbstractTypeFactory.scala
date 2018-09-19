@@ -1,10 +1,11 @@
 package de.crazything.search
 
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.persistence.IPersistence
 import org.apache.lucene.document._
 import org.apache.lucene.search.Query
 
-abstract class AbstractTypeFactory[I, -T <: PkDataSet[I]] extends QueryConfig{
+abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig with IPersistence[I, T]{
 
   protected def addPkField(document: Document, fieldName: String, value: I): Unit = {
     // if we have a custom PK (so I), you have to override toString and implement fromString.

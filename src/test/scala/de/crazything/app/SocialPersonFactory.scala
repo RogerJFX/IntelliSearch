@@ -3,13 +3,13 @@ package de.crazything.app
 import de.crazything.search.CustomQuery.{data2Query, seq2Query}
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
-import de.crazything.search.persistence.InMemoryData
+import de.crazything.search.persistence.InMemoryDAO
 import org.apache.lucene.document._
 import org.apache.lucene.search._
 import org.slf4j.LoggerFactory
 
 class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
-  with GermanLanguage with GermanRegexReplace with InMemoryData [Int, SocialPerson] {
+  with GermanLanguage with GermanRegexReplace with InMemoryDAO [Int, SocialPerson] {
 
   import SocialPersonFactory.{populateDocument => populateDocumentS,
     createQuery => createQueryS,
@@ -33,7 +33,7 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
 
 
 object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
-  with GermanLanguage with GermanRegexReplace with InMemoryData [Int, SocialPerson] {
+  with GermanLanguage with GermanRegexReplace with InMemoryDAO [Int, SocialPerson] {
 
   private val logger = LoggerFactory.getLogger(SocialPersonFactory.getClass)
 

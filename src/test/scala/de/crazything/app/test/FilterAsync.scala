@@ -137,5 +137,12 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       * @return Found data set.
       */
     override def findById(id: Int): PkDataSet[Int] = ???
+
+    /**
+      * Remove data from persistence context.
+      *
+      * @param data Data to remove
+      */
+    override def deleteData(data: Seq[Person]): Unit = ???
   }
 }

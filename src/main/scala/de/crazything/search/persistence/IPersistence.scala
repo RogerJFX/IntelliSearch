@@ -4,11 +4,20 @@ import de.crazything.search.entity.PkDataSet
 
 trait IPersistence[P, T <: PkDataSet[P]]  {
   /**
-    * Store the data that later is searched.
+    * Store the data that later is searched. Even updates data.
+    *
+    * Just pass some data. It will be merged.
     *
     * @param data The data.
     */
   def setData(data: Seq[T]): Unit
+
+  /**
+    * Remove data from persistence context.
+    *
+    * @param data Data to remove
+    */
+  def deleteData(data: Seq[T]): Unit
 
   /**
     * Select * from Seq where id = ´id´ .

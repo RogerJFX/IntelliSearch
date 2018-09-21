@@ -2,7 +2,7 @@ package de.crazything.app
 
 import de.crazything.search.CustomQuery._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
-import de.crazything.search.persistence.InMemoryData
+import de.crazything.search.persistence.InMemoryDAO
 import de.crazything.search.{AbstractTypeFactory, QueryConfig}
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
@@ -10,7 +10,7 @@ import org.apache.lucene.search.Query
 import scala.collection.mutable.ListBuffer
 
 class SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with QueryConfig
-  with NoLanguage with InMemoryData [Int, SkilledPerson] {
+  with NoLanguage with InMemoryDAO [Int, SkilledPerson] {
 
   import SkilledPersonFactory.{
     populateDocument => populateDocumentS,
@@ -30,7 +30,7 @@ class SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with 
 }
 
 object SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with QueryConfig
-  with NoLanguage with InMemoryData [Int, SkilledPerson] {
+  with NoLanguage with InMemoryDAO [Int, SkilledPerson] {
 
   private[app] val PK = "id"
 

@@ -13,8 +13,7 @@ object CommonIndexer extends AbstractIndexer {
   def index[I, T <: PkDataSet[I]](data: Seq[T],
                                   factory: AbstractTypeFactory[I, T],
                                   name: String = DEFAULT_DIRECTORY_NAME)
-                                 (implicit phoneticAnalyzer: Analyzer): Unit = {
+                                 (implicit phoneticAnalyzer: Analyzer): Unit =
     createIndex(phoneticAnalyzer, data, factory, name)
-  }
 
 }

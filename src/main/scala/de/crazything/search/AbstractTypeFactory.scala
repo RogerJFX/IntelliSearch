@@ -5,7 +5,7 @@ import de.crazything.search.persistence.IPersistence
 import org.apache.lucene.document._
 import org.apache.lucene.search.Query
 
-abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig with IPersistence[I, T]{
+abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig with IPersistence[I, T] {
 
   protected def addPkField(document: Document, fieldName: String, value: I): Unit = {
     // if we have a custom PK (so I), you have to override toString and implement fromString.
@@ -30,6 +30,6 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig wit
 
   def createQuery(t: T): Query
 
-  def selectQueryCreator:(QueryCriteria, T) => Query
+  def selectQueryCreator: (QueryCriteria, T) => Query
 
 }

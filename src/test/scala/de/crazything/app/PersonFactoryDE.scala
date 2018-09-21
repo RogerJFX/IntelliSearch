@@ -2,12 +2,12 @@ package de.crazything.app
 
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
-import de.crazything.search.persistence.InMemoryData
+import de.crazything.search.persistence.InMemoryDAO
 import org.apache.lucene.document._
 import org.apache.lucene.search._
 import org.slf4j.LoggerFactory
 
-class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryData[Int, Person]{
+class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryDAO[Int, Person]{
 
   import PersonFactoryDE.{populateDocument => populateDocumentS,
     createQuery => createQueryS,
@@ -29,7 +29,7 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
 
 }
 
-object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryData[Int, Person]{
+object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryDAO[Int, Person]{
 
   private val logger = LoggerFactory.getLogger(PersonFactoryDE.getClass)
 

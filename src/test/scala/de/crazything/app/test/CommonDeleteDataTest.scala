@@ -11,12 +11,12 @@ class CommonDeleteDataTest extends FlatSpec with Matchers with QueryConfig with 
 
   CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE)
 
-  "Persons" should "find Scharnofske" in {
+  "Persons" should "find Scharnofske" ignore {
     val searchResult = CommonSearcher.search(standardPerson.copy(lastName = "Scharnofske"), PersonFactoryDE)
     assert(searchResult.length == 1)
   }
 
-  it should "not find Scharnofske after deleting entry" in {
+  it should "not find Scharnofske after deleting entry" ignore {
     val personToDelete = standardPerson.copy(lastName = "Scharnofske")
 
     val searchResult = CommonSearcher.search(personToDelete, PersonFactoryDE)

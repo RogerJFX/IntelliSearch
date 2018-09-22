@@ -17,7 +17,7 @@ class SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with 
     createQuery => createQueryS,
     selectQueryCreator => selectQueryCreatorS}
 
-  override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = findById(doc.get(SkilledPersonFactory.PK).toInt)
+  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = findById(doc.get(SkilledPersonFactory.PK).toInt)
 
   override def setDataPool(data: Seq[SkilledPerson]): Unit = setData(data)
 
@@ -40,7 +40,7 @@ object SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with
   private[app] val CSV_SKILLS = "skills"
 
 
-  override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
+  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(PK).toInt)
   }
 

@@ -28,10 +28,11 @@ object CommonSearcher extends MagicSettings{
 
         val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
 
-        hits.map(hit => {
-          val hitDoc = searcher.doc(hit.doc)
-          SearchResult[I, T](factory.createInstanceFromDocument(hitDoc).asInstanceOf[T], hit.score)
+        hits.flatMap(hit => {
+          val o: Option[PkDataSet[I]] = factory.createInstanceFromDocument(searcher.doc(hit.doc))
+          hits.filter(_ => o.isDefined).map(_ => SearchResult[I, T](o.get.asInstanceOf[T], hit.score))
         })
+
       case None => throw new IllegalStateException("Nobody told us to have a directory reference. No yet finished? " +
         "Anything async? We should fix this then")
     }

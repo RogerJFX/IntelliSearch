@@ -97,7 +97,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
 
     import de.crazything.search.CustomQuery._
 
-    override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = PersonFactoryDE.createInstanceFromDocument(doc)
+    override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = PersonFactoryDE.createInstanceFromDocument(doc)
 
     override def setDataPool(data: Seq[Person]): Unit = ???
 
@@ -136,7 +136,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       * @param id Id of data set.
       * @return Found data set.
       */
-    override def findById(id: Int): PkDataSet[Int] = ???
+    override def findById(id: Int): Option[PkDataSet[Int]] = ???
 
     /**
       * Remove data from persistence context.

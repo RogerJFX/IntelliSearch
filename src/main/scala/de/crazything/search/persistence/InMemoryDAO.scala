@@ -18,20 +18,15 @@ import de.crazything.search.entity.PkDataSet
 trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
 
   private case class Data(data: Seq[T]) {
-    private[InMemoryDAO] def findById(id: P): T = data.find(d => d.getId == id)
-      .getOrElse(throw new RuntimeException(s"Something completely impossible happened here. " +
-        s"Corrupted directory? Missing id was $id"))
+    private[InMemoryDAO] def findById(id: P): Option[T] = data.find(d => d.getId == id)
   }
 
-  private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data]()
+  // Empty. Never be null, dude.
+  private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data](Data(Seq()))
 
   // insert or update. OR: init!
   override def setData(data: Seq[T]): Unit = {
-    if (dataRef.get() == null) {
-      dataRef.set(Data(data))
-    } else {
-      dataRef.set(Data(extractRemainingData(data) ++ data))
-    }
+    dataRef.set(Data(extractRemainingData(data) ++ data))
   }
 
   // delete
@@ -40,7 +35,7 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
   }
 
   // select
-  override def findById(id: P): PkDataSet[P] = {
+  override def findById(id: P): Option[PkDataSet[P]] = {
     dataRef.get().findById(id)
   }
 

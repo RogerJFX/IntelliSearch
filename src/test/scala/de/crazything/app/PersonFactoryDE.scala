@@ -13,7 +13,7 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
     createQuery => createQueryS,
     selectQueryCreator => selectQueryCreatorS}
 
-  override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
+  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(PersonFactoryDE.PK).toInt)
   }
 
@@ -45,7 +45,7 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
   val customQuery_FirstAndLastName = "customQuery_FirstAndLastName"
   val cascadedQuery_FirstAndLastName = "cascadedQuery_FirstAndLastName"
 
-  override def createInstanceFromDocument(doc: Document): PkDataSet[Int] = {
+  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(PK).toInt)
   }
 

@@ -11,6 +11,7 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig wit
     // if we have a custom PK (so I), you have to override toString and implement fromString.
     //TODO: think about creating some PK wrapper with methods toString/fromString.
     document.add(new StoredField(fieldName, value.toString))
+    document.add(new Field("_" + fieldName, value.toString, StringField.TYPE_NOT_STORED))
   }
 
   protected def addField(document: Document, fieldName: String, value: String): Unit = {
@@ -22,9 +23,11 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig wit
     document.add(new Field(fieldName, value, TextField.TYPE_NOT_STORED))
   }
 
-  def createInstanceFromDocument(doc: Document): PkDataSet[I]
+  def createInstanceFromDocument(doc: Document): Option[PkDataSet[I]]
 
   def setDataPool(data: Seq[T]): Unit
+
+  def deleteFromDataPool(data: Seq[T]): Unit = deleteData(data)
 
   def populateDocument(document: Document, dataSet: T): Unit
 

@@ -25,5 +25,5 @@ trait IPersistence[P, T <: PkDataSet[P]]  {
     * @param id Id of data set.
     * @return Found data set.
     */
-  def findById(id: P): PkDataSet[P]
+  def findById(id: P): Option[PkDataSet[P]]
 }

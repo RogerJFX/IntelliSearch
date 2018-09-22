@@ -32,7 +32,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
     val config = new IndexWriterConfig(phoneticAnalyzer)
     val writer = new IndexWriter(directory, config)
     try {
-      deleteData(data, factory, name) // Lucene does nothing else than deleting and adding.
       val dataBuffer = new ListBuffer[T]
       data.foreach(dataSet => {
         dataBuffer.append(dataSet)
@@ -41,6 +40,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         writer.addDocument(document)
       })
       writer.commit()
+      deleteData(data, factory, name) // Lucene does nothing else than deleting and adding.
       factory.setData(dataBuffer)
     } catch {
       case e: Exception =>

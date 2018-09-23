@@ -128,7 +128,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       *
       * @param data The data.
       */
-    override def setData(data: Seq[Person]): Unit = ???
+    override def setData(data: Seq[Person]): Unit = PersonFactoryDE.setData(data)
 
     /**
       * Select * from Seq where id = ´id´ .
@@ -136,7 +136,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       * @param id Id of data set.
       * @return Found data set.
       */
-    override def findById(id: Int): Option[PkDataSet[Int]] = ???
+    override def findById(id: Int): Option[PkDataSet[Int]] = PersonFactoryDE.findById(id)
 
     /**
       * Remove data from persistence context.

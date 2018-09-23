@@ -24,6 +24,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
                                  (implicit phoneticAnalyzer: Analyzer): Unit =
     createIndex(phoneticAnalyzer, data, factory, name)
 
+  //TODO: do not flush! Just implement some flush method with a warning inside.
   def updateData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
                                        name: String = DEFAULT_DIRECTORY_NAME)

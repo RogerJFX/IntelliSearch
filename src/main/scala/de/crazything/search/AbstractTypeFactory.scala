@@ -24,7 +24,7 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig wit
   }
 
   protected def addStoredField(document: Document, fieldName: String, value: String): Unit = {
-    document.add(new Field(fieldName, value, TextField.TYPE_STORED))
+    document.add(new Field(fieldName, value, StringField.TYPE_STORED))
   }
 
   def createInstanceFromDocument(doc: Document): Option[PkDataSet[I]]

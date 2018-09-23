@@ -22,7 +22,7 @@ object DirectoryContainer extends MagicSettings {
       val reader: DirectoryReader = DirectoryReader.open(dir)
       Some(IndexProps(dir, new IndexSearcher(reader)))
     }
-
+    //TODO: old readers must be closed. Does not seem to work so far. Some tests still fail.
 //    val oldSearcher: Option[Option[IndexProps]] = searcherMap.get(name)
 //    oldSearcher match {
 //      case Some(opt) => opt match {

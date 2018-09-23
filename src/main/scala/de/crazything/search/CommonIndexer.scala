@@ -4,7 +4,7 @@ import de.crazything.search.entity.PkDataSet
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.index._
-import org.apache.lucene.search.{Query, TermQuery}
+import org.apache.lucene.search.Query
 import org.apache.lucene.store.Directory
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -30,6 +30,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
     val directory = DirectoryContainer.pickDirectoryForName(name)
     val config = new IndexWriterConfig(phoneticAnalyzer)
+    // TODO: not included to transaction. MUST BE CHANGED.
     deleteData(data, factory, name, forceFlush = false) // Lucene does nothing else than deleting and adding.
     val writer = new IndexWriter(directory, config)
     try {
@@ -40,7 +41,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         factory.populateDocument(document, dataSet)
         writer.addDocument(document)
       })
-      writer.forceMerge(1)
       writer.commit()
       writer.flush()
       factory.setData(dataBuffer)
@@ -50,9 +50,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         logger.error("Unable updating data from Lucene directory. Rolling back.", e)
     }
     writer.close()
-    println("After update")
-    checkIndex(name)
-    println("updating done")
     DirectoryContainer.setDirectory(name, directory)
   }
 
@@ -63,11 +60,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
                                        name: String = DEFAULT_DIRECTORY_NAME,
                                        forceFlush: Boolean = true)
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
-    println("data to delete")
-    println(data)
-    println("Index before delete")
-    checkIndex(name)
-    println("#####")
     import de.crazything.search.CustomQuery._
     this.synchronized {
       val directory = DirectoryContainer.pickDirectoryForName(name)
@@ -90,20 +82,18 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
           throw new RuntimeException("Unable to delete data from Lucene directory. Rolling back.", e)
       }
       writer.close()
-      println("AFTER DELETE:")
-      checkIndex(name)
-      println("deleting done")
-      DirectoryContainer.setDirectory(name, directory)
+      if(forceFlush)
+        DirectoryContainer.setDirectory(name, directory)
     }
   }
 
-  def checkIndex(name: String): Unit = {
-    val directory = DirectoryContainer.pickDirectoryForName(name)
-    val reader: DirectoryReader = DirectoryReader.open(directory)
-    for(i <- 0 until reader.maxDoc()) {
-      println(reader.document(i).get("lastName"))
-    }
-  }
+//  def checkIndex(name: String): Unit = {
+//    val directory = DirectoryContainer.pickDirectoryForName(name)
+//    val reader: DirectoryReader = DirectoryReader.open(directory)
+//    for(i <- 0 until reader.maxDoc()) {
+//      println(reader.document(i).get("lastName"))
+//    }
+//  }
 
 
 }

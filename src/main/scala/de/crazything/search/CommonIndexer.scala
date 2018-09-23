@@ -3,7 +3,7 @@ package de.crazything.search
 import de.crazything.search.entity.PkDataSet
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document.Document
-import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
+import org.apache.lucene.index._
 import org.apache.lucene.search.{Query, TermQuery}
 import org.apache.lucene.store.Directory
 import org.slf4j.{Logger, LoggerFactory}
@@ -30,6 +30,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
     val directory = DirectoryContainer.pickDirectoryForName(name)
     val config = new IndexWriterConfig(phoneticAnalyzer)
+    deleteData(data, factory, name, forceFlush = false) // Lucene does nothing else than deleting and adding.
     val writer = new IndexWriter(directory, config)
     try {
       val dataBuffer = new ListBuffer[T]
@@ -39,8 +40,9 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         factory.populateDocument(document, dataSet)
         writer.addDocument(document)
       })
+      writer.forceMerge(1)
       writer.commit()
-      deleteData(data, factory, name) // Lucene does nothing else than deleting and adding.
+      writer.flush()
       factory.setData(dataBuffer)
     } catch {
       case e: Exception =>
@@ -48,25 +50,38 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         logger.error("Unable updating data from Lucene directory. Rolling back.", e)
     }
     writer.close()
+    println("After update")
+    checkIndex(name)
+    println("updating done")
+    DirectoryContainer.setDirectory(name, directory)
   }
 
 
   //TODO: move me. This is just a poc.
   def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
-                                       name: String = DEFAULT_DIRECTORY_NAME)
+                                       name: String = DEFAULT_DIRECTORY_NAME,
+                                       forceFlush: Boolean = true)
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
+    println("data to delete")
+    println(data)
+    println("Index before delete")
+    checkIndex(name)
+    println("#####")
     import de.crazything.search.CustomQuery._
     this.synchronized {
       val directory = DirectoryContainer.pickDirectoryForName(name)
       val config = new IndexWriterConfig(phoneticAnalyzer)
       val writer = new IndexWriter(directory, config)
+
       val pks: Seq[I] = data.map(d => d.getId)
       try {
         val deleteQuery: Query = pks.map(pk => ("_id", pk + "").exact.must)
         writer.deleteDocuments(deleteQuery)
-        val numDeleted = writer.commit()
-        logger.info("Removed {} entries from search directory. As usual not immediately.", numDeleted)
+        //writer.forceMergeDeletes(true)
+        writer.commit()
+        if(forceFlush)
+          writer.flush()
         factory.deleteData(data)
       } catch {
         case e: Exception =>
@@ -75,6 +90,18 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
           throw new RuntimeException("Unable to delete data from Lucene directory. Rolling back.", e)
       }
       writer.close()
+      println("AFTER DELETE:")
+      checkIndex(name)
+      println("deleting done")
+      DirectoryContainer.setDirectory(name, directory)
+    }
+  }
+
+  def checkIndex(name: String): Unit = {
+    val directory = DirectoryContainer.pickDirectoryForName(name)
+    val reader: DirectoryReader = DirectoryReader.open(directory)
+    for(i <- 0 until reader.maxDoc()) {
+      println(reader.document(i).get("lastName"))
     }
   }
 

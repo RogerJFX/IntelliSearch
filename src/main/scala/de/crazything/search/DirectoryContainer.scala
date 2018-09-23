@@ -22,6 +22,16 @@ object DirectoryContainer extends MagicSettings {
       val reader: DirectoryReader = DirectoryReader.open(dir)
       Some(IndexProps(dir, new IndexSearcher(reader)))
     }
+
+//    val oldSearcher: Option[Option[IndexProps]] = searcherMap.get(name)
+//    oldSearcher match {
+//      case Some(opt) => opt match {
+//        case Some(s) => s.searcher.getIndexReader.close()
+//        case _ =>
+//      }// opt.get.searcher.getIndexReader.close()
+//      case _ =>
+//    }
+
     searcherMap.put(name, searcher)
     if(name == DEFAULT_DIRECTORY_NAME && searcher.nonEmpty) {
       _defaultSearcher.set(Some(searcher.get.searcher))

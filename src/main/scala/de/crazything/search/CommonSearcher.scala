@@ -7,6 +7,7 @@ import de.crazything.service.RestClient
 import org.apache.lucene.search.{IndexSearcher, Query, ScoreDoc}
 import play.api.libs.json.{Format, OFormat}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -28,10 +29,17 @@ object CommonSearcher extends MagicSettings{
 
         val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
 
-        hits.flatMap(hit => {
+        val buffer = ListBuffer[SearchResult[I, T]]()
+
+        hits.foreach(hit => {
           val hitOpt: Option[PkDataSet[I]] = factory.createInstanceFromDocument(searcher.doc(hit.doc))
-          hits.filter(_ => hitOpt.isDefined).map(_ => SearchResult[I, T](hitOpt.get.asInstanceOf[T], hit.score))
+          hitOpt match {
+            case Some(entry) => buffer.append(SearchResult[I, T](entry.asInstanceOf[T], hit.score))
+            case _ =>
+          }
         })
+
+        buffer
 
       case None => throw new IllegalStateException("Nobody told us to have a directory reference. No yet finished? " +
         "Anything async? We should fix this then")

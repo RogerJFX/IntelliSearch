@@ -57,6 +57,8 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
 
     addPkField(document, PK, person.id)
 
+    addStoredField(document, LAST_NAME, person.lastName)
+
     addField(document, SALUTATION, person.salutation)
     addField(document, FIRST_NAME, person.firstName)
     addField(document, LAST_NAME, person.lastName)

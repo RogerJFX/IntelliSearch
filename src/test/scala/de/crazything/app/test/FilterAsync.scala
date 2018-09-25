@@ -128,7 +128,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       *
       * @param data The data.
       */
-    override def setData(data: Seq[Person]): Unit = PersonFactoryDE.setData(data)
+    override def setData(data: Seq[Person]): Seq[Person] = PersonFactoryDE.setData(data)
 
     /**
       * Select * from Seq where id = ´id´ .
@@ -144,5 +144,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       * @param data Data to remove
       */
     override def deleteData(data: Seq[Person]): Unit = ???
+
+    override def getPkFieldnameAsString(): String = ???
   }
 }

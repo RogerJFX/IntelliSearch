@@ -4,7 +4,6 @@ import de.crazything.search.entity.PkDataSet
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.index._
-import org.apache.lucene.search.Query
 import org.apache.lucene.store.Directory
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -24,77 +23,78 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
                                  (implicit phoneticAnalyzer: Analyzer): Unit =
     createIndex(phoneticAnalyzer, data, factory, name)
 
-  //TODO: do not flush! Just implement some flush method with a warning inside.
+  //TODO: not sure at the moment, if the exception handling is proper.
   def updateData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
                                        name: String = DEFAULT_DIRECTORY_NAME)
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
-    val directory = DirectoryContainer.pickDirectoryForName(name)
-    val config = new IndexWriterConfig(phoneticAnalyzer)
-    // TODO: not included to transaction. MUST BE CHANGED.
-    deleteData(data, factory, name, forceFlush = false) // Lucene does nothing else than deleting and adding.
-    val writer = new IndexWriter(directory, config)
-    try {
-      val dataBuffer = new ListBuffer[T]
-      data.foreach(dataSet => {
-        dataBuffer.append(dataSet)
-        val document: Document = new Document
-        factory.populateDocument(document, dataSet)
-        writer.addDocument(document)
-      })
-      writer.commit()
-      writer.flush()
-      factory.setData(dataBuffer)
-    } catch {
-      case e: Exception =>
-        writer.rollback()
-        logger.error("Unable updating data from Lucene directory. Rolling back.", e)
-    }
-    writer.close()
-    DirectoryContainer.setDirectory(name, directory)
-  }
-
-
-  //TODO: move me. This is just a poc.
-  def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
-                                       factory: AbstractTypeFactory[I, T],
-                                       name: String = DEFAULT_DIRECTORY_NAME,
-                                       forceFlush: Boolean = true)
-                                      (implicit phoneticAnalyzer: Analyzer): Unit = {
-    import de.crazything.search.CustomQuery._
     this.synchronized {
       val directory = DirectoryContainer.pickDirectoryForName(name)
       val config = new IndexWriterConfig(phoneticAnalyzer)
       val writer = new IndexWriter(directory, config)
-
-      val pks: Seq[I] = data.map(d => d.getId)
+      var oldData: Seq[T] = Seq()
       try {
-        val deleteQuery: Query = pks.map(pk => ("_id", pk + "").exact.must)
-        writer.deleteDocuments(deleteQuery)
-        //writer.forceMergeDeletes(true)
+        doDeleteData(data, factory, writer)
+        val dataBuffer = new ListBuffer[T]
+        data.foreach(dataSet => {
+          dataBuffer.append(dataSet)
+          val document: Document = new Document
+          factory.populateDocument(document, dataSet)
+          writer.addDocument(document)
+        })
         writer.commit()
-        if(forceFlush)
-          writer.flush()
-        factory.deleteData(data)
+        writer.flush()
+        oldData = factory.setData(dataBuffer)
       } catch {
         case e: Exception =>
           writer.rollback()
+          factory.setData(oldData)
+          logger.error("Unable updating data from Lucene directory. Rolling back.", e)
+      }
+      writer.close()
+      putDirectoryReference(directory, name)
+    }
+  }
+
+  /**
+    *
+    * Note: normally there is no need to flush immediately if there is data stored somewhere in a database or
+    * where so ever. This is, because e.g. the CommonSearcher filters for existence of data in this store.
+    * Thus even if the data tmp. remains in the index, it will not come up anymore.
+    *
+    * @param data             The data to delete.
+    * @param factory          Factory that can handle the data to pass.
+    * @param name             Directory name default is the main directory.
+    * @param forceFlush       If true, the writer will flush after commit. This is expensive. Nevertheless defaults to true!
+    * @param phoneticAnalyzer The custom analyzer
+    * @tparam I Type of PK
+    * @tparam T Type of data
+    */
+  def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
+                                       factory: AbstractTypeFactory[I, T],
+                                       name: String = DEFAULT_DIRECTORY_NAME,
+                                       forceFlush: Boolean = false)
+                                      (implicit phoneticAnalyzer: Analyzer): Unit = {
+    this.synchronized {
+      val directory = DirectoryContainer.pickDirectoryForName(name)
+      val config = new IndexWriterConfig(phoneticAnalyzer)
+      val writer = new IndexWriter(directory, config)
+      try {
+        doDeleteData(data, factory, writer)
+        if (forceFlush) {
+          writer.flush()
+        }
+        factory.deleteData(data)
+      } catch {
+        case e: Exception =>
           writer.close()
           throw new RuntimeException("Unable to delete data from Lucene directory. Rolling back.", e)
       }
       writer.close()
-      if(forceFlush)
-        DirectoryContainer.setDirectory(name, directory)
+      if (forceFlush)
+        putDirectoryReference(directory, name)
     }
   }
-
-//  def checkIndex(name: String): Unit = {
-//    val directory = DirectoryContainer.pickDirectoryForName(name)
-//    val reader: DirectoryReader = DirectoryReader.open(directory)
-//    for(i <- 0 until reader.maxDoc()) {
-//      println(reader.document(i).get("lastName"))
-//    }
-//  }
 
 
 }

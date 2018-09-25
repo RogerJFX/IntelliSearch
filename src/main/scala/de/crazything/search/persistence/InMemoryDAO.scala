@@ -25,8 +25,10 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
   private[this] val dataRef: AtomicReference[Data] = new AtomicReference[Data](Data(Seq()))
 
   // insert or update. OR: init!
-  override def setData(data: Seq[T]): Unit = {
+  override def setData(data: Seq[T]): Seq[T] = {
+    val removedData = extractRemovedData(data)
     dataRef.set(Data(extractRemainingData(data) ++ data))
+    removedData
   }
 
   // delete
@@ -43,6 +45,12 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
     val oldData: Seq[T] = dataRef.get().data
     val ids: Seq[P] = incomingData.map(dd => dd.getId)
     oldData.filter(od => !ids.contains(od.getId))
+  }
+
+  private[this] def extractRemovedData(incomingData: Seq[T]): Seq[T] = {
+    val oldData: Seq[T] = dataRef.get().data
+    val ids: Seq[P] = incomingData.map(dd => dd.getId)
+    oldData.filter(od => ids.contains(od.getId))
   }
 
 }

@@ -11,7 +11,8 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
 
   import PersonFactoryDE.{populateDocument => populateDocumentS,
     createQuery => createQueryS,
-    selectQueryCreator => selectQueryCreatorS}
+    selectQueryCreator => selectQueryCreatorS,
+    getPkFieldnameAsString => getPkFieldnameAsStringS}
 
   override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(PersonFactoryDE.PK).toInt)
@@ -27,6 +28,7 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
 
   override def selectQueryCreator: (QueryCriteria, Person) => Query = selectQueryCreatorS
 
+  override def getPkFieldnameAsString(): String = getPkFieldnameAsStringS()
 }
 
 object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryDAO[Int, Person]{
@@ -82,4 +84,5 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
 
   }
 
+  override def getPkFieldnameAsString(): String = PK
 }

@@ -9,8 +9,9 @@ trait IPersistence[P, T <: PkDataSet[P]]  {
     * Just pass some data. It will be merged.
     *
     * @param data The data.
+    * @return The possibly old data, that was updated. Useful for rollbacks.
     */
-  def setData(data: Seq[T]): Unit
+  def setData(data: Seq[T]): Seq[T]
 
   /**
     * Remove data from persistence context.

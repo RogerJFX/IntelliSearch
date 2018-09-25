@@ -13,7 +13,8 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
 
   import SocialPersonFactory.{populateDocument => populateDocumentS,
     createQuery => createQueryS,
-    selectQueryCreator => selectQueryCreatorS}
+    selectQueryCreator => selectQueryCreatorS,
+    getPkFieldnameAsString => getPkFieldnameAsStringS}
 
   override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(SocialPersonFactory.PK).toInt)
@@ -29,6 +30,7 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
 
   override def selectQueryCreator: (QueryCriteria, SocialPerson) => Query = selectQueryCreatorS
 
+  override def getPkFieldnameAsString(): String = getPkFieldnameAsStringS()
 }
 
 
@@ -93,4 +95,5 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
 
   }
 
+  override def getPkFieldnameAsString(): String = PK
 }

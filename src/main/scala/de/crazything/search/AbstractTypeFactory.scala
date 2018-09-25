@@ -39,4 +39,6 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig wit
 
   def selectQueryCreator: (QueryCriteria, T) => Query
 
+  def getPkFieldnameAsString(): String
+
 }

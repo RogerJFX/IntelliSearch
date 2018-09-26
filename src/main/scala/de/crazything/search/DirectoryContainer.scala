@@ -16,36 +16,45 @@ object DirectoryContainer extends MagicSettings {
   private val searcherMap: concurrent.Map[String, Option[IndexProps]] = concurrent.TrieMap()
 
   def setDirectory(name: String, dir: Directory): Unit = {
-    val searcher: Option[IndexProps] = if(dir == null) {
-      None
-    } else {
-      val reader: DirectoryReader = DirectoryReader.open(dir)
-      Some(IndexProps(dir, new IndexSearcher(reader)))
-    }
+    this.synchronized {
+      val searcher: Option[IndexProps] = if (dir == null) {
+        None
+      } else {
+        val reader: DirectoryReader = DirectoryReader.open(dir)
+        Some(IndexProps(dir, new IndexSearcher(reader)))
+      }
 
-    val oldSearcher: Option[Option[IndexProps]] = searcherMap.get(name)
+      val oldSearcher: Option[Option[IndexProps]] = searcherMap.get(name)
 
-    searcherMap.put(name, searcher)
+      searcherMap.put(name, searcher)
 
-    if(name == DEFAULT_DIRECTORY_NAME && searcher.nonEmpty) {
-      _defaultSearcher.set(Some(searcher.get.searcher))
-    }
+      if (name == DEFAULT_DIRECTORY_NAME && searcher.nonEmpty) {
+        _defaultSearcher.set(Some(searcher.get.searcher))
+      }
 
-    oldSearcher match {
-      case Some(opt) => opt match {
-        case Some(s) => s.searcher.getIndexReader.close()
+      oldSearcher match {
+        case Some(opt) => opt match {
+          case Some(s) => new Thread() {
+            override def run(): Unit = {
+              Thread.sleep(10000)
+              s.searcher.getIndexReader.close()
+            }
+          }.start()
+          case _ =>
+        }
         case _ =>
       }
-      case _ =>
     }
   }
 
   def pickSearcherForName(name: String): Option[IndexSearcher] = {
-    val sOpt: Option[Option[IndexProps]] = searcherMap.get(name)
-    if(sOpt.isEmpty || sOpt.get.isEmpty) {
-      None
-    } else {
-      Some(sOpt.get.get.searcher) // Oh no! Is it a dog's fart? Change this, dude!
+    this.synchronized {
+      val sOpt: Option[Option[IndexProps]] = searcherMap.get(name)
+      if (sOpt.isEmpty || sOpt.get.isEmpty) {
+        None
+      } else {
+        Some(sOpt.get.get.searcher) // Oh no! Is it a dog's fart? Change this, dude!
+      }
     }
   }
 
@@ -56,9 +65,12 @@ object DirectoryContainer extends MagicSettings {
     }
   }
 
-  def defaultSearcher: Option[IndexSearcher] = _defaultSearcher.get()
+  def defaultSearcher: Option[IndexSearcher] = this.synchronized {
+    _defaultSearcher.get()
+  }
 
   case class IndexProps(directory: Directory, searcher: IndexSearcher)
+
 }
 
 trait DirectoryContainer {

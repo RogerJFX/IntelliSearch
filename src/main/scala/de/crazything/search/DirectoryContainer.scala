@@ -8,7 +8,6 @@ import org.apache.lucene.store.Directory
 
 import scala.collection.concurrent
 
-// TODO: fix this crap!
 object DirectoryContainer extends MagicSettings {
 
   private val _defaultSearcher: AtomicReference[Option[IndexSearcher]] = new AtomicReference[Option[IndexSearcher]](None)
@@ -30,12 +29,16 @@ object DirectoryContainer extends MagicSettings {
     if (name == DEFAULT_DIRECTORY_NAME && searcher.nonEmpty) {
       _defaultSearcher.set(Some(searcher.get.searcher))
     }
-
+    /*
+      I really think of leaving it like so or similar, even if it smells like hell.
+      Mind the Thread.sleep(1000) below.
+      Maybe I should think of a global configurable timeout.
+     */
     oldSearcher match {
       case Some(opt) => opt match {
         case Some(s) => new Thread() {
           override def run(): Unit = {
-            Thread.sleep(10000)
+            Thread.sleep(1000)
             s.searcher.getIndexReader.close()
           }
         }.start()

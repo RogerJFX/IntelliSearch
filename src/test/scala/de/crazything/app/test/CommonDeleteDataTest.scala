@@ -24,9 +24,20 @@ class CommonDeleteDataTest extends FlatSpec with Matchers with QueryConfig with 
     val searchResult = CommonSearcher.search(personToDelete, PersonFactoryDE, searcherOption = indexName)
     assert(searchResult.length == 1)
     val foundPerson: Person = searchResult.head.found
-    CommonIndexer.deleteData(Seq(foundPerson), PersonFactoryDE, indexName )
+    CommonIndexer.deleteData(Seq(foundPerson), PersonFactoryDE, indexName, true)
     val afterResult = CommonSearcher.search(personToDelete, PersonFactoryDE,
       searcherOption = indexName)
     assert(afterResult.isEmpty)
   }
+
+//  it should "not find Hösl after deleting entry" in {
+//    val personToDelete = standardPerson.copy(lastName = "Hösl")
+//    val searchResult = CommonSearcher.search(personToDelete, PersonFactoryDE, searcherOption = indexName)
+//    assert(searchResult.length == 1)
+//    val foundPerson: Person = searchResult.head.found
+//    CommonIndexer.deleteData(Seq(foundPerson), PersonFactoryDE, indexName, true )
+//    val afterResult = CommonSearcher.search(personToDelete, PersonFactoryDE,
+//      searcherOption = indexName)
+//    assert(afterResult.isEmpty)
+//  }
 }

@@ -5,8 +5,9 @@ MicroSearch
 [![Coverage Status](https://codecov.io/gh/rogerjfx/microsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/MicroSearch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-*This master branch is in an awfull state. We committed it anyhow, just to 
-let you know we are still working on it.*
+**Lucky punch, if this build should pass** 
+
+*It should simply fail. There are some concurrency issues left. Stay tuned.*
 
 **Another attempt to make search results most reliable.**
 

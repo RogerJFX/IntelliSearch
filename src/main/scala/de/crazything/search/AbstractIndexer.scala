@@ -45,6 +45,7 @@ abstract class AbstractIndexer extends MagicSettings {
 
   protected def putDirectoryReference(directory: Directory, name: String)
 
+
   protected def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
                                        name: String = DEFAULT_DIRECTORY_NAME,

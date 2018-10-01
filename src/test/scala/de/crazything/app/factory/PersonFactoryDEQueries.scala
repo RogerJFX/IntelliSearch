@@ -8,7 +8,7 @@ import de.crazything.search.QueryConfig
 import org.apache.lucene.search.{BooleanClause, BooleanQuery, Query}
 
 // We need GermanLanguage here, since it declares an implicit phonetic analyzer.
-trait PersonQueries extends QueryConfig with GermanLanguage with GermanRegexReplace {
+trait PersonFactoryDEQueries extends QueryConfig with GermanLanguage with GermanRegexReplace {
   /**
     * The normal method.
     *

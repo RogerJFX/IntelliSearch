@@ -5,13 +5,13 @@ import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.index._
 import org.apache.lucene.store.Directory
-import org.slf4j.{Logger, LoggerFactory}
+// import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
 
 object CommonIndexer extends AbstractIndexer with QueryConfig {
 
-  private val logger: Logger = LoggerFactory.getLogger(CommonIndexer.getClass)
+  //private val logger: Logger = LoggerFactory.getLogger(CommonIndexer.getClass)
 
   override protected def putDirectoryReference(directory: Directory, name: String): Unit = {
     DirectoryContainer.setDirectory(name, directory)
@@ -23,13 +23,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
                                  (implicit phoneticAnalyzer: Analyzer): Unit =
     createIndex(phoneticAnalyzer, data, factory, name)
 
-//  private def writer4DirName(name: String)(implicit phoneticAnalyzer: Analyzer): IndexWriter = {
-//    val directory = DirectoryContainer.pickDirectoryForName(name)
-//    val config = new IndexWriterConfig(phoneticAnalyzer)
-//    new IndexWriter(directory, config)
-//  }
-
-  //TODO: not sure at the moment, if the exception handling is proper.
   /**
     * This is the common, but not recommended way to update data.
     *
@@ -66,14 +59,13 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
       } catch {
         case e: Exception =>
           writer.rollback()
-          factory.setData(oldData)
+          factory.putData(oldData)
           writer.close()
           throw new RuntimeException("Unable to update data of Lucene directory. Rolling back.", e)
       }
       writer.close()
     }
   }
-
   /**
     * This is the common, but not recommended way to delete data. Think of frequently create a complete
     * new index instead.
@@ -116,6 +108,5 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
       }
     }
   }
-
 
 }

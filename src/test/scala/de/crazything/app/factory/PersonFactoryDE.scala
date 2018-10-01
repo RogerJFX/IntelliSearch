@@ -8,7 +8,7 @@ import org.apache.lucene.document._
 import org.apache.lucene.search._
 import org.slf4j.LoggerFactory
 
-class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryDAO[Int, Person]{
+class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonFactoryDEQueries with InMemoryDAO[Int, Person]{
 
   import PersonFactoryDE.{createQuery => createQueryS, getPkFieldnameAsString => getPkFieldnameAsStringS, populateDocument => populateDocumentS, selectQueryCreator => selectQueryCreatorS}
 
@@ -29,7 +29,7 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
   override def getPkFieldnameAsString(): String = getPkFieldnameAsStringS()
 }
 
-object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryDAO[Int, Person]{
+object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonFactoryDEQueries with InMemoryDAO[Int, Person]{
 
   private val logger = LoggerFactory.getLogger(PersonFactoryDE.getClass)
 

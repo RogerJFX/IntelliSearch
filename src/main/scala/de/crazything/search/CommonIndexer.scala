@@ -42,10 +42,10 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
     * @tparam I Type of PK
     * @tparam T Type of Data.
     */
-  def updateData[I, T <: PkDataSet[I]](data: Seq[T],
+  override def updateData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
                                        name: String = DEFAULT_DIRECTORY_NAME,
-                                       doFlush: Boolean =true)
+                                       doFlush: Boolean = true)
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
     this.synchronized {
       val directory = DirectoryContainer.pickDirectoryForName(name)
@@ -53,7 +53,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
       val writer = new IndexWriter(directory, config)
       var oldData: Seq[T] = Seq()
       try {
-        doDeleteData(data, factory, writer)
+        deleteFromDirectory(data, factory, writer)
         val dataBuffer = new ListBuffer[T]
         data.foreach(dataSet => {
           dataBuffer.append(dataSet)
@@ -65,15 +65,17 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         if(doFlush) {
           writer.flush()
         }
-        oldData = factory.setData(dataBuffer)
+        oldData = factory.putData(dataBuffer)
+        putDirectoryReference(directory, name)
       } catch {
         case e: Exception =>
           writer.rollback()
           factory.setData(oldData)
-          logger.error("Unable to update data of Lucene directory. Rolling back.", e)
+          writer.close()
+          throw new RuntimeException("Unable to update data of Lucene directory. Rolling back.", e)
       }
       writer.close()
-      putDirectoryReference(directory, name)
+
     }
   }
 
@@ -93,7 +95,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
     * @tparam I Type of PK
     * @tparam T Type of data
     */
-  def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
+  override def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
                                        name: String = DEFAULT_DIRECTORY_NAME,
                                        forceFlush: Boolean = false)
@@ -103,7 +105,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
       val config = new IndexWriterConfig(phoneticAnalyzer)
       val writer = new IndexWriter(directory, config)
       try {
-        doDeleteData(data, factory, writer)
+        deleteFromDirectory(data, factory, writer)
         if (forceFlush) {
           writer.flush()
         }
@@ -114,8 +116,9 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
           throw new RuntimeException("Unable to delete data from Lucene directory. Rolling back.", e)
       }
       writer.close()
-      if (forceFlush)
+      if (forceFlush) {
         putDirectoryReference(directory, name)
+      }
     }
   }
 

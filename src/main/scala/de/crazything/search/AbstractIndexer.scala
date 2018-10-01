@@ -7,6 +7,8 @@ import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
 import org.apache.lucene.search.Query
 import org.apache.lucene.store._
 
+import scala.concurrent.{ExecutionContext, Future}
+
 abstract class AbstractIndexer extends MagicSettings {
 
   protected def createIndex[I, T <: PkDataSet[I]](analyzer: Analyzer,
@@ -18,25 +20,19 @@ abstract class AbstractIndexer extends MagicSettings {
     val writer = new IndexWriter(directory, config)
     doIndex(writer, data, factory)
     writer.close()
-    factory.setDataPool(data)
+    factory.putData(data)
     putDirectoryReference(directory, name)
   }
 
-  protected def doDeleteData[I, T <: PkDataSet[I]](data: Seq[T],
-                                         factory: AbstractTypeFactory[I, T],
-                                         writer: IndexWriter)
-                                        (implicit phoneticAnalyzer: Analyzer): Unit = {
+  protected def deleteFromDirectory[I, T <: PkDataSet[I]](data: Seq[T],
+                                                          factory: AbstractTypeFactory[I, T],
+                                                          writer: IndexWriter)
+                                                         (implicit phoneticAnalyzer: Analyzer): Unit = {
     import de.crazything.search.CustomQuery._
     val pks: Seq[I] = data.map(d => d.getId)
     val deleteQuery: Query = pks.map(pk => (s"_${factory.getPkFieldnameAsString()}", s"$pk").exact.must)
-    try {
-      writer.deleteDocuments(deleteQuery)
-      writer.commit()
-    } catch {
-      case e: Exception =>
-        writer.rollback()
-        throw new RuntimeException("Unable to delete data from Lucene directory. Rolling back.", e)
-    }
+    writer.deleteDocuments(deleteQuery) // No need to catch anything here.
+    writer.commit()
   }
 
   private def doIndex[I, T <: PkDataSet[I]](writer: IndexWriter, data: Seq[T], factory: AbstractTypeFactory[I, T]): Unit = {
@@ -48,5 +44,31 @@ abstract class AbstractIndexer extends MagicSettings {
   }
 
   protected def putDirectoryReference(directory: Directory, name: String)
+
+  protected def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
+                                       factory: AbstractTypeFactory[I, T],
+                                       name: String = DEFAULT_DIRECTORY_NAME,
+                                       forceFlush: Boolean = false)
+                                      (implicit phoneticAnalyzer: Analyzer): Unit
+
+  protected def updateData[I, T <: PkDataSet[I]](data: Seq[T],
+                                       factory: AbstractTypeFactory[I, T],
+                                       name: String = DEFAULT_DIRECTORY_NAME,
+                                       doFlush: Boolean =true)
+                                      (implicit phoneticAnalyzer: Analyzer): Unit
+
+  def deleteDataAsync[I, T <: PkDataSet[I]](data: Seq[T],
+                                            factory: AbstractTypeFactory[I, T],
+                                            name: String = DEFAULT_DIRECTORY_NAME,
+                                            forceFlush: Boolean = false)
+                                           (implicit phoneticAnalyzer: Analyzer, ec: ExecutionContext): Future[Unit]
+  = Future(deleteData(data, factory, name, forceFlush))
+
+  def updateDataAsync[I, T <: PkDataSet[I]](data: Seq[T],
+                                            factory: AbstractTypeFactory[I, T],
+                                            name: String = DEFAULT_DIRECTORY_NAME,
+                                            forceFlush: Boolean = true)
+                                           (implicit phoneticAnalyzer: Analyzer, ec: ExecutionContext): Future[Unit]
+  = Future(updateData(data, factory, name, forceFlush))
 
 }

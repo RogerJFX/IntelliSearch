@@ -40,6 +40,7 @@ case object CustomQuery extends QueryConfig {
     def wildcard: Query = new BoostQuery(new WildcardQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.WILDCARD))
     def regex: Query = new BoostQuery(new RegexpQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.REGEX))
     def phonetic: Query = {
+
       val parser: QueryParser = new QueryParser(s"$fieldName$PHONETIC_SUFFIX", phoneticAnalyzer)
       val phoneticQuery = parser.parse(value)
       new BoostQuery(phoneticQuery, boostOption.getOrElse(Boost.PHONETIC))

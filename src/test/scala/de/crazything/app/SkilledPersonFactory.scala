@@ -20,7 +20,7 @@ class SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with 
 
   override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = findById(doc.get(SkilledPersonFactory.PK).toInt)
 
-  override def setDataPool(data: Seq[SkilledPerson]): Unit = setData(data)
+  override def putData(data: Seq[SkilledPerson]): Seq[SkilledPerson] = setData(data)
 
   override def populateDocument(document: Document, dataSet: SkilledPerson): Unit = populateDocumentS(document, dataSet)
 
@@ -46,7 +46,7 @@ object SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with
     findById(doc.get(PK).toInt)
   }
 
-  override def setDataPool(data: Seq[SkilledPerson]): Unit = setData(data)
+  override def putData(data: Seq[SkilledPerson]): Seq[SkilledPerson] = setData(data)
 
   override def populateDocument(document: Document, person: SkilledPerson): Unit = {
     addPkField(document, PK, person.id)

@@ -20,7 +20,7 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
     findById(doc.get(SocialPersonFactory.PK).toInt)
   }
 
-  override def setDataPool(data: Seq[SocialPerson]): Unit = {
+  override def putData(data: Seq[SocialPerson]): Seq[SocialPerson] = {
     setData(data)
   }
 
@@ -53,7 +53,7 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
     findById(doc.get(PK).toInt)
   }
 
-  override def setDataPool(data: Seq[SocialPerson]): Unit = {
+  override def putData(data: Seq[SocialPerson]): Seq[SocialPerson] = {
     setData(data)
   }
 

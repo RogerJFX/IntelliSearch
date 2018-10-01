@@ -99,9 +99,11 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
 
     override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = PersonFactoryDE.createInstanceFromDocument(doc)
 
-    override def setDataPool(data: Seq[Person]): Unit = ???
+    override def putData(data: Seq[Person]): Seq[Person] = {
+      throw new Exception("Foo")
+    }
 
-    override def populateDocument(document: Document, dataSet: Person): Unit = ???
+    override def populateDocument(document: Document, dataSet: Person): Unit = PersonFactoryDE.populateDocument(document, dataSet)
 
     override def createQuery(t: Person): Query = {
 
@@ -128,7 +130,10 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       *
       * @param data The data.
       */
-    override def setData(data: Seq[Person]): Seq[Person] = PersonFactoryDE.setData(data)
+    override def setData(data: Seq[Person]): Seq[Person] = {
+      println("Arsch")
+      PersonFactoryDE.setData(data)
+    }
 
     /**
       * Select * from Seq where id = ´id´ .
@@ -143,8 +148,8 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
       *
       * @param data Data to remove
       */
-    override def deleteData(data: Seq[Person]): Unit = ???
+    override def deleteData(data: Seq[Person]): Unit = throw new RuntimeException("bar")
 
-    override def getPkFieldnameAsString(): String = ???
+    override def getPkFieldnameAsString(): String = "id"
   }
 }

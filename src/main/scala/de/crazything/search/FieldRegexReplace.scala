@@ -6,6 +6,4 @@ trait FieldRegexReplace {
 
   val createRegexTerm: (String) => String = (origin) => regexTerms.foldLeft(origin)((r, c) => r.replaceAll(c, c))
 
-
-
 }

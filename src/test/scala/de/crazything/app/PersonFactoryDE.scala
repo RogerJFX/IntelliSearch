@@ -18,7 +18,7 @@ class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQuerie
     findById(doc.get(PersonFactoryDE.PK).toInt)
   }
 
-  override def setDataPool(data: Seq[Person]): Unit = {
+  override def putData(data: Seq[Person]): Seq[Person] = {
     setData(data)
   }
 
@@ -51,7 +51,7 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
     findById(doc.get(PK).toInt)
   }
 
-  override def setDataPool(data: Seq[Person]): Unit = {
+  override def putData(data: Seq[Person]): Seq[Person] = {
     setData(data)
   }
 

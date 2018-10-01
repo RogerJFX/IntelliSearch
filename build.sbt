@@ -45,6 +45,8 @@ libraryDependencies ++= Seq(
 
 fork in test := true
 
+parallelExecution in Test := false
+
 lazy val unitTest = taskKey[Unit]("Only run unit tests excluding docker tests")
 
 unitTest := {

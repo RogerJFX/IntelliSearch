@@ -5,10 +5,6 @@ MicroSearch
 [![Coverage Status](https://codecov.io/gh/rogerjfx/microsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/MicroSearch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Lucky punch, if this build should pass** 
-
-*It should simply fail. There are some concurrency issues left. Stay tuned.*
-
 **Another attempt to make search results most reliable.**
 
 History of naming of this project is:

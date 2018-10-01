@@ -11,7 +11,7 @@ trait IPersistence[P, T <: PkDataSet[P]]  {
     * @param data The data.
     * @return The possibly old data, that was updated. Useful for rollbacks.
     */
-  protected def setData(data: Seq[T]): Seq[T]
+  protected [search] def setData(data: Seq[T]): Seq[T]
 
   /**
     * Remove data from persistence context.

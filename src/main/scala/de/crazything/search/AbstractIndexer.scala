@@ -53,8 +53,7 @@ abstract class AbstractIndexer extends MagicSettings {
 
   protected def updateData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
-                                       name: String = DEFAULT_DIRECTORY_NAME,
-                                       doFlush: Boolean =true)
+                                       name: String = DEFAULT_DIRECTORY_NAME)
                                       (implicit phoneticAnalyzer: Analyzer): Unit
 
   def deleteDataAsync[I, T <: PkDataSet[I]](data: Seq[T],
@@ -66,9 +65,8 @@ abstract class AbstractIndexer extends MagicSettings {
 
   def updateDataAsync[I, T <: PkDataSet[I]](data: Seq[T],
                                             factory: AbstractTypeFactory[I, T],
-                                            name: String = DEFAULT_DIRECTORY_NAME,
-                                            forceFlush: Boolean = true)
+                                            name: String = DEFAULT_DIRECTORY_NAME)
                                            (implicit phoneticAnalyzer: Analyzer, ec: ExecutionContext): Future[Unit]
-  = Future(updateData(data, factory, name, forceFlush))
+  = Future(updateData(data, factory, name))
 
 }

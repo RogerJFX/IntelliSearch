@@ -44,8 +44,7 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
     */
   override def updateData[I, T <: PkDataSet[I]](data: Seq[T],
                                        factory: AbstractTypeFactory[I, T],
-                                       name: String = DEFAULT_DIRECTORY_NAME,
-                                       doFlush: Boolean = true)
+                                       name: String = DEFAULT_DIRECTORY_NAME)
                                       (implicit phoneticAnalyzer: Analyzer): Unit = {
     this.synchronized {
       val directory = DirectoryContainer.pickDirectoryForName(name)
@@ -62,9 +61,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
           writer.addDocument(document)
         })
         writer.commit()
-        if(doFlush) {
-          writer.flush()
-        }
         oldData = factory.putData(dataBuffer)
         putDirectoryReference(directory, name)
       } catch {
@@ -75,7 +71,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
           throw new RuntimeException("Unable to update data of Lucene directory. Rolling back.", e)
       }
       writer.close()
-
     }
   }
 

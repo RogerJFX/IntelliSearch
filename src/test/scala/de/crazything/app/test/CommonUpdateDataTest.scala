@@ -21,7 +21,7 @@ class CommonUpdateDataTest extends AsyncFlatSpec with Matchers with QueryConfig
     })
   }
 
-  it should "not find Alexander der Große instead of Scharnofske after updating entry" in {
+  it should "find Alexander der Große instead of Scharnofske after updating entry" in {
     val personToUpdate = standardPerson.copy(lastName = "Scharnofske")
     val searchResult = CommonSearcher.search(personToUpdate, PersonFactoryDE, searcherOption = indexName)
     assert(searchResult.length == 1)

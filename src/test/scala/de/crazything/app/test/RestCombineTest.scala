@@ -1,8 +1,11 @@
 package de.crazything.app.test
 
-import de.crazything.app.Person._
+import de.crazything.app.entity.Person._
 import de.crazything.app._
-import de.crazything.app.test.helpers.{CustomMocks, DataProvider}
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.{Person, SkilledPerson, SocialPerson}
+import de.crazything.app.factory.{PersonFactoryDE, SkilledPersonFactory, SocialPersonFactory}
+import de.crazything.app.helpers.{CustomMocks, DataProvider}
 import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer}
 import de.crazything.search.ext.MappingSearcher

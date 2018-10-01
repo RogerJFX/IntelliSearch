@@ -1,6 +1,8 @@
-package de.crazything.app
+package de.crazything.app.factory
 
-import de.crazything.app.PersonFactoryDE.{FIRST_NAME, LAST_NAME}
+import de.crazything.app.analyze.{GermanLanguage, GermanRegexReplace}
+import de.crazything.app.entity.Person
+import de.crazything.app.factory.PersonFactoryDE.{FIRST_NAME, LAST_NAME}
 import de.crazything.search.CustomQuery._
 import de.crazything.search.QueryConfig
 import org.apache.lucene.search.{BooleanClause, BooleanQuery, Query}

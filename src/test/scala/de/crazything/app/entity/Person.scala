@@ -1,4 +1,4 @@
-package de.crazything.app
+package de.crazything.app.entity
 
 import de.crazything.search.entity.PkDataSet
 import play.api.libs.json._

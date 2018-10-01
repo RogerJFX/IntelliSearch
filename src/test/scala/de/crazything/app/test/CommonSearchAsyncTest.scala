@@ -1,7 +1,9 @@
 package de.crazything.app.test
 
-import de.crazything.app.test.helpers.DataProvider
-import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
+import de.crazything.app.factory.PersonFactoryDE
+import de.crazything.app.helpers.DataProvider
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.Person
 import de.crazything.search.{CommonIndexer, CommonSearcher, QueryConfig}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfter}
 

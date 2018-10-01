@@ -1,7 +1,9 @@
 package de.crazything.app.test
 
-import de.crazything.app.test.helpers.DataProvider
-import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
+import de.crazything.app.factory.{MockingPersonFactory, PersonFactoryDE}
+import de.crazything.app.helpers.DataProvider
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.Person
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer, QueryConfig}
 import org.scalatest.{AsyncFlatSpec, Matchers}
 
@@ -48,7 +50,7 @@ class CommonUpdateDataTest extends AsyncFlatSpec with Matchers with QueryConfig
     recoverToSucceededIf[Exception](
       CommonIndexer.updateDataAsync(Seq(
         foundPerson.copy(firstName = "Alexander", lastName = "Scharnofske")
-      ), PersonFactoryAll, indexName).map(_ => {
+      ), MockingPersonFactory, indexName).map(_ => {
         val updatedFound = CommonSearcher.search(standardPerson.copy(lastName = "der Große"), PersonFactoryDE,
           searcherOption = indexName)
         println(updatedFound)

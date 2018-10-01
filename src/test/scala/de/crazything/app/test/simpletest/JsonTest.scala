@@ -1,7 +1,7 @@
 package de.crazything.app.test.simpletest
 
-import de.crazything.app.Person
-import de.crazything.app.Person._
+import de.crazything.app.entity.Person._
+import de.crazything.app.entity.Person
 import org.scalatest.FlatSpec
 import play.api.libs.json._
 

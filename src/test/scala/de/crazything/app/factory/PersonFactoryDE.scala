@@ -1,5 +1,6 @@
-package de.crazything.app
+package de.crazything.app.factory
 
+import de.crazything.app.entity.Person
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import de.crazything.search.persistence.InMemoryDAO
@@ -9,10 +10,7 @@ import org.slf4j.LoggerFactory
 
 class PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueries with InMemoryDAO[Int, Person]{
 
-  import PersonFactoryDE.{populateDocument => populateDocumentS,
-    createQuery => createQueryS,
-    selectQueryCreator => selectQueryCreatorS,
-    getPkFieldnameAsString => getPkFieldnameAsStringS}
+  import PersonFactoryDE.{createQuery => createQueryS, getPkFieldnameAsString => getPkFieldnameAsStringS, populateDocument => populateDocumentS, selectQueryCreator => selectQueryCreatorS}
 
   override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(PersonFactoryDE.PK).toInt)
@@ -39,7 +37,7 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonQueri
 
   private[app] val SALUTATION = "salutation"
   private[app] val FIRST_NAME = "firstName"
-  private[app] val LAST_NAME = "lastName"
+  private[factory] val LAST_NAME = "lastName"
   private[app] val STREET = "street"
   private[app] val CITY = "city"
 

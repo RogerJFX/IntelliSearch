@@ -1,7 +1,8 @@
 package de.crazything.app.test.simpletest
 
-import de.crazything.app.Person._
-import de.crazything.app.{NettyRunner, Person}
+import de.crazything.app.entity.Person._
+import de.crazything.app.NettyRunner
+import de.crazything.app.entity.Person
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
 import play.core.server.NettyServer

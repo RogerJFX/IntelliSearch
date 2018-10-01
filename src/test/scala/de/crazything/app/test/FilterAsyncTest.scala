@@ -1,7 +1,8 @@
 package de.crazything.app.test
 
-import de.crazything.app.{Person, PersonFactoryDE}
-import de.crazything.app.test.helpers.{CustomMocks, DataProvider}
+import de.crazything.app.entity.Person
+import de.crazything.app.factory.PersonFactoryDE
+import de.crazything.app.helpers.{CustomMocks, DataProvider}
 import de.crazything.search._
 import de.crazything.search.entity.{QueryCriteria, SearchResult}
 import de.crazything.search.ext.FilteringSearcher

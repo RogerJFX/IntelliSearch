@@ -1,10 +1,10 @@
-package de.crazything.app.test.helpers
+package de.crazything.app.helpers
 
 import java.io.{BufferedReader, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path, Paths}
 
-import de.crazything.app.{Person, SkilledPerson, SocialPerson}
+import de.crazything.app.entity.{Person, SkilledPerson, SocialPerson}
 
 import scala.collection.mutable.ListBuffer
 

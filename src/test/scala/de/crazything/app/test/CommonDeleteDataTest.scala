@@ -1,7 +1,9 @@
 package de.crazything.app.test
 
-import de.crazything.app.test.helpers.DataProvider
-import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
+import de.crazything.app.factory.{MockingPersonFactory, PersonFactoryDE}
+import de.crazything.app.helpers.DataProvider
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.Person
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer, QueryConfig}
 import org.scalatest._
 
@@ -54,7 +56,7 @@ class CommonDeleteDataTest extends AsyncFlatSpec with Matchers with BeforeAndAft
     val searchResult = CommonSearcher.search(personToDelete, PersonFactoryDE, searcherOption = indexName)
     val foundPerson: Person = searchResult.head.found
     recoverToSucceededIf[Exception](
-      CommonIndexer.deleteDataAsync(Seq(foundPerson), PersonFactoryAll, indexName, false).map(_ => {
+      CommonIndexer.deleteDataAsync(Seq(foundPerson), MockingPersonFactory, indexName, false).map(_ => {
         val afterResult = CommonSearcher.search(personToDelete, PersonFactoryDE,
           searcherOption = indexName)
         assert(afterResult.isEmpty)

@@ -1,5 +1,6 @@
-package de.crazything.app
+package de.crazything.app.itest
 
+import de.crazything.app.entity.{Person, SocialPerson}
 import de.crazything.search.entity.{PkDataSet, SearchResult}
 import play.api.libs.json.{Json, OFormat}
 

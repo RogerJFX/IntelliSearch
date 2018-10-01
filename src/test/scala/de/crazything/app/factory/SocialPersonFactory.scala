@@ -1,5 +1,7 @@
-package de.crazything.app
+package de.crazything.app.factory
 
+import de.crazything.app.analyze.{GermanLanguage, GermanRegexReplace}
+import de.crazything.app.entity.SocialPerson
 import de.crazything.search.CustomQuery.{data2Query, seq2Query}
 import de.crazything.search._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
@@ -11,10 +13,7 @@ import org.slf4j.LoggerFactory
 class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with QueryConfig
   with GermanLanguage with GermanRegexReplace with InMemoryDAO [Int, SocialPerson] {
 
-  import SocialPersonFactory.{populateDocument => populateDocumentS,
-    createQuery => createQueryS,
-    selectQueryCreator => selectQueryCreatorS,
-    getPkFieldnameAsString => getPkFieldnameAsStringS}
+  import SocialPersonFactory.{createQuery => createQueryS, getPkFieldnameAsString => getPkFieldnameAsStringS, populateDocument => populateDocumentS, selectQueryCreator => selectQueryCreatorS}
 
   override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
     findById(doc.get(SocialPersonFactory.PK).toInt)

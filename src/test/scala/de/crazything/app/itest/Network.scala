@@ -1,4 +1,4 @@
-package de.crazything.app
+package de.crazything.app.itest
 
 trait Network {
 

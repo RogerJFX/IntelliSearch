@@ -1,13 +1,13 @@
 package de.crazything.app.test
 
-import de.crazything.app.test.helpers.DataProvider
-import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
-import de.crazything.search.entity.{QueryCriteria, SearchResult}
-import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer, QueryConfig}
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.Person
+import de.crazything.app.factory.PersonFactoryDE
+import de.crazything.app.helpers.DataProvider
+import de.crazything.search.entity.QueryCriteria
+import de.crazything.search.{CommonIndexer, CommonSearcher, QueryConfig}
 import org.scalatest.{FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable.ListBuffer
 
 class CommonSearchCascadedTest extends FlatSpec with Matchers with QueryConfig with GermanLanguage {
 

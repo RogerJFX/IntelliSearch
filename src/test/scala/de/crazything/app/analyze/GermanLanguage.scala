@@ -1,4 +1,4 @@
-package de.crazything.app
+package de.crazything.app.analyze
 
 import de.crazything.search.language.GermanPhonetic
 import org.apache.lucene.analysis.Analyzer

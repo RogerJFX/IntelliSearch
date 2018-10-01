@@ -1,4 +1,4 @@
-package de.crazything.app.test.helpers
+package de.crazything.app.helpers
 
 import org.scalatest.Assertion
 

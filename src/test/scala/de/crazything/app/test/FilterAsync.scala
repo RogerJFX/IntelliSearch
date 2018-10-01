@@ -2,7 +2,9 @@ package de.crazything.app.test
 
 import java.util.concurrent.RejectedExecutionException
 
-import de.crazything.app.{GermanLanguage, Person, PersonFactoryDE}
+import de.crazything.app.factory.PersonFactoryDE
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.Person
 import de.crazything.search.{AbstractTypeFactory, QueryConfig}
 import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
 import org.apache.lucene.document.Document
@@ -10,7 +12,6 @@ import org.apache.lucene.search.Query
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.{Future, Promise}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait FilterAsync extends QueryConfig with GermanLanguage {

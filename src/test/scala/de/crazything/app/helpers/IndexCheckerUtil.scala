@@ -1,4 +1,4 @@
-package de.crazything.app.test.helpers
+package de.crazything.app.helpers
 
 import de.crazything.search.DirectoryContainer
 import org.apache.lucene.index.DirectoryReader

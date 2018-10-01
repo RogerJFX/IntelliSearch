@@ -3,6 +3,8 @@ package de.crazything.app
 import java.io.File
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
+import de.crazything.app.entity.{Person, SkilledPerson, SocialPerson}
+import de.crazything.app.factory.{PersonFactoryDE, SkilledPersonFactory, SocialPersonFactory}
 import de.crazything.search.{CommonSearcher, DirectoryContainer}
 import de.crazything.search.entity._
 import de.crazything.search.ext.MappingSearcher

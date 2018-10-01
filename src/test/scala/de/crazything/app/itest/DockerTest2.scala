@@ -1,7 +1,10 @@
 package de.crazything.app.itest
 
 import de.crazything.app._
-import de.crazything.app.test.helpers.DataProvider
+import de.crazything.app.analyze.NoLanguage
+import de.crazything.app.entity.{Person, SkilledPerson, SocialPerson}
+import de.crazything.app.factory.SkilledPersonFactory
+import de.crazything.app.helpers.DataProvider
 import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult}
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer}

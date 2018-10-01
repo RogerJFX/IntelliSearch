@@ -1,6 +1,7 @@
 package de.crazything.app
 
 import de.crazything.app.NettyRunner.{jsonString2T, t2JsonString}
+import de.crazything.app.entity.{Person, SocialPerson}
 import de.crazything.search.entity.{QueryCriteria, SearchResult, SearchResultCollection}
 import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
 import play.api.mvc.{Action, Results}

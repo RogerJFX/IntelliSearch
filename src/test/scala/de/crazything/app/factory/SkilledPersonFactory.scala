@@ -1,5 +1,7 @@
-package de.crazything.app
+package de.crazything.app.factory
 
+import de.crazything.app.analyze.NoLanguage
+import de.crazything.app.entity.SkilledPerson
 import de.crazything.search.CustomQuery._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import de.crazything.search.persistence.InMemoryDAO
@@ -12,11 +14,7 @@ import scala.collection.mutable.ListBuffer
 class SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with QueryConfig
   with NoLanguage with InMemoryDAO [Int, SkilledPerson] {
 
-  import SkilledPersonFactory.{
-    populateDocument => populateDocumentS,
-    createQuery => createQueryS,
-    selectQueryCreator => selectQueryCreatorS,
-    getPkFieldnameAsString => getPkFieldnameAsStringS}
+  import SkilledPersonFactory.{createQuery => createQueryS, getPkFieldnameAsString => getPkFieldnameAsStringS, populateDocument => populateDocumentS, selectQueryCreator => selectQueryCreatorS}
 
   override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = findById(doc.get(SkilledPersonFactory.PK).toInt)
 

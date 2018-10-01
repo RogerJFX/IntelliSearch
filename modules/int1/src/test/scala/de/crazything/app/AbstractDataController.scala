@@ -2,7 +2,9 @@ package de.crazything.app
 
 import de.crazything.app.MediumDataController.urlFromUriSocial
 import de.crazything.app.NettyRunner.{jsonString2T, t2JsonString}
-import de.crazything.app.Person._
+import de.crazything.app.entity.Person._
+import de.crazything.app.entity.{Person, SocialPerson}
+import de.crazything.app.itest.{PersonWithSocialPersonsCollection, PersonWithSocialResults}
 import de.crazything.search.entity._
 import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
@@ -54,7 +56,7 @@ abstract class AbstractDataController extends MagicSettings with DirectoryContai
           val sequence: Seq[PersonWithSocialResults] =
             searchResult.map(sr => PersonWithSocialResults(sr.target, sr.results))
           val strSearchResult: String =
-            t2JsonString[PersonWithSocialPersonsCollection](PersonWithSocialPersonsCollection(sequence))
+            t2JsonString[PersonWithSocialPersonsCollection](itest.PersonWithSocialPersonsCollection(sequence))
           Results.Created(strSearchResult).as("application/json")
         })
     }

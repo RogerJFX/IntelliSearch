@@ -1,6 +1,9 @@
 package de.crazything.app
 
-import de.crazything.app.test.helpers.DataProvider
+import de.crazything.app.analyze.GermanLanguage
+import de.crazything.app.entity.SocialPerson
+import de.crazything.app.factory.SocialPersonFactory
+import de.crazything.app.helpers.DataProvider
 import de.crazything.search.entity.QueryCriteria
 import de.crazything.search.{AbstractTypeFactory, CommonIndexer}
 

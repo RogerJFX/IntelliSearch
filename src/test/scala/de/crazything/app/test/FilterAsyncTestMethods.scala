@@ -2,27 +2,24 @@ package de.crazything.app.test
 
 import java.util.concurrent.RejectedExecutionException
 
-import de.crazything.app.factory.PersonFactoryDE
 import de.crazything.app.analyze.GermanLanguage
 import de.crazything.app.entity.Person
-import de.crazything.search.{AbstractTypeFactory, QueryConfig}
-import de.crazything.search.entity.{PkDataSet, QueryCriteria, SearchResult}
-import org.apache.lucene.document.Document
-import org.apache.lucene.search.Query
+import de.crazything.search.QueryConfig
+import de.crazything.search.entity.SearchResult
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Future, Promise}
 
-trait FilterAsync extends QueryConfig with GermanLanguage {
+trait FilterAsyncTestMethods extends QueryConfig with GermanLanguage {
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.FilterAsyncTest")
 
   val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
-  val availProcessors = Runtime.getRuntime.availableProcessors()
+  protected val availProcessors: Int = Runtime.getRuntime.availableProcessors()
 
-  def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
+  protected def filterAvailProcessors(requested: Int): Int = if (requested > availProcessors) availProcessors else requested
 
   def filterFrankfurt(result: SearchResult[Int, Person]): Boolean = result.found.city.contains("Frankfurt")
 
@@ -91,66 +88,7 @@ trait FilterAsync extends QueryConfig with GermanLanguage {
     p.future
   }
 
-  def filterTrueFuture(result: SearchResult[Int, Person]) = filterBooleanFuture(result, true)
-  def filterFalseFuture(result: SearchResult[Int, Person]) = filterBooleanFuture(result, false)
+  protected def filterTrueFuture(result: SearchResult[Int, Person]): Future[Boolean] = filterBooleanFuture(result, filterResult = true)
+  protected def filterFalseFuture(result: SearchResult[Int, Person]): Future[Boolean] = filterBooleanFuture(result, filterResult = false)
 
-  object PersonFactoryAll extends AbstractTypeFactory[Int, Person] {
-
-    import de.crazything.search.CustomQuery._
-
-    override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = PersonFactoryDE.createInstanceFromDocument(doc)
-
-    override def putData(data: Seq[Person]): Seq[Person] = {
-      throw new Exception("Foo")
-    }
-
-    override def populateDocument(document: Document, dataSet: Person): Unit = PersonFactoryDE.populateDocument(document, dataSet)
-
-    override def createQuery(t: Person): Query = {
-
-      Seq(
-        ("lastName", "Hösl").exact, // should is default
-        ("firstName", "Fr*").wildcard,
-        ("lastName", ".*").regex,
-        ("lastName", "Mayer").phonetic)
-    }
-
-    override def selectQueryCreator: (QueryCriteria, Person) => Query = (criteria, person) => {
-      if (criteria.queryName == "dummy") {
-        Seq(
-          ("firstName", "Roger").exact.must,
-          ("lastName", person.lastName).exact.must,
-          ("lastName", "Flintstone").exact.mustNot, // ridiculous - just for the code coverage...
-          ("lastName", "ABCABCABCABCABCABCABCABCABCABC").exact.should // ridiculous - ...
-        )
-      } else createQuery(person)
-    }
-
-    /**
-      * Store the data that later is searched.
-      *
-      * @param data The data.
-      */
-    override def setData(data: Seq[Person]): Seq[Person] = {
-      println("Arsch")
-      PersonFactoryDE.setData(data)
-    }
-
-    /**
-      * Select * from Seq where id = ´id´ .
-      *
-      * @param id Id of data set.
-      * @return Found data set.
-      */
-    override def findById(id: Int): Option[PkDataSet[Int]] = PersonFactoryDE.findById(id)
-
-    /**
-      * Remove data from persistence context.
-      *
-      * @param data Data to remove
-      */
-    override def deleteData(data: Seq[Person]): Unit = throw new RuntimeException("bar")
-
-    override def getPkFieldnameAsString(): String = "id"
-  }
 }

@@ -35,6 +35,9 @@ Let's manifest we still follow the above stated rules. We even do not mock any
 RESTful request, but test having **real** REST clients talking to a 
 **real** service. No, not what you might think: **real** only in test scope.
 
+In the end we first develop tests and afterwards extract useful elements to be 
+moved to the real source.
+
 Convinced from tests only being meaningful if as honest possible, we should call our 
 strategy **"Honest Testing"**. 
 

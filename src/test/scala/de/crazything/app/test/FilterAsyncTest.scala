@@ -1,7 +1,7 @@
 package de.crazything.app.test
 
 import de.crazything.app.entity.Person
-import de.crazything.app.factory.PersonFactoryDE
+import de.crazything.app.factory.{MockingPersonFactory, PersonFactoryDE}
 import de.crazything.app.helpers.{CustomMocks, DataProvider}
 import de.crazything.search._
 import de.crazything.search.entity.{QueryCriteria, SearchResult}
@@ -12,7 +12,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.concurrent.{Future, TimeoutException}
 import scala.concurrent.duration._
 
-class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync {
+class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsyncTestMethods {
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.FilterAsyncTest")
 
@@ -52,9 +52,9 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
     def filterRoger(result: SearchResult[Int, Person]): Future[Boolean] = {
       // normally another Factory/Directory - just a check on some other data source
       CommonSearcher.searchAsync(input = standardPerson.copy(lastName = result.found.lastName, firstName = "Roger"),
-        factory = PersonFactoryAll, queryCriteria = Some(QueryCriteria("dummy"))).map(res => res.nonEmpty)
+        factory = MockingPersonFactory, queryCriteria = Some(QueryCriteria("dummy"))).map(res => res.nonEmpty)
     }
-    FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+    FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
       filterFn = filterRoger, secondLevelTimeout = 3.seconds).map(result => {
       assert(result.length == 1)
     })
@@ -71,7 +71,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
 
   // Make sure async processing does not destroy order of results.
   "Results" should "be sorted async/future (fast)" in {
-    FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+    FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
       filterFn = filterTrueFuture, secondLevelTimeout = 10.seconds).map(result => {
       checkOrder(result)
       assert(result.length == 6)
@@ -79,7 +79,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
   }
 
   it should "be empty after false filter" in {
-    FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+    FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
       filterFn = filterFalseFuture, secondLevelTimeout = 10.seconds).map(result => {
       assert(result.isEmpty)
     })
@@ -87,7 +87,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
 
   it should "work on two threads(async/future)" in {
     CustomMocks.mockObjectFieldAsync("de.crazything.search.ext.FilteringSearcher", "processors", filterAvailProcessors(2), {
-      FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+      FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
         filterFn = filterTrueFuture, secondLevelTimeout = 10.seconds).map(result => {
         checkOrder(result)
         assert(result.length == 6)
@@ -113,7 +113,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
     logger.warn("Reason: we shut down the ThreadPool immediately after a TimeoutException. So the remaining Tasks cannot be executed.")
     logger.warn("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     recoverToSucceededIf[TimeoutException](
-      FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+      FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
         filterFn = filterTrueFuture, secondLevelTimeout = 600.millis).map(result => {
         assert(result.length == 6)
       }))
@@ -129,7 +129,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
   }
 
   it should "be sorted async/blocking (fast)" in {
-    FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+    FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
       filterFn = filterTrueFuture).map(result => {
       checkOrder(result)
       assert(result.length == 6)
@@ -157,7 +157,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
 
   it should "work on 4 threads(async/blocking)" in {
     CustomMocks.mockObjectFieldAsync("de.crazything.search.ext.FilteringSearcher", "processors", filterAvailProcessors(4), {
-      FilteringSearcher.search(input = standardPerson, factory = PersonFactoryAll,
+      FilteringSearcher.search(input = standardPerson, factory = MockingPersonFactory,
         filterFn = filterTrueFuture, secondLevelTimeout = 10.seconds).map(result => {
         checkOrder(result)
         assert(result.length == 6)
@@ -166,7 +166,7 @@ class FilterAsyncTest extends AsyncFlatSpec with BeforeAndAfter with FilterAsync
   }
 
   it should "be sorted sync/blocking (slow)" in {
-    FilteringSearcher.simpleSearchAsync(input = standardPerson, factory = PersonFactoryAll,
+    FilteringSearcher.simpleSearchAsync(input = standardPerson, factory = MockingPersonFactory,
       filterFn = filterTrue).map(result => {
       checkOrder(result)
       assert(result.length == 6)

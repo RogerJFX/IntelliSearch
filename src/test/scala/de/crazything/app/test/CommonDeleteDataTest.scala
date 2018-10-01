@@ -7,12 +7,12 @@ import de.crazything.app.entity.Person
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer, QueryConfig}
 import org.scalatest._
 
-class CommonDeleteDataTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with QueryConfig with FilterAsync
+class CommonDeleteDataTest extends AsyncFlatSpec with Matchers with BeforeAndAfterEach with QueryConfig
   with GermanLanguage with DirectoryContainer {
 
   private val indexName = "DELETE_TEST_DATA"
 
-  //private val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
+  private val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
   override def beforeEach =
     CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE, indexName)

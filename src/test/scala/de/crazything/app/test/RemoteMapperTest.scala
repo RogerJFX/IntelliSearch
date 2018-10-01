@@ -15,7 +15,7 @@ import play.core.server.NettyServer
 
 import scala.concurrent.Future
 
-class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer with FilterAsync{
+class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage with DirectoryContainer {
 
   //private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RemoteMapperTest")
 
@@ -43,8 +43,6 @@ class RemoteMapperTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJs
 
   "Mapping" should "work completely remote" in {
     val searchedSkilledPerson = SkilledPerson(-1, None, None, Some(Seq("Scala", "Postgresql")))
-
-
 
     MappingSearcher.searchRemote(input = searchedSkilledPerson, url = urlFromUri("findSkilledPerson"),
       mapperFn = combineFacebookScored).map(result => {

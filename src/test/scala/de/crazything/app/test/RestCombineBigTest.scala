@@ -18,7 +18,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class RestCombineBigTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage
-  with DirectoryContainer with FilterAsync{
+  with DirectoryContainer {
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RestCombineBigTest")
 

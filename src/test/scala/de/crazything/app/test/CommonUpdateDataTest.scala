@@ -7,12 +7,11 @@ import de.crazything.app.entity.Person
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer, QueryConfig}
 import org.scalatest.{AsyncFlatSpec, Matchers}
 
-class CommonUpdateDataTest extends AsyncFlatSpec with Matchers with QueryConfig
-  with FilterAsync with GermanLanguage with DirectoryContainer {
+class CommonUpdateDataTest extends AsyncFlatSpec with Matchers with QueryConfig with GermanLanguage with DirectoryContainer {
 
   private val indexName = "UPDATE_TEST_DATA"
 
-  //private val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
+  private val standardPerson = Person(-1, "Herr", "firstName", "lastName", "street", "city")
 
   CommonIndexer.index(DataProvider.readVerySimplePersons(), PersonFactoryDE, indexName)
 

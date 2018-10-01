@@ -4,7 +4,7 @@ import de.crazything.app.entity.Person._
 import de.crazything.app._
 import de.crazything.app.analyze.GermanLanguage
 import de.crazything.app.entity.{Person, SkilledPerson, SocialPerson}
-import de.crazything.app.factory.{PersonFactoryDE, SkilledPersonFactory, SocialPersonFactory}
+import de.crazything.app.factory.{MockingPersonFactory, PersonFactoryDE, SkilledPersonFactory, SocialPersonFactory}
 import de.crazything.app.helpers.{CustomMocks, DataProvider}
 import de.crazything.search.entity.{MappedResults, MappedResultsCollection, SearchResult, SearchResultCollection}
 import de.crazything.search.{CommonIndexer, CommonSearcher, DirectoryContainer}
@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
 
 
 class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser with GermanLanguage
-  with DirectoryContainer with FilterAsync{
+  with DirectoryContainer {
 
   private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.RestCombineTest")
 
@@ -88,7 +88,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     def filterAvailProcessors(requested: Int) = if (requested > availProcessors) availProcessors else requested
     val searchedPerson = Person(-1, "Herr", "foobar", "foobar", "street", "city")
     CustomMocks.mockObjectFieldAsync("de.crazything.search.ext.MappingSearcher", "processors", filterAvailProcessors(4), {
-      MappingSearcher.search(input = searchedPerson, factory = PersonFactoryAll,
+      MappingSearcher.search(input = searchedPerson, factory = MockingPersonFactory,
         mapperFn = combineFacebookScored).map(result => {
         assert(result.length == 6)
       })

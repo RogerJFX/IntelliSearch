@@ -16,6 +16,7 @@ import play.api.routing.Router
 import play.api.routing.sird._
 import play.core.server.{NettyServer, ServerConfig}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -68,6 +69,24 @@ object NettyRunner extends QuickJsonParser{
         Results.Created(strSearchResult).as("application/json")
       }
     }
+
+    case POST(p"/findSocialForScoredBulk") => Action {
+      request => {
+        val persons: Seq[Person] = jsonString2T[Bulk[Person]](request.body.asJson.get.toString()).entries
+        val socialPersons: Seq[SocialPerson] = persons.map(person => SocialPerson(-1, person.firstName, person.lastName))
+
+        val searchResults: Seq[Seq[SearchResult[Int, SocialPerson]]] = socialPersons.map(socialPerson => {
+          CommonSearcher.search(input = socialPerson, factory = SocialPersonFactory,
+            queryCriteria = Some(QueryCriteria(SocialPersonFactory.customQuery_FirstAndLastName, None)),
+            searcherOption = DirectoryContainer.pickSearcherForName("remoteIndex"))
+        })
+        val result: Seq[SearchResultCollection[Int, SocialPerson]] = searchResults.map(sr => SearchResultCollection(sr))
+        val strSearchResult: String =
+          t2JsonString[Bulk[SearchResultCollection[Int, SocialPerson]]](Bulk(result))
+        Results.Created(strSearchResult).as("application/json")
+      }
+    }
+
     case POST(p"/mapSocial2Base") => Action.async {
       request => {
         val person: Person = jsonString2T[Person](request.body.asJson.get.toString())

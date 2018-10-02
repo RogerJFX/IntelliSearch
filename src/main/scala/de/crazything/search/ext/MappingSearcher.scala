@@ -30,11 +30,11 @@ object MappingSearcher extends MagicSettings {
 
   private def processSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (primaryResult: Seq[SearchResult[I1, T1]],
-   mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
+   mapperClass: (Seq[SearchResult[I1, T1]]) => CombineMaster[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY,
    promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]]): Unit = {
 
-    val mappingClass: Combine[I1, I2, T1, T2] = mapperClass(primaryResult)
+    val mappingClass: CombineMaster[I1, I2, T1, T2] = mapperClass(primaryResult)
     val finalResultFuture = FutureUtil.futureWithTimeout(mappingClass.createFuture(), secondLevelTimeout)
 
     finalResultFuture.onComplete {
@@ -50,7 +50,7 @@ object MappingSearcher extends MagicSettings {
 
   private def processFirstLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (primaryResultFuture: Future[Seq[SearchResult[I1, T1]]],
-   mapperClass: (Seq[SearchResult[I1, T1]]) => Combine[I1, I2, T1, T2],
+   mapperClass: (Seq[SearchResult[I1, T1]]) => CombineMaster[I1, I2, T1, T2],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     val promise: Promise[Seq[MappedResults[I1, I2, T1, T2]]] = Promise[Seq[MappedResults[I1, I2, T1, T2]]]
     primaryResultFuture.onComplete {
@@ -71,6 +71,22 @@ object MappingSearcher extends MagicSettings {
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Combine[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
+
+    val searchResult: Future[Seq[SearchResult[I1, T1]]] =
+      CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
+    processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
+  }
+
+  def searchBulk[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  (input: T1,
+   factory: AbstractTypeFactory[I1, T1],
+   searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
+   queryCriteria: Option[QueryCriteria] = None,
+   maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
+   mapperFn: (Seq[SearchResult[I1, T1]]) => Future[Seq[Seq[SearchResult[I2, T2]]]],
+   secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
+  : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+    def secondLevelClass(res: Seq[SearchResult[I1, T1]]): CombineMaster[I1, I2, T1, T2] = new MapperAsyncFutureBulk(res, mapperFn)
 
     val searchResult: Future[Seq[SearchResult[I1, T1]]] =
       CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
@@ -104,7 +120,12 @@ object MappingSearcher extends MagicSettings {
 
   val processors: Int = Runtime.getRuntime.availableProcessors()
 
-  private trait Combine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
+  private trait CombineMaster[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
+    def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]]
+    def onTimeoutException(exc: Exception): Unit = println("foo")
+  }
+
+  private trait Combine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] extends CombineMaster[I1, I2, T1, T2]{
     // Yes, we can do this here. We take care of the pool in our createFuture methods.
     //val processors: Int
     val pool: ExecutorService = Executors.newFixedThreadPool(processors)
@@ -114,7 +135,7 @@ object MappingSearcher extends MagicSettings {
     val counter = new AtomicInteger()
     val procCount = new AtomicInteger()
 
-    def onTimeoutException(exc: Exception): Unit = {
+    override def onTimeoutException(exc: Exception): Unit = {
       pool.shutdownNow()
     }
 
@@ -124,8 +145,6 @@ object MappingSearcher extends MagicSettings {
         pool.shutdownNow()
       }
     }
-
-    def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]]
 
     protected def doCreateFuture(raw: Seq[SearchResult[I1, T1]],
                                  body: (Int) => Unit): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
@@ -157,8 +176,21 @@ object MappingSearcher extends MagicSettings {
         }
       })
     }
+  }
 
-    //override val processors: Int = 4
+  private class MapperAsyncFutureBulk[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+  (raw: Seq[SearchResult[I1, T1]],
+   mappingFn: (Seq[SearchResult[I1, T1]]) => Future[Seq[Seq[SearchResult[I2, T2]]]])
+    extends CombineMaster[I1, I2, T1, T2] {
+    override def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+      mappingFn(raw).map(assoc => {
+        val list: ListBuffer[MappedResults[I1, I2, T1, T2]] = ListBuffer()
+        for(i <- raw.indices) {
+          list.append(MappedResults(raw(i), assoc(i)))
+        }
+        list
+      })
+    }
   }
 
 }

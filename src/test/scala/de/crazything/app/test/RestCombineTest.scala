@@ -56,6 +56,7 @@ class RestCombineTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJso
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     MappingSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       mapperFn = combineFacebookScored, secondLevelTimeout = 3.seconds).map(result => {
+      println("------------")
       println(result)
       assert(result.length == 1)
     })

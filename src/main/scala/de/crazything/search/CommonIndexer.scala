@@ -60,7 +60,6 @@ object CommonIndexer extends AbstractIndexer with QueryConfig {
         case e: Exception =>
           writer.rollback()
           factory.setData(oldData)
-          // TODO: Well, yes, too drunk to fuck. Old story: is the exception handling proper? I still doubt that.
           writer.close()
           throw new RuntimeException("Unable to update data of Lucene directory. Rolling back.", e)
       }

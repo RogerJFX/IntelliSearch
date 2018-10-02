@@ -10,14 +10,17 @@ import de.crazything.search.ext.MappingSearcher
 import de.crazything.search.{CommonIndexer, DirectoryContainer}
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
+import org.slf4j.{Logger, LoggerFactory}
 import play.core.server.NettyServer
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, TimeoutException}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 class MapperBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser
   with GermanLanguage with DirectoryContainer {
+
+  private val logger: Logger = LoggerFactory.getLogger("de.crazything.app.test.MapperBulkTest")
 
   val server: NettyServer = NettyRunner.runServer
   val port: Int = server.httpPort.get
@@ -36,10 +39,6 @@ class MapperBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
     val persons: Seq[Person] = result.map(r => r.found)
     val restResponse: Future[Bulk[SearchResultCollection[Int, SocialPerson]]] =
       RestClient.post[Bulk[Person], Bulk[SearchResultCollection[Int, SocialPerson]]](urlFromUri("findSocialForScoredBulk"), Bulk(persons))
-    restResponse.andThen {
-      case Success(res) => println(res)
-      case Failure(t) => println(t.getMessage)
-    }
     restResponse.map(res => res.entries.map(r => r.entries))
   }
 
@@ -51,5 +50,15 @@ class MapperBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
       println(result)
       assert(result.length == 1)
     })
+  }
+
+  it should "throw TimeoutException" in {
+    val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
+    recoverToSucceededIf[TimeoutException](
+      MappingSearcher.searchBulk(input = searchedPerson, factory = PersonFactoryDE,
+        mapperFn = combineFacebookScoredBulk, secondLevelTimeout = 3.millis).map(result => {
+        assert(result.length == 1)
+      })
+    )
   }
 }

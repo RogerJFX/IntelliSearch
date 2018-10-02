@@ -8,6 +8,7 @@ import de.crazything.search.ext.RunnableHandlers.MapperFutureHandler
 import de.crazything.search.utils.FutureUtil
 import de.crazything.search.{AbstractTypeFactory, CommonSearcher, DirectoryContainer, MagicSettings}
 import org.apache.lucene.search.IndexSearcher
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.OFormat
 
 import scala.collection.mutable.ListBuffer
@@ -27,6 +28,8 @@ import scala.util.{Failure, Success}
 object MappingSearcher extends MagicSettings {
 
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   private def processSecondLevel[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (primaryResult: Seq[SearchResult[I1, T1]],
@@ -122,7 +125,7 @@ object MappingSearcher extends MagicSettings {
 
   private trait CombineMaster[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] {
     def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]]
-    def onTimeoutException(exc: Exception): Unit = println("foo")
+    def onTimeoutException(exc: Exception): Unit = logger.error("Timeout", exc)
   }
 
   private trait Combine[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]] extends CombineMaster[I1, I2, T1, T2]{

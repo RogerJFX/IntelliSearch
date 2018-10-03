@@ -47,15 +47,15 @@ abstract class AbstractIndexer extends MagicSettings {
 
 
   protected def deleteData[I, T <: PkDataSet[I]](data: Seq[T],
-                                       factory: AbstractTypeFactory[I, T],
-                                       name: String = DEFAULT_DIRECTORY_NAME,
-                                       forceFlush: Boolean = false)
-                                      (implicit phoneticAnalyzer: Analyzer): Unit
+                                                 factory: AbstractTypeFactory[I, T],
+                                                 name: String = DEFAULT_DIRECTORY_NAME,
+                                                 forceFlush: Boolean = false)
+                                                (implicit phoneticAnalyzer: Analyzer): Unit
 
   protected def updateData[I, T <: PkDataSet[I]](data: Seq[T],
-                                       factory: AbstractTypeFactory[I, T],
-                                       name: String = DEFAULT_DIRECTORY_NAME)
-                                      (implicit phoneticAnalyzer: Analyzer): Unit
+                                                 factory: AbstractTypeFactory[I, T],
+                                                 name: String = DEFAULT_DIRECTORY_NAME)
+                                                (implicit phoneticAnalyzer: Analyzer): Unit
 
   def deleteDataAsync[I, T <: PkDataSet[I]](data: Seq[T],
                                             factory: AbstractTypeFactory[I, T],

@@ -14,15 +14,15 @@ object EmbeddedRestServer {
 
   private val logger: Logger = LoggerFactory.getLogger(EmbeddedRestServer.getClass)
 
-  def run(_serverConfig: ServerConfig, _router: Router): NettyServer = {
+  def run(pServerConfig: ServerConfig, pRouter: Router): NettyServer = {
     logger.info("Running Embedded server in Mode {}. " +
         "For running in production mode consider setting up some module using the play framework.",
-      _serverConfig.mode.toString)
+      pServerConfig.mode.toString)
 
     val components =
       new NettyServerComponents with BuiltInComponents  with NoHttpFiltersComponents {
-        override lazy val serverConfig: ServerConfig = _serverConfig
-        override lazy val router: Router = _router
+        override lazy val serverConfig: ServerConfig = pServerConfig
+        override lazy val router: Router = pRouter
         override lazy val httpErrorHandler: DefaultHttpErrorHandler = new DefaultHttpErrorHandler(environment,
           configuration, sourceMapper, Some(router)) {
           override protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {

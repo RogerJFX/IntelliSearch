@@ -41,7 +41,7 @@ class RestFilterTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
   }
 
   "Rest filter" should "get an empty result for missing facebook account" ignore {
-    val searchedPerson = Person(-1, "Herr", "Motherfucker", "Motherfucker", "street", "city")
+    val searchedPerson = Person(-1, "Herr", "Idiot", "Dumpwater", "street", "city")
     FilteringSearcher.search(input = searchedPerson, factory = PersonFactoryDE,
       filterFn = filterHasFacebookScored, secondLevelTimeout = 3.minutes).map(result => {
       assert(result.isEmpty)

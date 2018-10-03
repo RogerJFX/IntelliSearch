@@ -62,14 +62,18 @@ object CommonSearcher extends MagicSettings{
                                         (implicit fmt: OFormat[T],
                                          rmt: OFormat[SearchResultCollection[I, T]],
                                          ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {
-    val promise = Promise[Seq[SearchResult[I, T]]]()
+//    val promise = Promise[Seq[SearchResult[I, T]]]()
+//    val postFuture: Future[SearchResultCollection[I, T]] = RestClient.post[T, SearchResultCollection[I, T]](url, input)
+//    val timingOutFuture = FutureUtil.futureWithTimeout(postFuture, timeout)
+//    timingOutFuture.onComplete {
+//      case Success(r: SearchResultCollection[I, T]) => promise.success(r.entries)
+//      case Failure(t) => promise.failure(t)
+//    }
+//    promise.future
     val postFuture: Future[SearchResultCollection[I, T]] = RestClient.post[T, SearchResultCollection[I, T]](url, input)
     val timingOutFuture = FutureUtil.futureWithTimeout(postFuture, timeout)
-    timingOutFuture.onComplete {
-      case Success(r: SearchResultCollection[I, T]) => promise.success(r.entries)
-      case Failure(t) => promise.failure(t)
-    }
-    promise.future
+    timingOutFuture.map(r => r.entries)
+
   }
 
 }

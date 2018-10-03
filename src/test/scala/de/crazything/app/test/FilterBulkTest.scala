@@ -6,7 +6,7 @@ import de.crazything.app.entity.{Person, SocialPerson}
 import de.crazything.app.factory.{PersonFactoryDE, SkilledPersonFactory, SocialPersonFactory}
 import de.crazything.app.helpers.DataProvider
 import de.crazything.search.entity.{Bulk, SearchResult, SearchResultCollection}
-import de.crazything.search.ext.MappingSearcherBulk
+import de.crazything.search.ext.FilteringSearcherBulk
 import de.crazything.search.{CommonIndexer, DirectoryContainer}
 import de.crazything.service.{QuickJsonParser, RestClient}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
@@ -15,7 +15,7 @@ import play.core.server.NettyServer
 import scala.concurrent.duration._
 import scala.concurrent.{Future, TimeoutException}
 
-class MapperBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser
+class FilterBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJsonParser
   with GermanLanguage with DirectoryContainer {
 
   val server: NettyServer = NettyRunner.runServer
@@ -31,17 +31,17 @@ class MapperBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
 
   def urlFromUri(uri: String): String = s"http://127.0.0.1:$port/$uri"
 
-  def combineFacebookScoredBulk(result: Seq[SearchResult[Int, Person]]): Future[Seq[Seq[SearchResult[Int, SocialPerson]]]] = {
+  def filterFacebookScoredBulk(result: Seq[SearchResult[Int, Person]]): Future[Seq[Boolean]] = {
     val persons: Seq[Person] = result.map(r => r.found)
     val restResponse: Future[Bulk[SearchResultCollection[Int, SocialPerson]]] =
       RestClient.post[Bulk[Person], Bulk[SearchResultCollection[Int, SocialPerson]]](urlFromUri("findSocialForScoredBulk"), Bulk(persons))
-    restResponse.map(res => res.entries.map(r => r.entries))
+    restResponse.map(res => res.entries.map(r => r.entries.nonEmpty))
   }
 
   "Scored remote" should "get a non empty score result for person having facebook account" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
-    MappingSearcherBulk.search(input = searchedPerson, factory = PersonFactoryDE,
-      mapperFn = combineFacebookScoredBulk, secondLevelTimeout = 3.seconds).map(result => {
+    FilteringSearcherBulk.search(input = searchedPerson, factory = PersonFactoryDE,
+      filterFn = filterFacebookScoredBulk, secondLevelTimeout = 3.seconds).map(result => {
       println("-------------------")
       println(result)
       assert(result.length == 1)
@@ -51,8 +51,8 @@ class MapperBulkTest extends AsyncFlatSpec with BeforeAndAfterAll with QuickJson
   it should "throw TimeoutException" in {
     val searchedPerson = Person(-1, "Herr", "Franz", "Reißer", "street", "city")
     recoverToSucceededIf[TimeoutException](
-      MappingSearcherBulk.search(input = searchedPerson, factory = PersonFactoryDE,
-        mapperFn = combineFacebookScoredBulk, secondLevelTimeout = 3.millis).map(result => {
+      FilteringSearcherBulk.search(input = searchedPerson, factory = PersonFactoryDE,
+        filterFn = filterFacebookScoredBulk, secondLevelTimeout = 3.millis).map(result => {
         assert(result.length == 1)
       })
     )

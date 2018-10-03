@@ -26,27 +26,27 @@ case object CustomQuery extends QueryConfig {
     *
     * @param fieldName Name of field in search index.
     * @param value value to search.
-    * @param boostOption Custom boost factor. If empty, it will fallback to default boost (see QueryConfig).
-    * @param fuzzyOption Custom fuzzy max edit factor. Only responsible for fuzzy searches. Will fallback
+    * @param boost Custom boost factor. If empty, it will fallback to default boost (see QueryConfig).
+    * @param fuzzyDepth Custom fuzzy max edit factor. Only responsible for fuzzy searches. Will fallback
     *                    to default value, if empty (see QueryConfig).
     * @param phoneticAnalyzer The phonetic analyzer.
     */
   private[CustomQuery] case class CQuery(fieldName: String,
                                          value: String,
-                                         boostOption: Option[Float] = None,
-                                         fuzzyOption: Option[Int] = None)
+                                         boost: Option[Float] = None,
+                                         fuzzyDepth: Option[Int] = None)
                    (phoneticAnalyzer: Analyzer) {
-    def exact: Query = new BoostQuery(new TermQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.EXACT))
-    def wildcard: Query = new BoostQuery(new WildcardQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.WILDCARD))
-    def regex: Query = new BoostQuery(new RegexpQuery(new Term(fieldName, value)), boostOption.getOrElse(Boost.REGEX))
+    def exact: Query = new BoostQuery(new TermQuery(new Term(fieldName, value)), boost.getOrElse(Boost.EXACT))
+    def wildcard: Query = new BoostQuery(new WildcardQuery(new Term(fieldName, value)), boost.getOrElse(Boost.WILDCARD))
+    def regex: Query = new BoostQuery(new RegexpQuery(new Term(fieldName, value)), boost.getOrElse(Boost.REGEX))
     def phonetic: Query = {
 
       val parser: QueryParser = new QueryParser(s"$fieldName$PHONETIC_SUFFIX", phoneticAnalyzer)
       val phoneticQuery = parser.parse(value)
-      new BoostQuery(phoneticQuery, boostOption.getOrElse(Boost.PHONETIC))
+      new BoostQuery(phoneticQuery, boost.getOrElse(Boost.PHONETIC))
     }
-    def fuzzy: Query = new BoostQuery(new FuzzyQuery(new Term(fieldName, value), fuzzyOption.getOrElse(FUZZY_MAX_EDITS)),
-      boostOption.getOrElse(Boost.FUZZY))
+    def fuzzy: Query = new BoostQuery(new FuzzyQuery(new Term(fieldName, value), fuzzyDepth.getOrElse(FUZZY_MAX_EDITS)),
+      boost.getOrElse(Boost.FUZZY))
   }
 
   /**
@@ -123,7 +123,7 @@ case object CustomQuery extends QueryConfig {
     * @return A Query.
     */
   implicit def data2Query(tuple: (String, String))(implicit phoneticAnalyzer: Analyzer): CQuery =
-    CQuery(tuple._1, tuple._2)(phoneticAnalyzer)
+    CQuery(fieldName = tuple._1, value = tuple._2)(phoneticAnalyzer)
 
   /**
     * Tuple3 to Query.
@@ -131,7 +131,7 @@ case object CustomQuery extends QueryConfig {
     * @return A Query.
     */
   implicit def data2Query(tuple: (String, String, Float))(implicit phoneticAnalyzer: Analyzer): CQuery =
-    CQuery(tuple._1, tuple._2, Some(tuple._3))(phoneticAnalyzer)
+    CQuery(fieldName = tuple._1, value = tuple._2, boost = Some(tuple._3))(phoneticAnalyzer)
 
   /**
     * Tuple4 to Query.
@@ -139,7 +139,7 @@ case object CustomQuery extends QueryConfig {
     * @return A Query.
     */
   implicit def data2Query(tuple: (String, String, Float, Int))(implicit phoneticAnalyzer: Analyzer): CQuery =
-    CQuery(tuple._1, tuple._2, Some(tuple._3), Some(tuple._4))(phoneticAnalyzer)
+    CQuery(fieldName = tuple._1, value = tuple._2, boost = Some(tuple._3), fuzzyDepth = Some(tuple._4))(phoneticAnalyzer)
 
   /**
     * Creates a BooleanQuery of a Sequence of partial Queries. Just pass something like:

@@ -30,7 +30,7 @@ abstract class AbstractIndexer extends MagicSettings {
                                                          (implicit phoneticAnalyzer: Analyzer): Unit = {
     import de.crazything.search.CustomQuery._
     val pks: Seq[I] = data.map(d => d.getId)
-    val deleteQuery: Query = pks.map(pk => (s"_${factory.getPkFieldnameAsString()}", s"$pk").exact.must)
+    val deleteQuery: Query = pks.map(pk => (s"_${factory.getPkFieldnameAsString}", s"$pk").exact.must)
     writer.deleteDocuments(deleteQuery) // No need to catch anything here.
     writer.commit()
   }

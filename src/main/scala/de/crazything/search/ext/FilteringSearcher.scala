@@ -133,11 +133,13 @@ object FilteringSearcher extends AbstractFilteringSearcher with SimpleFiltering 
     extends Filter[I, T] {
     override def createFuture(): Future[Seq[SearchResult[I, T]]] = {
       doCreateFuture(raw, (len: Int) => {
-        def checkLenInc(): Unit = if (counter.incrementAndGet() == len) {
-          promise.success(buffer)
-          pool.shutdown()
-        } else if (procCount.get() < len) {
-          pool.execute(new FilterFutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException)(ec))
+        def checkLenInc(): Unit = this.synchronized {
+          if (counter.incrementAndGet() == len) {
+            promise.success(buffer)
+            pool.shutdown()
+          } else if (procCount.get() < len) {
+            pool.execute(new FilterFutureHandler(filterFn, raw(procCount.getAndIncrement()), buffer, () => checkLenInc(), onFilterException)(ec))
+          }
         }
 
         val shorter = if (processors < len) processors else len

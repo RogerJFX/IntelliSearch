@@ -21,6 +21,13 @@ case class SearchResult[I, +T <: PkDataSet[I]](found: T, score: Float) {
 
   def !() : T = found
 
+  def findMappedResults4Target[I2, T2 <: PkDataSet[I2]](clazz: Class[_]): Option[Seq[SearchResult[I2, T2]]] = {
+    found match {
+      case f: MappedResults[Any, I2, Any, T2] => f.findMappedResults4Target(clazz)
+      case _ => None
+    }
+  }
+
   /**
     * Failsafe convenient method. Returns one of this or target, if found is a MappedResult and the result itself
     * is wrapped as "target" in MappedResults.
@@ -63,7 +70,6 @@ object SearchResult {
         "score" -> Json.toJson(e.score)
       ))
     }
-
 
 
 }

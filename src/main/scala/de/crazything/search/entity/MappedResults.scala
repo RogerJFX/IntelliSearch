@@ -17,9 +17,23 @@ case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](tar
                                                                              results: Seq[SearchResult[I2, T2]])
   extends PkDataSet[I1](target.found.getId) {
 
-  def :< (): SearchResult[I1, T1] = target
+  def :<(): SearchResult[I1, T1] = target
 
-  def !!() : Seq[SearchResult[I2, T2]] = results
+  def !!(): Seq[SearchResult[I2, T2]] = results
+
+  def findMappedResults4Target(clazz: Class[_]): Option[Seq[SearchResult[I2, T2]]] = {
+    if(clazz == target.found.getClass) {
+      Some(results)
+    } else {
+      results.foreach(res => {
+        res.findMappedResults4Target(clazz) match {
+          case some: Option[Seq[SearchResult[I2, T2]]] => return some.asInstanceOf[Option[Seq[SearchResult[I2, T2]]]]
+          case None =>
+        }
+      })
+      None
+    }
+  }
 }
 
 /**

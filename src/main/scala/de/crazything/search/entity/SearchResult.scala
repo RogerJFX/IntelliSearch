@@ -21,10 +21,22 @@ case class SearchResult[I, +T <: PkDataSet[I]](found: T, score: Float) {
 
   def !() : T = found
 
-  def findMappedResults4Target[I2, T2 <: PkDataSet[I2]](clazz: Class[_]): Option[Seq[SearchResult[I2, T2]]] = {
+  @deprecated("use the other one here below")
+  def findMappedResults4TargetD[I2, T2 <: PkDataSet[I2]](clazz: Class[_]): Option[Seq[SearchResult[I2, T2]]] = {
     found match {
-      case f: MappedResults[Any, I2, Any, T2] => f.findMappedResults4Target(clazz)
-      case _ => None
+      case f: MappedResults[Any, I2, Any, T2] =>
+        f.findMappedResults4TargetD(clazz)
+      case _ =>
+        None
+    }
+  }
+
+  def findMappedResults4Target[I2, T2 <: PkDataSet[I2]](targetCondition: MappedQuery, resultsCondition: Option[MappedQuery] = None): Option[Seq[SearchResult[I2, T2]]] = {
+    found match {
+      case f: MappedResults[Any, I2, Any, T2] =>
+        f.findMappedResults4Target(targetCondition, resultsCondition)
+      case _ =>
+        None
     }
   }
 
@@ -47,8 +59,10 @@ case class SearchResult[I, +T <: PkDataSet[I]](found: T, score: Float) {
     * @return The SearchResult, so either this or SearchResult wrapped in MappedResults (there "target").
     */
   def origin[I1 <: I, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]](): SearchResult[I1, T1] = found match {
-    case mr: MappedResults[I1, I2, T1, T2] => mr.target
-    case _ => this.asInstanceOf[SearchResult[I1, T1]]
+    case mr: MappedResults[I1, I2, T1, T2] =>
+      mr.target
+    case _ =>
+      this.asInstanceOf[SearchResult[I1, T1]]
   }
 
 }
@@ -57,6 +71,13 @@ case class SearchResult[I, +T <: PkDataSet[I]](found: T, score: Float) {
   * JSON formatting hints.
   */
 object SearchResult {
+
+//  implicit def convertMapped2SearchResult[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+//  (sr: SearchResult[I1, MappedResults[I1, I2, T1, T2]]): SearchResult[I1, T1] =
+//    sr.found.target
+//
+//  implicit def convertSearch2SearchResult[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
+//  (sr: SearchResult[I1, T1]): SearchResult[I1, T1] = sr.origin()
 
   implicit def format[I, T <: PkDataSet[I]](implicit fmt: Format[T]): OFormat[SearchResult[I, T]] =
     new OFormat[SearchResult[I, T]] {

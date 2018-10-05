@@ -32,6 +32,8 @@ class MappedResultsPathTest extends FlatSpec {
     )
   )
 
+  private val root: MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]] = testResult.head
+
   "MappedQuery" should "find items or not" in {
     val found: Option[Seq[SearchResult[Int, SocialPerson]]] =
       root.findMappedResults4Target(MappedQuery(clazzName="Person", attributeRxs=Seq(("firstName", "Roger"))))

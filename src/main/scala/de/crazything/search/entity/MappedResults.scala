@@ -34,7 +34,10 @@ case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](tar
       results.foreach(res => {
         res.findMappedResults4Target(targetCondition, resultsCondition) match {
           case some: Option[Seq[SearchResult[I, T]]] =>
-            return some.asInstanceOf[Option[Seq[SearchResult[I, T]]]]
+            if(some.isDefined) {
+              return some.asInstanceOf[Option[Seq[SearchResult[I, T]]]]
+            }
+
         }
       })
       //scalastyle:ON

@@ -32,30 +32,6 @@ class MappedResultsPathTest extends FlatSpec {
     )
   )
 
-  private val root: MappedResults[Int, Int, SkilledPerson, MappedResults[Int, Int, Person, SocialPerson]] = testResult.head
-
-  "Path" should "find items in a MappedResults mess" in {
-    val found: Seq[SearchResult[Int, SocialPerson]] = root.findMappedResults4TargetD(classOf[Person]).get// .asInstanceOf[Seq[SearchResult[Int, SocialPerson]]]
-    //val found: Seq[SearchResult[Int, MappedResults[Int, Int, Person, SocialPerson]]] = root.findMappedResults4Target(classOf[Person]).get
-    println("---------------------------")
-    println(found)
-    val foo: SearchResult[Int, SocialPerson] = found.head//.origin()
-    println(foo)
-    println(foo.found.facebookId)
-//    assert(foo.found.facebookId.nonEmpty)
-    println("######################")
-    val found2: Seq[SearchResult[Int, Person]] = root.findMappedResults4TargetD(classOf[SkilledPerson]).get
-    println("---------------------------")
-    println(found2)
-    val bar: SearchResult[Int, Person] = found2.head//.origin()
-    assert(bar.found.firstName == "Roger")
-    println(found2.head)
-    println("-")
-    println(bar)
-
-//    val found3:Seq[SearchResult[Int, Person]] = root.findMappedResults4Target(classOf[SkilledPerson]).get
-  }
-
   "MappedQuery" should "find items or not" in {
     val found: Option[Seq[SearchResult[Int, SocialPerson]]] =
       root.findMappedResults4Target(MappedQuery(clazzName="Person", attributeRxs=Seq(("firstName", "Roger"))))
@@ -98,6 +74,20 @@ class MappedResultsPathTest extends FlatSpec {
     println(facebookNotFound)
     assert(facebookNotFound.isDefined)
     assert(facebookNotFound.get.isEmpty) // We found the Person, but no children of type SocialPerson.
+  }
+
+  it should "not find last class" in {
+    val found: Option[Seq[SearchResult[Int, SocialPerson]]] =
+      root.findMappedResults4Target(MappedQuery(clazzName="SocialPerson", attributeRxs=Seq(("firstName", "Roger"))))
+    println(found)
+    assert(found.isEmpty)
+  }
+
+  it should "not find completely unknown class" in {
+    val found: Option[Seq[SearchResult[Int, SocialPerson]]] =
+      root.findMappedResults4Target(MappedQuery(clazzName="Stranger", attributeRxs=Seq(("firstName", "Roger"))))
+    println(found)
+    assert(found.isEmpty)
   }
 
 }

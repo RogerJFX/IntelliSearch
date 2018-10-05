@@ -21,25 +21,6 @@ case class MappedResults[I1, I2, +T1 <: PkDataSet[I1], +T2 <: PkDataSet[I2]](tar
 
   def !!(): Seq[SearchResult[I2, T2]] = results
 
-  @deprecated("use the other one here below")
-  def findMappedResults4TargetD[I, T <: PkDataSet[I]](clazz: Class[_]): Option[Seq[SearchResult[I, T]]] = {
-    if(clazz == target.found.getClass) {
-      Some(results.map(r => r.origin()).asInstanceOf[Seq[SearchResult[I, T]]])
-      //Some(results.asInstanceOf[Seq[SearchResult[I, T]]])
-    } else {
-      //scalastyle:OFF
-      // Sorry...
-      results.foreach(res => {
-        res.findMappedResults4TargetD(clazz) match {
-          case some: Option[Seq[SearchResult[I, T]]] =>
-            return some.asInstanceOf[Option[Seq[SearchResult[I, T]]]]
-        }
-      })
-      //scalastyle:ON
-      None
-    }
-  }
-
   def findMappedResults4Target[I, T <: PkDataSet[I]](targetCondition: MappedQuery,
                                                       resultsCondition: Option[MappedQuery] = None): Option[Seq[SearchResult[I, T]]] = {
     if(targetCondition.filter(Seq(target)).nonEmpty) {

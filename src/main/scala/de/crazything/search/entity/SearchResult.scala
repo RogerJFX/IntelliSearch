@@ -21,17 +21,9 @@ case class SearchResult[I, +T <: PkDataSet[I]](found: T, score: Float) {
 
   def !() : T = found
 
-  @deprecated("use the other one here below")
-  def findMappedResults4TargetD[I2, T2 <: PkDataSet[I2]](clazz: Class[_]): Option[Seq[SearchResult[I2, T2]]] = {
-    found match {
-      case f: MappedResults[Any, I2, Any, T2] =>
-        f.findMappedResults4TargetD(clazz)
-      case _ =>
-        None
-    }
-  }
-
-  def findMappedResults4Target[I2, T2 <: PkDataSet[I2]](targetCondition: MappedQuery, resultsCondition: Option[MappedQuery] = None): Option[Seq[SearchResult[I2, T2]]] = {
+  def findMappedResults4Target[I2, T2 <: PkDataSet[I2]](targetCondition: MappedQuery,
+                                                        resultsCondition: Option[MappedQuery] = None)
+  : Option[Seq[SearchResult[I2, T2]]] = {
     found match {
       case f: MappedResults[Any, I2, Any, T2] =>
         f.findMappedResults4Target(targetCondition, resultsCondition)

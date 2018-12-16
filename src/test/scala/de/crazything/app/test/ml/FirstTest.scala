@@ -18,7 +18,7 @@ class FirstTest extends FlatSpec with Matchers with QueryConfig with NoLanguage 
 
   private def search() = CommonSearcher.search(standardSlogan.copy(slogan1 = "*sexy*"), SloganFactory, maxHits = 1000)
 
-  "Searcher" should "promote a result due to users acceptance" in {
+  "Searcher" should "promote a result due to users' acceptance" in {
 
     val initialSearchResult = search()
     val initialPosition = findPosition(initialSearchResult)

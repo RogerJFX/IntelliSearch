@@ -34,7 +34,7 @@ object SloganFactory extends AbstractTypeFactory[Int, Slogan] with QueryConfig
 
   private val ba = new BoostAdvisor(9)
 
-  def notifyFeedback(position: Int, clickedAs: Int): Boolean = ba.notifyFeedBack(position, clickedAs)
+  def notifyFeedback(position: Int, clickedAs: Int): Boolean = ba.notifyFeedback(position, clickedAs)
 
   override def createQuery(t: Slogan): Query = {
     Seq(

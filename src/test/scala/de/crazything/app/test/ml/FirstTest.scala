@@ -33,7 +33,7 @@ class FirstTest extends FlatSpec with Matchers with QueryConfig with NoLanguage 
 
     val searchResult = search()
     val position = findPosition(searchResult)
-    assert(position < 12)
+    assert(position <= 10)
 
   }
 }

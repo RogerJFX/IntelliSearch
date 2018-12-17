@@ -1,62 +1,18 @@
 package de.crazything.app.test.ml
 
-import java.util.concurrent.atomic.AtomicReference
+import de.crazything.app.test.ml.guard.{DefaultGuard, Guard, GuardConfig}
+import de.crazything.app.test.ml.tuning.{Notification, Tuner}
 
+class BoostAdvisor(tuner: Tuner, guard: Guard = new DefaultGuard(GuardConfig())) {
 
-import scala.util.Random
+  def boost(index: Int): Float = tuner.boostAt(index)
 
-class BoostAdvisor(querySize: Int) {
-
-  private case class Notification(delta: Int, tuning: Array[Float])
-
-  private val boostStep = 0.1F
-
-  private val oldNotification = new AtomicReference[Notification](null)
-
-  private val vector = Array.fill[Float](querySize)(10F)
-
-  private val actIfDeltaLargerThan = 10
-
-  private val random = new Random()
-
-  // Very simple yet and not sufficient
-  private def tune(notification: Notification): Unit = {
-    val old = oldNotification.getAndSet(notification)
-    if (old != null && old.delta < notification.delta) {
-      for (i <- vector.indices) {
-        vector(i) = old.tuning(i)
+  def notifyFeedback(ip: String, position: Int, clickedAs: Int, threshold: Int = tuner.threshold): Unit = {
+    if (guard.pass(ip, Seq(), position, clickedAs)) {
+      val delta = Math.abs(position - clickedAs)
+      if (delta > threshold) {
+        tuner.tune(Notification(Seq(), delta, tuner.vector.clone()))
       }
-    }
-    if (random.nextBoolean()) {
-      vector(random.nextInt(querySize)) += boostStep
-    } else {
-      vector(random.nextInt(querySize)) -= boostStep
-    }
-  }
-
-//  // Analyze deeper? Sure we have to, if we do not want to get victims of attacks
-//  import scala.collection.mutable.ListBuffer
-//
-//  private val buffer = ListBuffer[Notification]()
-//
-//  private def tuneFuture(): Unit = {
-//    val lastBest: Int = buffer.lastIndexWhere(a => a.delta == buffer.minBy(e => e.delta).delta)
-//    buffer.remove(lastBest, buffer.length - lastBest)
-//    if (buffer.length > 1) {
-//      val rand = random.nextInt(querySize)
-//      vector(rand) += boostStep
-//    }
-//  }
-
-  private[ml] def boost(index: Int): Float = vector(index)
-
-  def notifyFeedback(position: Int, clickedAs: Int, actDelta: Int = actIfDeltaLargerThan): Boolean = {
-    val delta = Math.abs(position - clickedAs)
-    if (delta < actDelta) {
-      false
-    } else {
-      tune(Notification(delta, vector.clone()))
-      true
     }
   }
 }

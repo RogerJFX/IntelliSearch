@@ -1,15 +1,16 @@
 package de.crazything.app.test.ml
 
 import de.crazything.app.analyze.NoLanguage
+import de.crazything.app.test.ml.guard.{DefaultGuard, GuardConfig}
+import de.crazything.app.test.ml.tuning.{SimpleTuner, TunerConfig}
+import de.crazything.search.AbstractTypeFactory
 import de.crazything.search.CustomQuery._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import de.crazything.search.persistence.InMemoryDAO
-import de.crazything.search.{AbstractTypeFactory, QueryConfig}
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
 
-object SloganFactory extends AbstractTypeFactory[Int, Slogan] with QueryConfig
-  with NoLanguage with InMemoryDAO [Int, Slogan] {
+object SloganFactory extends AbstractTypeFactory[Int, Slogan] with NoLanguage with InMemoryDAO [Int, Slogan] {
 
   private[app] val PK = "id"
 
@@ -32,9 +33,13 @@ object SloganFactory extends AbstractTypeFactory[Int, Slogan] with QueryConfig
     addField(document, SLOGAN_3, dataSet.slogan3)
   }
 
-  private val ba = new BoostAdvisor(9)
+  private val tuner = new SimpleTuner(TunerConfig(9))
 
-  def notifyFeedback(position: Int, clickedAs: Int): Boolean = ba.notifyFeedback(position, clickedAs)
+  private val ba = new BoostAdvisor(tuner, new DefaultGuard(GuardConfig()))
+
+  def notifyFeedback(ip: String, position: Int, clickedAs: Int): Unit = ba.notifyFeedback(ip, position, clickedAs)
+
+  def resetTuning(): Unit = tuner.reset()
 
   override def createQuery(t: Slogan): Query = {
     Seq(

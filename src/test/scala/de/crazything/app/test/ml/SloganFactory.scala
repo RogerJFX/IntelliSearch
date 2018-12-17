@@ -1,11 +1,12 @@
 package de.crazything.app.test.ml
 
 import de.crazything.app.analyze.NoLanguage
-import de.crazything.app.test.ml.guard.{DefaultGuard, GuardConfig}
-import de.crazything.app.test.ml.tuning.{SimpleTuner, TunerConfig}
 import de.crazything.search.AbstractTypeFactory
 import de.crazything.search.CustomQuery._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.ml.BoostAdvisor
+import de.crazything.search.ml.guard.{DefaultGuard, GuardConfig}
+import de.crazything.search.ml.tuning.{SimpleTuner, TunerConfig}
 import de.crazything.search.persistence.InMemoryDAO
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query

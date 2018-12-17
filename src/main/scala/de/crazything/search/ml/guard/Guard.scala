@@ -1,4 +1,4 @@
-package de.crazything.app.test.ml.guard
+package de.crazything.search.ml.guard
 
 trait Guard {
 

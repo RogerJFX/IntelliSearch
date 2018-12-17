@@ -1,7 +1,7 @@
-package de.crazything.app.test.ml
+package de.crazything.search.ml
 
-import de.crazything.app.test.ml.guard.{DefaultGuard, Guard, GuardConfig}
-import de.crazything.app.test.ml.tuning.{Notification, Tuner}
+import de.crazything.search.ml.guard.{DefaultGuard, Guard, GuardConfig}
+import de.crazything.search.ml.tuning.{Notification, Tuner}
 
 class BoostAdvisor(tuner: Tuner, guard: Guard = new DefaultGuard(GuardConfig())) {
 

@@ -1,4 +1,4 @@
-package de.crazything.app.test.ml.tuning
+package de.crazything.search.ml.tuning
 
 import play.api.libs.json.{Json, OFormat}
 

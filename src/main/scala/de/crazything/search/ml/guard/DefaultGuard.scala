@@ -9,10 +9,10 @@ class DefaultGuard(config: GuardConfig) extends Guard {
 
   private val map = new mutable.HashMap[String, UserProtocol]()
 
-  override def search(ip: String, terms: Seq[String]): Unit = {
-    val userProtocol = map.getOrElseUpdate(ip, UserProtocol())
-    userProtocol.lastSearch = terms
-  }
+//  override def search(ip: String, terms: Seq[String]): Unit = {
+//    val userProtocol = map.getOrElseUpdate(ip, UserProtocol())
+//    userProtocol.lastSearch = terms
+//  }
 
   override def pass(ip: String, terms: Seq[String], position: Int, clickedAs: Int): Boolean = {
     if (blacklistedIps.contains(ip) || position > config.maxPosition || clickedAs > config.maxClickedAs) {

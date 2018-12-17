@@ -54,7 +54,7 @@ object SloganFactory extends AbstractTypeFactory[Int, Slogan] with NoLanguage wi
 
       (SLOGAN_3, t.slogan1, ba.boost(6)).wildcard.should,
       (SLOGAN_3, t.slogan2, ba.boost(7)).wildcard.should,
-      (SLOGAN_3, t.slogan3, ba.boost(8)).wildcard.should,
+      (SLOGAN_3, t.slogan3, ba.boost(8)).wildcard.should
     )
   }
 

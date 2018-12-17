@@ -14,6 +14,7 @@ class DefaultGuard(config: GuardConfig) extends Guard {
 //    userProtocol.lastSearch = terms
 //  }
 
+  // TODO: Bullshit method! Must become better. Just make up your dirty mind, sexy MF!
   override def pass(ip: String, terms: Seq[String], position: Int, clickedAs: Int): Boolean = {
     if (blacklistedIps.contains(ip) || position > config.maxPosition || clickedAs > config.maxClickedAs) {
       false

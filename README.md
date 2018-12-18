@@ -12,6 +12,7 @@ History of naming of this project is:
 - Phonetic Search
 - Reliable Search
 - Micro Search
+- IntelliSearch
 
 There is a particular hierarchy here. 
 
@@ -19,6 +20,7 @@ There is a particular hierarchy here.
 - A reliable search only should be reliable after passing some search processes. Filtering, mapping, whatever.
 - Making search processes micro services has its own particular charm. So we can divide Lucene indices up and 
 combine or filter results in the end.
+- We added some very simple machine learning processes. So we decided to call it IntelliSearch
 
 We decided to rename our project to MicroSearch, because we strongly believe even search indices might 
 go to micro services.

@@ -62,4 +62,10 @@ class ComplexTest extends FlatSpec with QueryConfig with NoLanguage with QuickJs
 
   }
 
+  it should "reset properly" in {
+    sloganFactory.resetTuning()
+    val initialSearchResult = search()
+    val initialPosition = findPosition(initialSearchResult)
+    assert(initialPosition == 48)
+  }
 }

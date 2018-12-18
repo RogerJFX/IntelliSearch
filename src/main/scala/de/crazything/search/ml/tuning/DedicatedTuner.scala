@@ -51,7 +51,13 @@ class DedicatedTuner(config: TunerConfig) extends Tuner {
   override def reset(): Unit = {
     oldNotification.set(null)
     for (i <- vector.indices) {
-      vector(i) = config.initialBoost
+      val dedicated = config.dedicated.find(d => d.queryIndex == i)
+      dedicated match {
+        case Some(d) =>
+          vector(i) = d.initialBoost
+        case None =>
+          vector(i) = config.initialBoost
+      }
     }
   }
 }

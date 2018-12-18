@@ -19,6 +19,10 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
 
   private case class Data(data: Seq[T]) {
     private[InMemoryDAO] def findById(id: P): Option[T] = data.find(d => d.getId == id)
+    // Ok, later. This should speed things up.
+//    private[InMemoryDAO] def findByIdBulk(idScores: Seq[(P, Float)]): Seq[T] = {
+//      null
+//    }
   }
 
   // Empty. Never be null, dude.
@@ -27,7 +31,7 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
   // insert or update. OR: init!
   override def setData(data: Seq[T]): Seq[T] = {
     val removedData = extractRemovedData(data)
-    dataRef.set(Data(extractRemainingData(data) ++ data))
+    dataRef.set(Data((extractRemainingData(data) ++ data)/*.sortBy(d => d.getId)*/)) // TODO: DO IT
     removedData
   }
 

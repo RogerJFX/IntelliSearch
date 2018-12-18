@@ -1,0 +1,31 @@
+{
+  "querySize": 9,
+  "threshold": 10,
+  "initialBoost": 10.0,
+  "boostStep": 0.1,
+  "minBoost": 5.0,
+  "maxBoost": 15.0,
+  "dedicated": [
+    {
+      "queryIndex": 3,
+      "initialBoost": 8.0,
+      "boostStep": 0.3,
+      "minBoost": 6.0,
+      "maxBoost": 125.0
+    },
+    {
+      "queryIndex": 4,
+      "initialBoost": 15.0,
+      "boostStep": 0.01,
+      "minBoost": 7.0,
+      "maxBoost": 35.0
+    },
+    {
+      "queryIndex": 8,
+      "initialBoost": 11.0,
+      "boostStep": 1.6,
+      "minBoost": 9.0,
+      "maxBoost": 135.0
+    }
+  ]
+}

@@ -11,7 +11,7 @@ object MockingPersonFactory extends AbstractTypeFactory[Int, Person] with NoLang
 
   import de.crazything.search.CustomQuery._
 
-  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = PersonFactoryDE.createInstanceFromDocument(doc)
+  override def createInstanceFromDocument(doc: Document): Option[Person] = PersonFactoryDE.createInstanceFromDocument(doc)
 
   override def putData(data: Seq[Person]): Seq[Person] = {
     throw new Exception("Foo")

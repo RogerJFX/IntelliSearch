@@ -37,7 +37,7 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
   }
 
   // select
-  override def findById(id: P): Option[PkDataSet[P]] = {
+  override def findById(id: P): Option[T] = {
     dataRef.get().findById(id)
   }
 

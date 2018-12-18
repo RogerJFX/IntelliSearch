@@ -6,12 +6,12 @@ import de.crazything.search.CustomQuery._
 import de.crazything.search.entity.{PkDataSet, QueryCriteria}
 import de.crazything.search.ml.BoostAdvisor
 import de.crazything.search.ml.guard.{DefaultGuard, GuardConfig}
-import de.crazything.search.ml.tuning.{SimpleTuner, TunerConfig}
+import de.crazything.search.ml.tuning.{SimpleTuner, Tuner, TunerConfig}
 import de.crazything.search.persistence.InMemoryDAO
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
 
-object SloganFactory extends AbstractTypeFactory[Int, Slogan] with NoLanguage with InMemoryDAO [Int, Slogan] {
+class SloganFactory(tuner: Tuner) extends AbstractTypeFactory[Int, Slogan] with NoLanguage with InMemoryDAO [Int, Slogan] {
 
   private[app] val PK = "id"
 
@@ -21,7 +21,7 @@ object SloganFactory extends AbstractTypeFactory[Int, Slogan] with NoLanguage wi
   private[app] val SLOGAN_2 = "slogan2"
   private[app] val SLOGAN_3 = "slogan3"
 
-  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = findById(doc.get(PK).toInt)
+  override def createInstanceFromDocument(doc: Document): Option[Slogan] = findById(doc.get(PK).toInt)
 
   override def putData(data: Seq[Slogan]): Seq[Slogan] = setData(data)
 
@@ -34,7 +34,7 @@ object SloganFactory extends AbstractTypeFactory[Int, Slogan] with NoLanguage wi
     addField(document, SLOGAN_3, dataSet.slogan3)
   }
 
-  private val tuner = new SimpleTuner(TunerConfig(9))
+  // private val tuner = new SimpleTuner(tunerConfig)
 
   private val ba = new BoostAdvisor(tuner, new DefaultGuard(GuardConfig()))
 

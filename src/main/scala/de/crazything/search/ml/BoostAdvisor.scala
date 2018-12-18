@@ -1,7 +1,7 @@
 package de.crazything.search.ml
 
 import de.crazything.search.ml.guard.{DefaultGuard, Guard, GuardConfig}
-import de.crazything.search.ml.tuning.{Notification, Tuner}
+import de.crazything.search.ml.tuning.Tuner
 
 class BoostAdvisor(tuner: Tuner, guard: Guard = new DefaultGuard(GuardConfig())) {
 
@@ -11,7 +11,7 @@ class BoostAdvisor(tuner: Tuner, guard: Guard = new DefaultGuard(GuardConfig()))
     if (guard.pass(ip, Seq(), position, clickedAs)) {
       val delta = Math.abs(position - clickedAs)
       if (delta > threshold) {
-        tuner.tune(Notification(Seq(), delta, tuner.vector.clone()))
+        tuner.tune(Seq(), delta)
       }
     }
   }

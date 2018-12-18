@@ -19,7 +19,7 @@ object EmbeddedRestServer {
         "For running in production mode consider setting up some module using the play framework.",
       pServerConfig.mode.toString)
 
-    val components =
+    val components: NettyServerComponents with BuiltInComponents with NoHttpFiltersComponents =
       new NettyServerComponents with BuiltInComponents  with NoHttpFiltersComponents {
         override lazy val serverConfig: ServerConfig = pServerConfig
         override lazy val router: Router = pRouter

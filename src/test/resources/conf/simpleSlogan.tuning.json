@@ -1,0 +1,9 @@
+{
+  "querySize": 9,
+  "threshold": 10,
+  "initialBoost": 10.0,
+  "boostStep": 0.1,
+  "minBoost": 5.0,
+  "maxBoost": 15.0,
+  "dedicated": []
+}

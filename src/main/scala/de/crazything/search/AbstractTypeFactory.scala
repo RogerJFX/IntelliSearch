@@ -27,7 +27,7 @@ abstract class AbstractTypeFactory[I, T <: PkDataSet[I]] extends QueryConfig wit
     document.add(new Field(fieldName, value, StringField.TYPE_STORED))
   }
 
-  def createInstanceFromDocument(doc: Document): Option[PkDataSet[I]]
+  def createInstanceFromDocument(doc: Document): Option[T]
 
   def putData(data: Seq[T]): Seq[T]
 

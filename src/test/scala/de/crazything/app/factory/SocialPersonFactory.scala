@@ -15,7 +15,7 @@ class SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Qu
 
   import SocialPersonFactory.{createQuery => createQueryS, getPkFieldnameAsString => getPkFieldnameAsStringS, populateDocument => populateDocumentS, selectQueryCreator => selectQueryCreatorS}
 
-  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
+  override def createInstanceFromDocument(doc: Document): Option[SocialPerson] = {
     findById(doc.get(SocialPersonFactory.PK).toInt)
   }
 
@@ -48,7 +48,7 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
 
   val customQuery_FirstAndLastName = "customQuery_FirstAndLastName"
 
-  override def createInstanceFromDocument(doc: Document): Option[PkDataSet[Int]] = {
+  override def createInstanceFromDocument(doc: Document): Option[SocialPerson] = {
     findById(doc.get(PK).toInt)
   }
 

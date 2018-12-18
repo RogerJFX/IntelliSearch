@@ -2,8 +2,6 @@ package de.crazything.search.ml.tuning
 
 trait Tuner {
 
-  protected
-
   def tune(terms: Seq[String], delta: Int): Unit
 
   protected val vector: Array[Float]

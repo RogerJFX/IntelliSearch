@@ -31,7 +31,7 @@ trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
   // insert or update. OR: init!
   override def setData(data: Seq[T]): Seq[T] = {
     val removedData = extractRemovedData(data)
-    dataRef.set(Data((extractRemainingData(data) ++ data)/*.sortBy(d => d.getId)*/)) // TODO: DO IT
+    dataRef.set(Data(extractRemainingData(data) ++ data/*.sortBy(d => d.getId)*/)) // TODO: DO IT
     removedData
   }
 

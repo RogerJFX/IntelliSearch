@@ -18,7 +18,8 @@ import de.crazything.search.entity.PkDataSet
 trait InMemoryDAO[P, T <: PkDataSet[P]] extends IPersistence[P, T] {
 
   private case class Data(data: Seq[T]) {
-    private[InMemoryDAO] def findById(id: P): Option[T] = data.find(d => d.getId == id)
+    private val map: Map[P, T] = data.map(d => d.getId -> d)(collection.breakOut)
+    private[InMemoryDAO] def findById(id: P): Option[T] = map.get(id)
   }
 
   // Empty. Never be null, dude.

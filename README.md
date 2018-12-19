@@ -1,8 +1,8 @@
 IntelliSearch
 -
 
-[![Build Status](https://travis-ci.com/RogerJFX/IntelliSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/MicroSearch)
-[![Coverage Status](https://codecov.io/gh/rogerjfx/intellisearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/MicroSearch)
+[![Build Status](https://travis-ci.com/RogerJFX/IntelliSearch.svg?branch=master)](https://travis-ci.com/RogerJFX/IntelliSearch)
+[![Coverage Status](https://codecov.io/gh/rogerjfx/intellisearch/branch/master/graph/badge.svg)](https://codecov.io/gh/RogerJFX/IntelliSearch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Another attempt to make search results most reliable.**

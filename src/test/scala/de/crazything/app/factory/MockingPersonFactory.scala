@@ -3,7 +3,7 @@ package de.crazything.app.factory
 import de.crazything.app.analyze.NoLanguage
 import de.crazything.app.entity.Person
 import de.crazything.search.AbstractTypeFactory
-import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.entity.QueryCriteria
 import org.apache.lucene.document.Document
 import org.apache.lucene.search.Query
 
@@ -57,7 +57,7 @@ object MockingPersonFactory extends AbstractTypeFactory[Int, Person] with NoLang
     * @param id Id of data set.
     * @return Found data set.
     */
-  override def findById(id: Int): Option[PkDataSet[Int]] = PersonFactoryDE.findById(id)
+  override def findById(id: Int): Option[Person] = PersonFactoryDE.findById(id)
 
 
 

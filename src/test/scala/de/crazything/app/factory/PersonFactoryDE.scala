@@ -2,7 +2,7 @@ package de.crazything.app.factory
 
 import de.crazything.app.entity.Person
 import de.crazything.search._
-import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.entity.QueryCriteria
 import de.crazything.search.persistence.InMemoryDAO
 import org.apache.lucene.document._
 import org.apache.lucene.search._

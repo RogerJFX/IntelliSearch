@@ -30,6 +30,7 @@ object FilteringSearcher extends AbstractFilteringSearcher with SimpleFiltering 
     * @param searcherOption Another index as default to search? Ok then. Might even be a String due to implicits.
     * @param queryCriteria Local criteria
     * @param maxHits Local max hits.
+    * @param offset Offset of search results.
     * @param filterFn The filtering function to pass.
     * @param secondLevelTimeout remote timeout
     * @tparam I Type of primary key of type T
@@ -42,10 +43,11 @@ object FilteringSearcher extends AbstractFilteringSearcher with SimpleFiltering 
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-   filterFn: (SearchResult[I, T]) => Future[Boolean],
+   offset: Int = 0,
+   filterFn: SearchResult[I, T] => Future[Boolean],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, offset, searcherOption)
     processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
@@ -64,7 +66,7 @@ object FilteringSearcher extends AbstractFilteringSearcher with SimpleFiltering 
     */
   def searchFuture[I, T <: PkDataSet[I]]
   (initialFuture: Future[Seq[SearchResult[I, T]]],
-   filterFn: (SearchResult[I, T]) => Future[Boolean],
+   filterFn: SearchResult[I, T] => Future[Boolean],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
   (implicit fmt: OFormat[T]): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
@@ -89,7 +91,7 @@ object FilteringSearcher extends AbstractFilteringSearcher with SimpleFiltering 
   (input: T,
    url: String,
    firstLevelTimeout: FiniteDuration = MAGIC_ONE_DAY,
-   filterFn: (SearchResult[I, T]) => Future[Boolean],
+   filterFn: SearchResult[I, T] => Future[Boolean],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
   (implicit fmt: OFormat[T]): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): Filter[I, T] = new FilterAsyncFuture(res, filterFn)
@@ -122,14 +124,14 @@ object FilteringSearcher extends AbstractFilteringSearcher with SimpleFiltering 
       }
     }
 
-    protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: (Int) => Unit): Future[Seq[SearchResult[I, T]]] = {
+    protected def doCreateFuture(raw: Seq[SearchResult[I, T]], body: Int => Unit): Future[Seq[SearchResult[I, T]]] = {
       body(raw.length)
       promise.future
     }
   }
 
   private class FilterAsyncFuture[I, T <: PkDataSet[I]](raw: Seq[SearchResult[I, T]],
-                                                        filterFn: (SearchResult[I, T]) => Future[Boolean])
+                                                        filterFn: SearchResult[I, T] => Future[Boolean])
     extends Filter[I, T] {
     override def createFuture(): Future[Seq[SearchResult[I, T]]] = {
       doCreateFuture(raw, (len: Int) => {

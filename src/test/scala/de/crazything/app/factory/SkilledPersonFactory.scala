@@ -3,7 +3,7 @@ package de.crazything.app.factory
 import de.crazything.app.analyze.NoLanguage
 import de.crazything.app.entity.SkilledPerson
 import de.crazything.search.CustomQuery._
-import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.entity.QueryCriteria
 import de.crazything.search.persistence.InMemoryDAO
 import de.crazything.search.{AbstractTypeFactory, QueryConfig}
 import org.apache.lucene.document.Document

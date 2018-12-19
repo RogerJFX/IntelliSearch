@@ -4,7 +4,7 @@ import de.crazything.app.analyze.{GermanLanguage, GermanRegexReplace}
 import de.crazything.app.entity.SocialPerson
 import de.crazything.search.CustomQuery.{data2Query, seq2Query}
 import de.crazything.search._
-import de.crazything.search.entity.{PkDataSet, QueryCriteria}
+import de.crazything.search.entity.QueryCriteria
 import de.crazything.search.persistence.InMemoryDAO
 import org.apache.lucene.document._
 import org.apache.lucene.search._

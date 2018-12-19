@@ -32,19 +32,20 @@ object MappingSearcher extends AbstractMappingSearcher with MagicSettings {
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-   mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+   offset: Int = 0,
+   mapperFn: SearchResult[I1, T1] => Future[Seq[SearchResult[I2, T2]]],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Mapper[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
 
     val searchResult: Future[Seq[SearchResult[I1, T1]]] =
-      CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
+      CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, offset, searcherOption)
     processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 
   def searchFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (initialFuture: Future[Seq[SearchResult[I1, T1]]],
-   mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+   mapperFn: SearchResult[I1, T1] => Future[Seq[SearchResult[I2, T2]]],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
     def secondLevelClass(res: Seq[SearchResult[I1, T1]]): Mapper[I1, I2, T1, T2] = new MapperAsyncFuture(res, mapperFn)
@@ -56,7 +57,7 @@ object MappingSearcher extends AbstractMappingSearcher with MagicSettings {
   (input: T1,
    url: String,
    firstLevelTimeout: FiniteDuration = MAGIC_ONE_DAY,
-   mapperFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]],
+   mapperFn: SearchResult[I1, T1] => Future[Seq[SearchResult[I2, T2]]],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY)
   (implicit fmt: OFormat[T1])
   : Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
@@ -91,7 +92,7 @@ object MappingSearcher extends AbstractMappingSearcher with MagicSettings {
     }
 
     protected def doCreateFuture(raw: Seq[SearchResult[I1, T1]],
-                                 body: (Int) => Unit): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
+                                 body: Int => Unit): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
       body(raw.length)
       promise.future
     }
@@ -99,7 +100,7 @@ object MappingSearcher extends AbstractMappingSearcher with MagicSettings {
 
   private class MapperAsyncFuture[I1, I2, T1 <: PkDataSet[I1], T2 <: PkDataSet[I2]]
   (raw: Seq[SearchResult[I1, T1]],
-   mappingFn: (SearchResult[I1, T1]) => Future[Seq[SearchResult[I2, T2]]])
+   mappingFn: SearchResult[I1, T1] => Future[Seq[SearchResult[I2, T2]]])
     extends Mapper[I1, I2, T1, T2] {
     override def createFuture(): Future[Seq[MappedResults[I1, I2, T1, T2]]] = {
       doCreateFuture(raw, (len: Int) => {

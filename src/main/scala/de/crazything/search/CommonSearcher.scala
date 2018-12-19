@@ -16,6 +16,7 @@ object CommonSearcher extends MagicSettings{
                                    factory: AbstractTypeFactory[I, T],
                                    queryCriteria: Option[QueryCriteria] = None,
                                    maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                   offset: Int = 0,
                                    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher): Seq[SearchResult[I, T]] = {
     searcherOption match {
       case Some(searcher) =>
@@ -25,14 +26,14 @@ object CommonSearcher extends MagicSettings{
             case Some(qeOpt) => factory.selectQueryCreator(qeOpt, input)
           }
 
-        val hits: Array[ScoreDoc] = searcher.search(query, maxHits).scoreDocs
+        val hits: Array[ScoreDoc] = searcher.search(query, maxHits + offset).scoreDocs
 
         val buffer = ListBuffer[SearchResult[I, T]]()
 
-        hits.foreach(hit => {
-          val hitOpt: Option[PkDataSet[I]] = factory.createInstanceFromDocument(searcher.doc(hit.doc))
+        hits.drop(offset).foreach(hit => {
+          val hitOpt: Option[T] = factory.createInstanceFromDocument(searcher.doc(hit.doc))
           hitOpt match {
-            case Some(entry) => buffer.append(SearchResult[I, T](entry.asInstanceOf[T], hit.score))
+            case Some(entry: T) => buffer.append(SearchResult(entry, hit.score))
             case _ =>
           }
         })
@@ -49,9 +50,10 @@ object CommonSearcher extends MagicSettings{
                                         factory: AbstractTypeFactory[I, T],
                                         queryCriteria: Option[QueryCriteria] = None,
                                         maxHits: Int = MAGIC_NUM_DEFAULT_HITS,
+                                        offset: Int = 0,
                                         searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher)
                                        (implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = Future {
-    search(input, factory, queryCriteria, maxHits, searcherOption)
+    search(input, factory, queryCriteria, maxHits, offset, searcherOption)
   }
 
   def searchRemote[I, T <: PkDataSet[I]](input: T,

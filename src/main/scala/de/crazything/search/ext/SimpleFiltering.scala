@@ -28,8 +28,9 @@ trait SimpleFiltering {
                                          searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                          queryCriteria: Option[QueryCriteria] = None,
                                          maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-                                         filterFn: (SearchResult[I, T]) => Boolean): Seq[SearchResult[I, T]] = {
-    val searchResult: Seq[SearchResult[I, T]] = CommonSearcher.search(input, factory, queryCriteria, maxHits, searcherOption)
+                                         offset: Int = 0,
+                                         filterFn: SearchResult[I, T] => Boolean): Seq[SearchResult[I, T]] = {
+    val searchResult: Seq[SearchResult[I, T]] = CommonSearcher.search(input, factory, queryCriteria, maxHits, offset, searcherOption)
     searchResult.filter((sr: SearchResult[I, T]) => filterFn(sr))
   }
   /**
@@ -50,8 +51,9 @@ trait SimpleFiltering {
                                               searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
                                               queryCriteria: Option[QueryCriteria] = None,
                                               maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
-                                              filterFn: (SearchResult[I, T]) => Boolean)(implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
+                                              offset: Int = 0,
+                                              filterFn: SearchResult[I, T] => Boolean)(implicit ec: ExecutionContext): Future[Seq[SearchResult[I, T]]] = {
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, offset, searcherOption)
     val promise: Promise[Seq[SearchResult[I, T]]] = Promise[Seq[SearchResult[I, T]]]
     searchResult.onComplete {
       case Success(res) =>

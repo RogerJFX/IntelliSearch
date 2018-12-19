@@ -18,10 +18,11 @@ object FilteringSearcherBulk extends AbstractFilteringSearcher with MagicSetting
    searcherOption: Option[IndexSearcher] = DirectoryContainer.defaultSearcher,
    queryCriteria: Option[QueryCriteria] = None,
    maxHits: Int = MAGIC_NUM_DEFAULT_HITS_FILTERED,
+   offset: Int = 0,
    filterFn: (Seq[SearchResult[I, T]]) => Future[Seq[Boolean]],
    secondLevelTimeout: FiniteDuration = MAGIC_ONE_DAY): Future[Seq[SearchResult[I, T]]] = {
     def secondLevelClass(res: Seq[SearchResult[I, T]]): FilterMaster[I, T] = new FilterAsyncFutureBulk(res, filterFn)
-    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, searcherOption)
+    val searchResult: Future[Seq[SearchResult[I, T]]] = CommonSearcher.searchAsync(input, factory, queryCriteria, maxHits, offset, searcherOption)
     processFirstLevel(searchResult, secondLevelClass, secondLevelTimeout)
   }
 

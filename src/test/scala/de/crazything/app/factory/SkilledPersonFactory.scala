@@ -73,5 +73,5 @@ object SkilledPersonFactory extends AbstractTypeFactory[Int, SkilledPerson] with
 
   override def selectQueryCreator: (QueryCriteria, SkilledPerson) => Query = (_, person) => createQuery(person)
 
-  override def getPkFieldnameAsString(): String = PK
+  override val getPkFieldnameAsString: String = PK
 }

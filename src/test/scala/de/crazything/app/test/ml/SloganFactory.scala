@@ -60,5 +60,5 @@ class SloganFactory(tuner: Tuner) extends AbstractTypeFactory[Int, Slogan] with 
 
   override def selectQueryCreator: (QueryCriteria, Slogan) => Query = (_, slogan) => createQuery(slogan)
 
-  override def getPkFieldnameAsString: String = PK
+  override val getPkFieldnameAsString: String = PK
 }

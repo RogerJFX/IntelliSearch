@@ -47,7 +47,6 @@ object MockingPersonFactory extends AbstractTypeFactory[Int, Person] with NoLang
     * @param data The data.
     */
   override def setData(data: Seq[Person]): Seq[Person] = {
-    println("Arsch")
     PersonFactoryDE.setData(data)
   }
 
@@ -61,6 +60,6 @@ object MockingPersonFactory extends AbstractTypeFactory[Int, Person] with NoLang
 
 
 
-  override def getPkFieldnameAsString(): String = "id"
+  override val getPkFieldnameAsString: String = "id"
 }
 

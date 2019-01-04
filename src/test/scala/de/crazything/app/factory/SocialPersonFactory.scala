@@ -94,5 +94,5 @@ object SocialPersonFactory extends AbstractTypeFactory[Int, SocialPerson] with Q
 
   }
 
-  override val getPkFieldnameAsString: String = PK
+  override def getPkFieldnameAsString(): String = PK
 }

@@ -82,5 +82,5 @@ object PersonFactoryDE extends AbstractTypeFactory[Int, Person] with PersonFacto
 
   }
 
-  override val getPkFieldnameAsString: String = PK
+  override def getPkFieldnameAsString(): String = PK
 }
